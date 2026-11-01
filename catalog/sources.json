@@ -1,0 +1,281 @@
+{
+  "notes": "Each entry was fetched live on verifiedAt and returned at least one Israeli listing. Keep synthetic companies in tests only.",
+  "sources": [
+    {
+      "company": "Payoneer",
+      "industry": "fintech",
+      "provider": "greenhouse",
+      "providerKey": "payoneer",
+      "careerUrl": "https://careers.payoneer.com/",
+      "countryCoverage": [
+        "IL"
+      ],
+      "enabled": true,
+      "verifiedAt": "2026-11-01T00:00:00Z",
+      "verificationSourceUrl": "https://boards-api.greenhouse.io/v1/boards/payoneer/jobs"
+    },
+    {
+      "company": "NICE",
+      "industry": "enterprise software",
+      "provider": "greenhouse",
+      "providerKey": "nice",
+      "careerUrl": "https://www.nice.com/careers/apply",
+      "countryCoverage": [
+        "IL"
+      ],
+      "enabled": true,
+      "verifiedAt": "2026-11-01T00:00:00Z",
+      "verificationSourceUrl": "https://boards-api.greenhouse.io/v1/boards/nice/jobs"
+    },
+    {
+      "company": "Riskified",
+      "industry": "fintech",
+      "provider": "greenhouse",
+      "providerKey": "riskified",
+      "careerUrl": "https://www.riskified.com/careers/",
+      "countryCoverage": [
+        "IL"
+      ],
+      "enabled": true,
+      "verifiedAt": "2026-11-01T00:00:00Z",
+      "verificationSourceUrl": "https://boards-api.greenhouse.io/v1/boards/riskified/jobs"
+    },
+    {
+      "company": "Taboola",
+      "industry": "technology",
+      "provider": "greenhouse",
+      "providerKey": "taboola",
+      "careerUrl": "https://www.taboola.com/careers",
+      "countryCoverage": [
+        "IL"
+      ],
+      "enabled": true,
+      "verifiedAt": "2026-11-01T00:00:00Z",
+      "verificationSourceUrl": "https://boards-api.greenhouse.io/v1/boards/taboola/jobs"
+    },
+    {
+      "company": "Similarweb",
+      "industry": "technology",
+      "provider": "greenhouse",
+      "providerKey": "similarweb",
+      "careerUrl": "https://job-boards.greenhouse.io/similarweb",
+      "countryCoverage": [
+        "IL"
+      ],
+      "enabled": true,
+      "verifiedAt": "2026-11-01T00:00:00Z",
+      "verificationSourceUrl": "https://boards-api.greenhouse.io/v1/boards/similarweb/jobs"
+    },
+    {
+      "company": "JFrog",
+      "industry": "enterprise software",
+      "provider": "greenhouse",
+      "providerKey": "jfrog",
+      "careerUrl": "https://join.jfrog.com/",
+      "countryCoverage": [
+        "IL"
+      ],
+      "enabled": true,
+      "verifiedAt": "2026-11-01T00:00:00Z",
+      "verificationSourceUrl": "https://boards-api.greenhouse.io/v1/boards/jfrog/jobs"
+    },
+    {
+      "company": "AppsFlyer",
+      "industry": "technology",
+      "provider": "greenhouse",
+      "providerKey": "appsflyer",
+      "careerUrl": "https://careers.appsflyer.com/",
+      "countryCoverage": [
+        "IL"
+      ],
+      "enabled": true,
+      "verifiedAt": "2026-11-01T00:00:00Z",
+      "verificationSourceUrl": "https://boards-api.greenhouse.io/v1/boards/appsflyer/jobs"
+    },
+    {
+      "company": "Forter",
+      "industry": "fintech",
+      "provider": "greenhouse",
+      "providerKey": "forter",
+      "careerUrl": "https://job-boards.greenhouse.io/forter",
+      "countryCoverage": [
+        "IL"
+      ],
+      "enabled": true,
+      "verifiedAt": "2026-11-01T00:00:00Z",
+      "verificationSourceUrl": "https://boards-api.greenhouse.io/v1/boards/forter/jobs"
+    },
+    {
+      "company": "Cato Networks",
+      "industry": "enterprise software",
+      "provider": "greenhouse",
+      "providerKey": "catonetworks",
+      "careerUrl": "https://www.catonetworks.com/careers/",
+      "countryCoverage": [
+        "IL"
+      ],
+      "enabled": true,
+      "verifiedAt": "2026-11-01T00:00:00Z",
+      "verificationSourceUrl": "https://boards-api.greenhouse.io/v1/boards/catonetworks/jobs"
+    },
+    {
+      "company": "Axonius",
+      "industry": "enterprise software",
+      "provider": "greenhouse",
+      "providerKey": "axonius",
+      "careerUrl": "https://www.axonius.com/company/careers/open-jobs",
+      "countryCoverage": [
+        "IL"
+      ],
+      "enabled": true,
+      "verifiedAt": "2026-11-01T00:00:00Z",
+      "verificationSourceUrl": "https://boards-api.greenhouse.io/v1/boards/axonius/jobs"
+    },
+    {
+      "company": "Orca Security",
+      "industry": "enterprise software",
+      "provider": "greenhouse",
+      "providerKey": "orcasecurity",
+      "careerUrl": "https://orca.security/about/careers/",
+      "countryCoverage": [
+        "IL"
+      ],
+      "enabled": true,
+      "verifiedAt": "2026-11-01T00:00:00Z",
+      "verificationSourceUrl": "https://boards-api.greenhouse.io/v1/boards/orcasecurity/jobs"
+    },
+    {
+      "company": "Nanit",
+      "industry": "technology",
+      "provider": "greenhouse",
+      "providerKey": "nanit",
+      "careerUrl": "https://www.nanit.com/pages/careers",
+      "countryCoverage": [
+        "IL"
+      ],
+      "enabled": true,
+      "verifiedAt": "2026-11-01T00:00:00Z",
+      "verificationSourceUrl": "https://boards-api.greenhouse.io/v1/boards/nanit/jobs"
+    },
+    {
+      "company": "Via",
+      "industry": "technology",
+      "provider": "greenhouse",
+      "providerKey": "via",
+      "careerUrl": "https://job-boards.greenhouse.io/via",
+      "countryCoverage": [
+        "IL",
+        "GLOBAL"
+      ],
+      "enabled": true,
+      "verifiedAt": "2026-11-01T00:00:00Z",
+      "verificationSourceUrl": "https://boards-api.greenhouse.io/v1/boards/via/jobs"
+    },
+    {
+      "company": "Yotpo",
+      "industry": "technology",
+      "provider": "greenhouse",
+      "providerKey": "yotpo",
+      "careerUrl": "https://www.yotpo.com/careers/",
+      "countryCoverage": [
+        "IL"
+      ],
+      "enabled": true,
+      "verifiedAt": "2026-11-01T00:00:00Z",
+      "verificationSourceUrl": "https://boards-api.greenhouse.io/v1/boards/yotpo/jobs"
+    },
+    {
+      "company": "Torq",
+      "industry": "enterprise software",
+      "provider": "greenhouse",
+      "providerKey": "torq",
+      "careerUrl": "https://job-boards.greenhouse.io/torq",
+      "countryCoverage": [
+        "IL"
+      ],
+      "enabled": true,
+      "verifiedAt": "2026-11-01T00:00:00Z",
+      "verificationSourceUrl": "https://boards-api.greenhouse.io/v1/boards/torq/jobs"
+    },
+    {
+      "company": "Cymulate",
+      "industry": "enterprise software",
+      "provider": "greenhouse",
+      "providerKey": "cymulate",
+      "careerUrl": "https://job-boards.greenhouse.io/cymulate",
+      "countryCoverage": [
+        "IL"
+      ],
+      "enabled": true,
+      "verifiedAt": "2026-11-01T00:00:00Z",
+      "verificationSourceUrl": "https://boards-api.greenhouse.io/v1/boards/cymulate/jobs"
+    },
+    {
+      "company": "Optimove",
+      "industry": "technology",
+      "provider": "greenhouse",
+      "providerKey": "optimove",
+      "careerUrl": "https://job-boards.greenhouse.io/optimove",
+      "countryCoverage": [
+        "IL"
+      ],
+      "enabled": true,
+      "verifiedAt": "2026-11-01T00:00:00Z",
+      "verificationSourceUrl": "https://boards-api.greenhouse.io/v1/boards/optimove/jobs"
+    },
+    {
+      "company": "Zscaler",
+      "industry": "enterprise software",
+      "provider": "greenhouse",
+      "providerKey": "zscaler",
+      "careerUrl": "https://job-boards.greenhouse.io/zscaler",
+      "countryCoverage": [
+        "IL",
+        "GLOBAL"
+      ],
+      "enabled": true,
+      "verifiedAt": "2026-11-01T00:00:00Z",
+      "verificationSourceUrl": "https://boards-api.greenhouse.io/v1/boards/zscaler/jobs"
+    },
+    {
+      "company": "Datadog",
+      "industry": "technology",
+      "provider": "greenhouse",
+      "providerKey": "datadog",
+      "careerUrl": "https://careers.datadoghq.com/",
+      "countryCoverage": [
+        "IL",
+        "GLOBAL"
+      ],
+      "enabled": true,
+      "verifiedAt": "2026-11-01T00:00:00Z",
+      "verificationSourceUrl": "https://boards-api.greenhouse.io/v1/boards/datadog/jobs"
+    },
+    {
+      "company": "Cloudinary",
+      "industry": "technology",
+      "provider": "lever",
+      "providerKey": "cloudinary",
+      "careerUrl": "https://jobs.lever.co/cloudinary",
+      "countryCoverage": [
+        "IL"
+      ],
+      "enabled": true,
+      "verifiedAt": "2026-11-01T00:00:00Z",
+      "verificationSourceUrl": "https://api.lever.co/v0/postings/cloudinary?mode=json"
+    },
+    {
+      "company": "WalkMe",
+      "industry": "enterprise software",
+      "provider": "lever",
+      "providerKey": "walkme",
+      "careerUrl": "https://jobs.lever.co/walkme",
+      "countryCoverage": [
+        "IL"
+      ],
+      "enabled": true,
+      "verifiedAt": "2026-11-01T00:00:00Z",
+      "verificationSourceUrl": "https://api.lever.co/v0/postings/walkme?mode=json"
+    }
+  ]
+}
