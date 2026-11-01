@@ -34,7 +34,7 @@ Plan section 21. "Blocked" means it needs an operator account or action. A mocke
 | 8 | Telegram delivery, outbox retry and ambiguity | Yes | Yes | **Blocked: no bot** | Blocked |
 | 9 | Scheduled and manual workflows, bounded maintenance | Yes | Yes | Shared pipeline passed in smoke. Schedules **blocked: need `master` and secrets** | Blocked |
 | 10 | Owner-only dashboard | Yes | Yes, E2E with signed test sessions | **Blocked: no OAuth app** | Blocked |
-| 11 | Automated tests pass, setup reproducible | Yes | 383 + 26 pass | CI green. Compose built on a runner | n/a |
+| 11 | Automated tests pass, setup reproducible | Yes | 383 + 26 pass | CI green. Compose built on a runner, and run locally with Ollama from a fresh clone | n/a |
 | 12 | No always-on PC, self-hosted runner, VPS or paid AI API | Yes | n/a | Holds by construction | Blocked |
 
 ## Blocked checks
@@ -46,7 +46,6 @@ Plan section 21. "Blocked" means it needs an operator account or action. A mocke
 | Real GitHub sign-in | An OAuth app |
 | Vercel deployment | A Vercel project |
 | Scheduled runs | Merge to `master`, secrets, `PRODUCTION_ENABLED` |
-| Local Ollama through Compose | A running Docker engine and Compose. This machine has the Docker CLI (Homebrew 29.9.2) but no engine or Compose plugin |
 | Actual Actions spend | Billing page, or a `gh` token with the `user` scope |
 | Evaluation labels | A person to review them |
 

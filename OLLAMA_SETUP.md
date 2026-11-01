@@ -75,7 +75,7 @@ ollama pull qwen2.5:3b
 npm run worker -- match --trigger manual
 ```
 
-With Compose, see the local model section of `README.md`. A local run is useful for development, but it shows nothing about hosted performance. The local GPU run did not show the Hebrew cut-offs found on hosted runners.
+With Compose, see the local model section of `README.md`. Give the Docker VM at least 4 GB of memory: Ollama held 2.8 GiB after 8 jobs. A local run is useful for development, but it shows nothing about hosted performance. The local GPU run did not show the Hebrew cut-offs found on hosted runners.
 
 ## Benchmarking
 

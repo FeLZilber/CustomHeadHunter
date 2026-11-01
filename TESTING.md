@@ -94,6 +94,23 @@ Shipped defaults, 10 synthetic samples (2 at the input limit), one pass, one job
 
 All 20 attempts returned valid output, with no truncation and no timeouts. The longest answer used 845 of 1000 output tokens. Two jobs on two runners show a range and nothing more. `COSTS.md` lists every run, including the earlier failures that set these limits.
 
+### Local Compose, 2026-11-01, commit 34eb154, Docker Desktop on Apple M2 Pro
+
+The `README.md` steps in a fresh clone with `.env` copied from `.env.example`, against real boards, with the `ollama` profile. The Docker VM had 12 vCPU and 8 GB of memory. Throwaway OAuth values were used, so sign-in itself was not exercised.
+
+| Step | Result |
+| --- | --- |
+| `migrate` twice, `seed` | Passed |
+| `crawl` | 7.1 s, 274 active jobs |
+| `evaluate` | 11 eligible, 263 rejected, 11 queued |
+| Dashboard | `/denied` answered, `/` redirected to sign-in |
+| Ollama | No port published. `ollama list` showed the locked `357c53fb659c`, and `match` verified the full digest |
+| `match` | 8 of 8 scored, 0 failures, 0 validation retries, 4 truncated inputs, 467.5 s. It stopped at the job cap with 3 pending |
+| `notify --dry-run` | Nothing to send. The top score was 70, below the default threshold of 75 |
+| `health` | Fresh, 0 exhausted, 8 AI minutes this month |
+
+The first job took 254 s and the other seven 23 to 39 s, cause not established. Ollama held 2.8 GiB after the run. This is one run on one machine, and it says nothing about hosted speed.
+
 ## Evaluation set
 
 `benchmarks/eval/dataset.json` holds 20 **synthetic** examples with **machine-proposed labels**. **No person has reviewed them.** Results measure agreement with a draft, not quality. Human calibration is outstanding, and precision and recall are not reported for that reason.
@@ -116,5 +133,4 @@ An injection example embedded in a posting scored 55 locally and 25 on hosted ru
 | Neon, including its connection pooler | No project exists. Tests use plain Postgres 18 |
 | Vercel deployment | No project exists. The production build runs locally and in CI |
 | Scheduled workflow runs | They need `master`, secrets and `PRODUCTION_ENABLED` |
-| Local Ollama through Compose | Compose config is checked. The profile has not been run |
 | Human review of the evaluation labels | Needs a person |
