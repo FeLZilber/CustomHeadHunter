@@ -1,0 +1,25 @@
+node_modules/
+.next/
+out/
+dist/
+coverage/
+*.tsbuildinfo
+next-env.d.ts
+
+# secrets and local state
+.env
+.env.*
+!.env.example
+.test-postgres/
+.ollama-models/
+
+# test output
+test-results/
+playwright-report/
+
+# benchmark scratch output (curated results live in benchmarks/results/)
+benchmarks/out/
+
+# operator's source brief, kept local
+Personal_Job_Hunter_Claude_Prompt.txt
+.DS_Store

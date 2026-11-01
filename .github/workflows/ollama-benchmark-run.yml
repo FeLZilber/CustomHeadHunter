@@ -1,0 +1,73 @@
+name: ollama-benchmark-run
+
+on:
+  workflow_call:
+    inputs:
+      phase:
+        type: string
+        required: true
+      key-suffix:
+        type: string
+        required: true
+      passes:
+        type: number
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  benchmark:
+    name: ${{ inputs.phase }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - name: Record runner facts
+        run: |
+          mkdir -p benchmarks/out
+          {
+            echo "image: $ImageOS $ImageVersion"
+            lscpu | grep -E '^(Model name|CPU\(s\)|Thread|Core)'
+            free -m
+            df -h /
+            docker version --format '{{.Server.Version}}'
+          } | tee benchmarks/out/runner.txt
+      - id: ollama
+        uses: ./.github/actions/ollama-start
+        with:
+          key-suffix: ${{ inputs.key-suffix }}
+      - name: Benchmark
+        run: >-
+          npx tsx benchmarks/ollama/run.ts
+          --label hosted-ubuntu-24.04-${{ inputs.phase }}
+          --passes ${{ inputs.passes }}
+          --time-budget-seconds 1200
+          --docker-container ollama
+          --out benchmarks/out/result.json
+      - name: Report
+        if: always()
+        run: |
+          cp "$RUNNER_TEMP/ollama-start.json" benchmarks/out/ 2>/dev/null || true
+          docker logs ollama > benchmarks/out/ollama.log 2>&1 || true
+          {
+            echo "### ${{ inputs.phase }}: cache hit ${{ steps.ollama.outputs.cache-hit }}"
+            echo '```json'
+            cat benchmarks/out/ollama-start.json 2>/dev/null || echo "start did not complete"
+            jq 'del(.attempts, .limits)' benchmarks/out/result.json 2>/dev/null || echo "benchmark did not complete"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+      - if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: ollama-benchmark-${{ inputs.phase }}
+          path: benchmarks/out/
+          retention-days: 14
+      - name: Remove container
+        if: always()
+        run: docker rm -f ollama || true

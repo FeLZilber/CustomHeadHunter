@@ -1,0 +1,44 @@
+name: Start Ollama
+description: Restores the model cache, starts the pinned Ollama container on loopback and verifies the locked model.
+
+inputs:
+  key-suffix:
+    description: Appended to the cache key. Benchmarks use it to force a cache miss.
+    required: false
+    default: ""
+
+outputs:
+  cache-hit:
+    description: Whether the model was restored from the Actions cache.
+    value: ${{ steps.restore.outputs.cache-hit == 'true' }}
+
+runs:
+  using: composite
+  steps:
+    - id: lock
+      shell: bash
+      run: |
+        echo "image=$(jq -r .ollamaImage ollama/model-lock.json)" >> "$GITHUB_OUTPUT"
+        echo "model=$(jq -r .model ollama/model-lock.json)" >> "$GITHUB_OUTPUT"
+        echo "digest=$(jq -r .modelDigest ollama/model-lock.json)" >> "$GITHUB_OUTPUT"
+        echo "revision=$(jq -r .cacheRevision ollama/model-lock.json)" >> "$GITHUB_OUTPUT"
+
+    - id: restore
+      uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      with:
+        path: .ollama-models
+        key: ollama-${{ runner.os }}-${{ runner.arch }}-rev${{ steps.lock.outputs.revision }}-${{ steps.lock.outputs.digest }}${{ inputs.key-suffix }}
+
+    - shell: bash
+      env:
+        OLLAMA_IMAGE: ${{ steps.lock.outputs.image }}
+        OLLAMA_LOCKED_MODEL: ${{ steps.lock.outputs.model }}
+        OLLAMA_LOCKED_DIGEST: ${{ steps.lock.outputs.digest }}
+      run: bash "$GITHUB_ACTION_PATH/start.sh"
+
+    # Saved here, before any inference, so a later failure cannot lose the download.
+    - if: steps.restore.outputs.cache-hit != 'true'
+      uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      with:
+        path: .ollama-models
+        key: ollama-${{ runner.os }}-${{ runner.arch }}-rev${{ steps.lock.outputs.revision }}-${{ steps.lock.outputs.digest }}${{ inputs.key-suffix }}
