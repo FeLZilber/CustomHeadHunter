@@ -33,4 +33,4 @@ jobs:
     with:
       phase: cache-hit
       key-suffix: -spike-${{ github.run_id }}-${{ github.run_attempt }}
-      passes: 2
+      passes: 1

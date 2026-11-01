@@ -11,6 +11,7 @@ import path from "node:path";
 import { parseArgs, promisify } from "node:util";
 import { z } from "zod";
 import { loadBudget } from "../../src/config/budget";
+import { buildMatchConfig } from "../../src/match/config";
 import { OllamaClient, OllamaError, type ChatResult } from "../../src/match/ollama-client";
 import { buildMatchMessages, prepareJobDescription, verifyEvidence } from "../../src/match/prompt";
 import { deriveMatchResponse, modelOutputJsonSchema, ModelOutputSchema } from "../../src/match/schema";
@@ -157,12 +158,7 @@ async function main() {
   const startedAt = Date.now();
   const memory = startMemorySampler(args["docker-container"], startedAt);
 
-  const inferenceOptions = {
-    temperature: 0,
-    seed: 42,
-    num_ctx: budget.OLLAMA_NUM_CTX,
-    num_predict: budget.MAX_OUTPUT_TOKENS,
-  };
+  const inferenceOptions = buildMatchConfig(budget).options;
   const attempts: Attempt[] = [];
   let stoppedEarly = false;
 
