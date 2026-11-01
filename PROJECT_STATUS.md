@@ -10,10 +10,10 @@ Resume document. Update after every milestone and any decision a new session cou
 
 | Milestone | State |
 | --- | --- |
-| M0 Feasibility | Hosted run succeeded (run 41307706600). Limits changed from it; rerun with the new limits pending. `COSTS.md` and `OLLAMA_SETUP.md` not yet written. |
+| M0 Feasibility | Rerun 41311909404 passed with the new limits (short samples). Run 41316782301 measures full-size postings and is still running; `COSTS.md` and `OLLAMA_SETUP.md` wait on it. |
 | M1 Durable ingestion | Done, committed. Live-tested locally against real boards. Not deployed. |
 | M2 Bounded AI | Done, committed. Live-tested locally (GPU) on real postings. Not run on Actions yet; not deployed. |
-| M3 Notifications and automation | Not started. |
+| M3 Notifications and automation | Outbox, Telegram client, maintenance and workflows written; 315 tests passing. Hosted CI and smoke being verified. Real Telegram delivery not tested: no bot exists. |
 | M4 Private dashboard and dev setup | Not started. |
 | M5 MVP hardening and handover | Not started. |
 
@@ -62,6 +62,13 @@ That run used the prompt before `software_engineering` and `other` were defined;
 | heldout | 10/10 | 0 | 6 | 0 | 6/6 | 3/3 | 3/3 |
 
 These measure agreement with a draft, not quality. Human calibration is outstanding. Literal evidence is weak, especially in Hebrew (0/4 on `t02`), so evidence is stored as verified or not and must be shown that way.
+
+## M3 design
+
+- **Outbox:** `notifications` rows are derived from committed match results in one transaction, identified by a unique `event_key`, so a replay cannot duplicate them. This is the documented equivalent of a transactional outbox: the match transaction has no external side effects. Alert key `job:<id>:<type>:<cycle>:<revision>`.
+- **No floods:** baselines give one capped digest per source. An epoch (hash of profile, config, filter version, threshold) starts on any relevance change, and events older than it get no alert. `--rematch-digest` is the opt-in route to those jobs, once per epoch.
+- **Ambiguous delivery:** `send_started_at` commits before the request. Telegram has no idempotency key, so a lost acknowledgement stays `ambiguous` until the operator checks the chat and passes `--retry-ambiguous`. A missed alert is preferred to an unbounded duplicate.
+- **Pipeline:** `.github/actions/pipeline` is shared by discovery, maintenance and smoke. `PRODUCTION_ENABLED` gates the two production workflows. Later stages run after a crawl or Ollama failure, and the job stays red.
 
 ## Decisions a new session should keep
 

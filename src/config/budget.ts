@@ -21,6 +21,11 @@ export const BudgetSchema = z.object({
 
 export type Budget = z.infer<typeof BudgetSchema>;
 
+/** Actions expands an unset secret or variable to an empty string, which must mean "not set". */
+export function withoutBlanks(env: NodeJS.ProcessEnv): NodeJS.ProcessEnv {
+  return Object.fromEntries(Object.entries(env).filter(([, value]) => value !== ""));
+}
+
 export function loadBudget(env: NodeJS.ProcessEnv = process.env): Budget {
-  return BudgetSchema.parse(env);
+  return BudgetSchema.parse(withoutBlanks(env));
 }

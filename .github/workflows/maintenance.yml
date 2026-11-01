@@ -1,0 +1,42 @@
+name: maintenance
+
+# Reconciles freshness through the cheap ETag path, retries a smaller AI batch,
+# removes expired history and fails visibly when discovery has gone stale.
+on:
+  schedule:
+    - cron: "41 3 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: job-hunter-worker
+  cancel-in-progress: false
+
+jobs:
+  maintain:
+    if: ${{ vars.PRODUCTION_ENABLED == 'true' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+      CRAWL_TIME_BUDGET_SECONDS: ${{ vars.CRAWL_TIME_BUDGET_SECONDS }}
+      INFERENCE_TIMEOUT_SECONDS: ${{ vars.INFERENCE_TIMEOUT_SECONDS }}
+      MAX_JOB_INPUT_TOKENS: ${{ vars.MAX_JOB_INPUT_TOKENS }}
+      MAX_ALERTS_PER_RUN: ${{ vars.MAX_ALERTS_PER_RUN }}
+      NOTIFY_TIME_BUDGET_SECONDS: ${{ vars.NOTIFY_TIME_BUDGET_SECONDS }}
+      STALE_DISCOVERY_HOURS: ${{ vars.STALE_DISCOVERY_HOURS }}
+      RETENTION_DAYS: ${{ vars.RETENTION_DAYS }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/pipeline
+        with:
+          trigger: maintenance
+          ai-jobs: "4"
+          ai-seconds: "300"
+          maintenance: "true"

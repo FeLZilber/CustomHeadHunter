@@ -1,0 +1,48 @@
+name: pipeline-smoke
+
+# Runs the real pipeline against public job boards and a throwaway database on a
+# hosted runner. It holds no secrets, so delivery ends as not_configured.
+on:
+  workflow_dispatch:
+  push:
+    branches: [mvp]
+    paths:
+      - .github/actions/**
+      - .github/workflows/pipeline-smoke.yml
+      - migrations/**
+      - src/worker/**
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pipeline-smoke
+  cancel-in-progress: true
+
+jobs:
+  smoke:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:18-alpine@sha256:10a5c69a83035ab5239f5620d708520e8b28f5aa1f2b20143e6024532edadfb5
+        env:
+          POSTGRES_PASSWORD: test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgres://postgres:test@localhost:5432/postgres
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/pipeline
+        with:
+          trigger: smoke
+          ai-jobs: "2"
+          ai-seconds: "420"

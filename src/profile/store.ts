@@ -13,6 +13,7 @@ export const OWNER_KEY = "owner";
 
 function toProfile(row: Record<string, any>): Profile {
   return {
+    profileId: row.profile_id,
     revisionId: row.id,
     revision: row.revision,
     matching: MatchingProfileSchema.parse(row.matching),

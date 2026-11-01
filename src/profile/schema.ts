@@ -37,6 +37,7 @@ export const PreferencesSchema = z.object({
 export type Preferences = z.infer<typeof PreferencesSchema>;
 
 export interface Profile {
+  profileId: string;
   revisionId: string;
   revision: number;
   matching: MatchingProfile;

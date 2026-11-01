@@ -1,0 +1,138 @@
+name: Job pipeline
+description: One worker pass shared by discovery, maintenance and the smoke test. Expects a checkout and the worker's environment.
+
+# A failed stage turns the job red, and later stages still run where their work
+# is independent of it: a crawl failure must not stop already-matched jobs from
+# being delivered. Stage deadlines leave the job's own timeout unreached.
+
+inputs:
+  trigger:
+    description: Recorded on run rows.
+    required: true
+  mode:
+    description: incremental or full.
+    default: incremental
+  provider:
+    description: Limit the crawl to one ATS.
+    default: ""
+  company:
+    description: Limit the crawl to one company.
+    default: ""
+  retry-failed:
+    description: Reopen AI tasks that exhausted their attempts.
+    default: "false"
+  force-rematch:
+    description: Rematch every eligible job.
+    default: "false"
+  notify-dry-run:
+    description: Report what would be sent without sending.
+    default: "false"
+  rematch-digest:
+    description: Send one capped digest of older jobs after a relevance change.
+    default: "false"
+  retry-ambiguous:
+    description: Resend deliveries the operator confirmed did not arrive.
+    default: "false"
+  ai-jobs:
+    description: Job cap for this pass.
+    required: true
+  ai-seconds:
+    description: Time budget for matching.
+    required: true
+  maintenance:
+    description: Also remove expired history and fail when discovery is stale.
+    default: "false"
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+      with:
+        node-version-file: .nvmrc
+        cache: npm
+
+    # Install scripts are skipped because this job's environment holds production credentials.
+    - shell: bash
+      run: npm ci --ignore-scripts
+
+    - id: prepare
+      shell: bash
+      run: |
+        "$GITHUB_ACTION_PATH/worker.sh" 120 migrate
+        "$GITHUB_ACTION_PATH/worker.sh" 60 seed
+
+    - id: crawl
+      if: ${{ !cancelled() && steps.prepare.outcome == 'success' }}
+      shell: bash
+      env:
+        TRIGGER: ${{ inputs.trigger }}
+        MODE: ${{ inputs.mode }}
+        PROVIDER: ${{ inputs.provider }}
+        COMPANY: ${{ inputs.company }}
+      run: |
+        args=(--trigger "$TRIGGER" --mode "$MODE")
+        if [[ -n "$PROVIDER" ]]; then args+=(--provider "$PROVIDER"); fi
+        if [[ -n "$COMPANY" ]]; then args+=(--company "$COMPANY"); fi
+        "$GITHUB_ACTION_PATH/worker.sh" $(( ${CRAWL_TIME_BUDGET_SECONDS:-300} + 120 )) crawl "${args[@]}"
+
+    - id: queue
+      if: ${{ !cancelled() && steps.prepare.outcome == 'success' }}
+      shell: bash
+      env:
+        RETRY_FAILED: ${{ inputs.retry-failed }}
+        FORCE_REMATCH: ${{ inputs.force-rematch }}
+      run: |
+        "$GITHUB_ACTION_PATH/worker.sh" 120 evaluate
+        args=()
+        if [[ "$RETRY_FAILED" == "true" ]]; then args+=(--retry-failed); fi
+        if [[ "$FORCE_REMATCH" == "true" ]]; then args+=(--force-rematch); fi
+        if (( ${#args[@]} )); then "$GITHUB_ACTION_PATH/worker.sh" 60 requeue "${args[@]}"; fi
+        "$GITHUB_ACTION_PATH/worker.sh" 60 pending
+
+    # The model costs minutes to load, so it starts only when there is work.
+    - id: ollama
+      if: ${{ !cancelled() && steps.queue.outcome == 'success' && steps.queue.outputs.pending != '0' && inputs.ai-jobs != '0' }}
+      uses: ./.github/actions/ollama-start
+
+    - id: match
+      if: ${{ !cancelled() && steps.ollama.outcome == 'success' }}
+      shell: bash
+      env:
+        TRIGGER: ${{ inputs.trigger }}
+        MAX_AI_JOBS_PER_RUN: ${{ inputs.ai-jobs }}
+        AI_TIME_BUDGET_SECONDS: ${{ inputs.ai-seconds }}
+      run: |
+        "$GITHUB_ACTION_PATH/worker.sh" $(( AI_TIME_BUDGET_SECONDS + ${INFERENCE_TIMEOUT_SECONDS:-180} + 60 )) match --trigger "$TRIGGER"
+
+    - if: ${{ always() && steps.ollama.outcome != 'skipped' }}
+      shell: bash
+      run: docker rm -f ollama
+
+    - id: notify
+      if: ${{ !cancelled() && steps.prepare.outcome == 'success' }}
+      shell: bash
+      env:
+        TRIGGER: ${{ inputs.trigger }}
+        NOTIFY_DRY_RUN: ${{ inputs.notify-dry-run }}
+        REMATCH_DIGEST: ${{ inputs.rematch-digest }}
+        RETRY_AMBIGUOUS: ${{ inputs.retry-ambiguous }}
+      run: |
+        args=(--trigger "$TRIGGER")
+        if [[ "$NOTIFY_DRY_RUN" == "true" ]]; then args+=(--dry-run); fi
+        if [[ "$REMATCH_DIGEST" == "true" ]]; then args+=(--rematch-digest); fi
+        if [[ "$RETRY_AMBIGUOUS" == "true" ]]; then args+=(--retry-ambiguous); fi
+        "$GITHUB_ACTION_PATH/worker.sh" $(( ${NOTIFY_TIME_BUDGET_SECONDS:-180} + 60 )) notify "${args[@]}"
+
+    - if: ${{ !cancelled() && steps.prepare.outcome == 'success' && inputs.maintenance == 'true' }}
+      shell: bash
+      run: |
+        "$GITHUB_ACTION_PATH/worker.sh" 120 cleanup
+
+    - if: ${{ always() && steps.prepare.outcome == 'success' }}
+      shell: bash
+      env:
+        MAINTENANCE: ${{ inputs.maintenance }}
+      run: |
+        args=()
+        if [[ "$MAINTENANCE" == "true" ]]; then args+=(--fail-on-stale); fi
+        "$GITHUB_ACTION_PATH/worker.sh" 60 health "${args[@]}"
