@@ -10,6 +10,7 @@ on:
       - .github/actions/**
       - .github/workflows/pipeline-smoke.yml
       - migrations/**
+      - src/config/**
       - src/worker/**
 
 permissions:
