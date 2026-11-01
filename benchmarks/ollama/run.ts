@@ -59,6 +59,7 @@ interface Attempt {
   outputTokens: number;
   outputTokensPerSecond: number | null;
   loadMs: number;
+  promptMs: number;
   score: number | null;
   recommendation: string | null;
   evidenceTotal: number;
@@ -185,6 +186,7 @@ async function main() {
         outputTokens: 0,
         outputTokensPerSecond: null,
         loadMs: 0,
+        promptMs: 0,
         score: null,
         recommendation: null,
         evidenceTotal: 0,
@@ -212,6 +214,7 @@ async function main() {
         attempt.outputTokens = result.outputTokens;
         attempt.output = result.content;
         attempt.loadMs = result.loadMs;
+        attempt.promptMs = result.promptMs;
         attempt.outputTokensPerSecond = result.outputMs
           ? Math.round((result.outputTokens / result.outputMs) * 10000) / 10
           : null;

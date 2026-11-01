@@ -43,11 +43,14 @@ jobs:
         with:
           key-suffix: ${{ inputs.key-suffix }}
       - name: Benchmark
+        # Above the production timeout, so a slow call is measured rather than cut off.
+        env:
+          INFERENCE_TIMEOUT_SECONDS: 420
         run: >-
           npx tsx benchmarks/ollama/run.ts
           --label hosted-ubuntu-24.04-${{ inputs.phase }}
           --passes ${{ inputs.passes }}
-          --time-budget-seconds 1200
+          --time-budget-seconds 1500
           --docker-container ollama
           --out benchmarks/out/result.json
       - name: Report
