@@ -1,5 +1,5 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
-import { loadContext, getJob, parseFilters, PAGE_SIZE, readStatus, searchJobs, setSaved, type ViewContext } from "../../src/dashboard/queries";
+import { loadContext, getJob, parseFilters, PAGE_SIZE, readStatus, searchJobs, setApplied, setSaved, type ViewContext } from "../../src/dashboard/queries";
 import { migrate } from "../../src/db/migrate";
 import type { Pool } from "../../src/db/pool";
 import { createLogger } from "../../src/logger";
@@ -65,8 +65,8 @@ describe("dashboard queries", () => {
   }
 
   const context = async (): Promise<ViewContext> => ({ profile: await ensureProfile(pool), configHash: hashMatchConfig(config) });
-  const search = async (params: Record<string, string> = {}, savedOnly = false) =>
-    searchJobs(pool, await context(), parseFilters(params), savedOnly);
+  const search = async (params: Record<string, string> = {}, only?: "saved" | "applied") =>
+    searchJobs(pool, await context(), parseFilters(params), only);
   const titles = async (params: Record<string, string> = {}) => (await search(params)).jobs.map((job) => job.title);
   const onlyJob = async () => (await search({ status: "all" })).jobs[0]!;
 
@@ -234,11 +234,49 @@ describe("dashboard queries", () => {
       await setSaved(pool, profileId, id, true);
       await setSaved(pool, profileId, id, true);
       await pool.query(`UPDATE canonical_jobs SET status = 'expired'`);
-      expect((await search({ status: "all" }, true)).jobs.map((job) => job.saved)).toEqual([true]);
+      expect((await search({ status: "all" }, "saved")).jobs.map((job) => job.saved)).toEqual([true]);
 
       await setSaved(pool, profileId, id, false);
       await setSaved(pool, profileId, id, false);
-      expect((await search({ status: "all" }, true)).jobs).toEqual([]);
+      expect((await search({ status: "all" }, "saved")).jobs).toEqual([]);
+    });
+  });
+
+  describe("applied jobs", () => {
+    it("marks and unmarks idempotently, keeps the first date, and survives expiry", async () => {
+      await crawlListings(rawListing("a"), rawListing("b"));
+      const { rows } = await pool.query(`SELECT id FROM canonical_jobs ORDER BY id`);
+      const [first, second] = rows.map((row) => row.id as string) as [string, string];
+      const { profileId } = await ensureProfile(pool);
+
+      await setApplied(pool, profileId, first, true);
+      const { rows: before } = await pool.query(`SELECT applied_at FROM job_applications`);
+      await setApplied(pool, profileId, first, true);
+      const { rows: after } = await pool.query(`SELECT applied_at FROM job_applications`);
+      expect(after).toEqual(before);
+
+      await pool.query(`UPDATE canonical_jobs SET status = 'expired' WHERE id = $1`, [first]);
+      const applied = (await search({ status: "all" }, "applied")).jobs;
+      expect(applied.map((job) => job.id)).toEqual([first]);
+      expect(applied[0]?.appliedAt).toBeInstanceOf(Date);
+      expect(applied[0]?.status).toBe("expired");
+      expect((await search({ status: "all" })).jobs.find((job) => job.id === second)?.appliedAt).toBeNull();
+      expect((await getJob(pool, await context(), first))?.appliedAt).toBeInstanceOf(Date);
+
+      await setApplied(pool, profileId, first, false);
+      await setApplied(pool, profileId, first, false);
+      expect((await search({ status: "all" }, "applied")).jobs).toEqual([]);
+    });
+
+    it("does not touch saved state", async () => {
+      await crawlListings(rawListing("a"));
+      const { id } = await onlyJob();
+      const { profileId } = await ensureProfile(pool);
+      await setApplied(pool, profileId, id, true);
+      expect((await search({ status: "all" }, "saved")).jobs).toEqual([]);
+      await setSaved(pool, profileId, id, true);
+      await setApplied(pool, profileId, id, false);
+      expect((await search({ status: "all" }, "saved")).jobs.map((job) => job.saved)).toEqual([true]);
     });
   });
 

@@ -2,7 +2,7 @@ import { expect, test, type APIRequestContext, type BrowserContext, type Page } 
 import { encode } from "next-auth/jwt";
 import { BASE_URL, NEXTAUTH_SECRET, OWNER_ID, STRANGER_ID, TITLES } from "./constants";
 
-const PRIVATE_PATHS = ["/", "/saved", "/profile", "/status", "/jobs/1"];
+const PRIVATE_PATHS = ["/", "/saved", "/applied", "/profile", "/status", "/jobs/1"];
 
 const sessionCookie = async (githubId: string, secret = NEXTAUTH_SECRET) => ({
   name: "next-auth.session-token",
@@ -159,6 +159,28 @@ test.describe("as the owner", () => {
     await expect(jobRow(page, TITLES.hebrew)).toBeVisible();
     await jobRow(page, TITLES.hebrew).getByRole("button", { name: "Remove from saved" }).click();
     await expect(page.getByText("Nothing saved yet.")).toBeVisible();
+  });
+
+  test("marks a job as applied from its page, lists it, and undoes it", async ({ page }) => {
+    await page.goto("/applied");
+    await expect(page.getByText("No applications marked yet.")).toBeVisible();
+
+    await page.goto("/");
+    await page.getByRole("link", { name: TITLES.hebrew }).click();
+    await page.getByRole("button", { name: "Mark as applied" }).click();
+    await expect(page.getByRole("button", { name: /^Applied .*, undo$/ })).toBeVisible();
+
+    await page.goto("/applied");
+    await expect(jobRow(page, TITLES.hebrew)).toContainText("Applied");
+    await page.goto("/");
+    await expect(jobRow(page, TITLES.hebrew).locator(".badge-applied")).toBeVisible();
+
+    await page.goto("/applied");
+    await page.getByRole("link", { name: TITLES.hebrew }).click();
+    await page.getByRole("button", { name: /^Applied .*, undo$/ }).click();
+    await expect(page.getByRole("button", { name: "Mark as applied" })).toBeVisible();
+    await page.goto("/applied");
+    await expect(page.getByText("No applications marked yet.")).toBeVisible();
   });
 
   test("shows failures that need attention on the status page", async ({ page }) => {

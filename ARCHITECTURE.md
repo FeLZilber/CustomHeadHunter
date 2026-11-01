@@ -84,7 +84,7 @@ The outbox is derived from committed match results and identified by a unique `e
 
 Every page starts with `await requireOwner()` and so does every server action. A static test fails if one does not. Access requires the numeric GitHub id in `OWNER_GITHUB_ID`, which unlike a username cannot be reassigned. Signing in with any other account is refused at the callback and again on each request.
 
-Source text renders as plain text, so no posting HTML reaches the browser. The dashboard reads and writes through server-only modules, and the CSP blocks third-party scripts, images and framing. Saved state is a separate table from job lifecycle status. Application tracking is roadmap work and is not built.
+Source text renders as plain text, so no posting HTML reaches the browser. The dashboard reads and writes through server-only modules, and the CSP blocks third-party scripts, images and framing. Saved jobs and applications are separate tables (`saved_jobs`, `job_applications`) from job lifecycle status, so an expired or reopened posting never changes what the owner marked. Applying is a single mark with a date, set from the job page and undone the same way. It does not stop alerts for that job. Interview stages and notes are roadmap work and are not built.
 
 ## Budget controls
 

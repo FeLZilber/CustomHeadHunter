@@ -12,9 +12,9 @@ It needs no always-on computer, paid AI API or self-hosted runner. Scheduled wor
 - Stores every job before any AI runs, and expires a job only after repeated, complete evidence that it closed.
 - Filters deterministically, then matches shortlisted jobs with `qwen2.5:3b` on the runner's CPU, within per-job, per-run and monthly limits.
 - Sends each alert once through a database outbox, and holds any delivery it cannot confirm.
-- Shows jobs, evidence, saved jobs, profile editing and system health to the configured GitHub account only.
+- Shows jobs, evidence, saved and applied jobs, profile editing and system health to the configured GitHub account only.
 
-Application tracking and new ATS connectors are roadmap items and are not part of this MVP.
+You can mark a job as applied for on its page. The Applied page lists those jobs. Tracking goes no further than that: interview stages and notes, like new ATS connectors, are roadmap items and are not part of this MVP.
 
 ## Quick start
 

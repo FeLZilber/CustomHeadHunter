@@ -129,7 +129,7 @@ describe("authorization coverage", () => {
   it("checks the owner first in every server action", () => {
     const source = readFileSync(path.join(appDir, "actions.ts"), "utf8");
     const actions = [...source.matchAll(/export async function (\w+)\([^)]*\) \{\n\s*([^\n]*)/g)];
-    expect(actions.map(([, name]) => name)).toEqual(["toggleSaved", "updateProfile"]);
+    expect(actions.map(([, name]) => name)).toEqual(["toggleSaved", "toggleApplied", "updateProfile"]);
     for (const [, , first] of actions) expect(first).toBe("await requireOwner();");
     expect(source.match(/^export /gm)).toHaveLength(actions.length);
   });

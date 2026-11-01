@@ -15,7 +15,7 @@ Resume document. Update after every milestone and any decision a new session cou
 | M1 Durable ingestion | Done. Live-tested against real boards. Not deployed. |
 | M2 Bounded AI | Done. Live-tested on local GPU and on a hosted runner (`pipeline-smoke`, 2 real postings). Not deployed. |
 | M3 Notifications and automation | Done. Hosted CI and pipeline smoke green. Real Telegram delivery not tested: no bot exists. Schedules not active: they need `master` and secrets. |
-| M4 Private dashboard and dev setup | Done. 26 E2E tests, CI 41320412960 and `compose-smoke` 41320413027 green at bd45bb3. Real GitHub sign-in not tested: no OAuth app exists. |
+| M4 Private dashboard and dev setup | Done. 29 E2E tests (applied tracking added after the hosted run below), CI 41320412960 and `compose-smoke` 41320413027 green at bd45bb3. Real GitHub sign-in not tested: no OAuth app exists. |
 | M5 MVP hardening and handover | Done as far as access allows: docs written, failure tests complete, monthly cap added, benchmark and costs recorded. Live checks below remain blocked. |
 
 ## Acceptance
@@ -34,7 +34,7 @@ Plan section 21. "Blocked" means it needs an operator account or action. A mocke
 | 8 | Telegram delivery, outbox retry and ambiguity | Yes | Yes | **Blocked: no bot** | Blocked |
 | 9 | Scheduled and manual workflows, bounded maintenance | Yes | Yes | Shared pipeline passed in smoke. Schedules **blocked: need `master` and secrets** | Blocked |
 | 10 | Owner-only dashboard | Yes | Yes, E2E with signed test sessions | **Blocked: no OAuth app** | Blocked |
-| 11 | Automated tests pass, setup reproducible | Yes | 383 + 26 pass | CI green. Compose built on a runner, and run locally with Ollama from a fresh clone | n/a |
+| 11 | Automated tests pass, setup reproducible | Yes | 386 + 29 pass | CI green. Compose built on a runner, and run locally with Ollama from a fresh clone | n/a |
 | 12 | No always-on PC, self-hosted runner, VPS or paid AI API | Yes | n/a | Holds by construction | Blocked |
 
 ## Blocked checks
@@ -51,9 +51,26 @@ Plan section 21. "Blocked" means it needs an operator account or action. A mocke
 
 ## Next operational steps
 
-Follow `DEPLOYMENT.md`, then review the labels in `benchmarks/eval/dataset.json`. Check Actions use after the first week against `COSTS.md`.
+Everything left needs the operator's accounts. Tick these off here as they happen. Details are in `DEPLOYMENT.md`.
+
+- [ ] Create a Neon Free project and keep the direct and pooled connection strings.
+- [ ] Create a Telegram bot with @BotFather and find the chat id.
+- [ ] Create a GitHub OAuth app (callback `<dashboard URL>/api/auth/callback/github`) and look up the owner's numeric GitHub id.
+- [ ] Create a Vercel Hobby project from the repository and set the dashboard variables.
+- [ ] Add the repository secrets (`DATABASE_URL`, `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`).
+- [ ] Run `migrate` once against Neon through the direct connection string. This also creates `job_applications`.
+- [ ] Open a pull request from `mvp` and merge it into `master`. Schedules and manual dispatch need the files there.
+- [ ] Run the activation checks in order: dashboard as owner and as a stranger, edit the profile, set `PRODUCTION_ENABLED`, dry-run discovery, real discovery, first Telegram digest, scheduled run.
+- [ ] Set a $0 Actions budget if a payment method is on file. Compare real use with `COSTS.md` after a week.
+- [ ] Review the labels in `benchmarks/eval/dataset.json`. Until then quality is unconfirmed.
+- [ ] Optional: verify more company sources, because recall is the main risk.
 
 ## Known limitations
+
+**Applied tracking**
+
+- It records only that and when the owner applied. Interview stages, notes and follow-up dates are not built.
+- An applied job can still produce an alert if it changes or reopens.
 
 **Product**
 

@@ -187,7 +187,8 @@ textarea {
   white-space: nowrap;
 }
 
-.badge-current {
+.badge-current,
+.badge-applied {
   color: var(--good);
 }
 

@@ -61,7 +61,8 @@ const JOB_ROWS = `
   LEFT JOIN LATERAL (SELECT * FROM match_results mr WHERE mr.canonical_job_id = c.id
                       ORDER BY (mr.input_key = e.input_key) DESC NULLS LAST, mr.id DESC LIMIT 1) r ON true
   LEFT JOIN match_tasks t ON t.canonical_job_id = c.id AND t.input_key = e.input_key
-  LEFT JOIN saved_jobs s ON s.canonical_job_id = c.id AND s.profile_id = $1`;
+  LEFT JOIN saved_jobs s ON s.canonical_job_id = c.id AND s.profile_id = $1
+  LEFT JOIN job_applications ja ON ja.canonical_job_id = c.id AND ja.profile_id = $1`;
 
 const MATCH_STATE = `
   CASE
@@ -76,7 +77,7 @@ const MATCH_STATE = `
 const JOB_COLUMNS = `
   c.id, c.title, co.name AS company, c.status, c.first_discovered_at, c.last_seen_at,
   l.original_location, l.work_arrangement, l.technologies, l.application_url,
-  r.score, r.recommendation, s.saved_at, e.reason_codes, ${MATCH_STATE} AS match_state`;
+  r.score, r.recommendation, s.saved_at, ja.applied_at, e.reason_codes, ${MATCH_STATE} AS match_state`;
 
 const contextParams = ({ profile, configHash }: ViewContext) => [profile.profileId, profile.matchingHash, configHash, FILTER_VERSION];
 
@@ -97,6 +98,8 @@ export interface JobSummary {
   recommendation: string | null;
   reasonCodes: string[];
   saved: boolean;
+  /** When the owner marked the job as applied for. Independent of the posting's lifecycle. */
+  appliedAt: Date | null;
 }
 
 function toSummary(row: Record<string, any>): JobSummary {
@@ -117,6 +120,7 @@ function toSummary(row: Record<string, any>): JobSummary {
     recommendation: scored ? row.recommendation : null,
     reasonCodes: row.reason_codes ?? [],
     saved: row.saved_at !== null,
+    appliedAt: row.applied_at,
   };
 }
 
@@ -127,7 +131,7 @@ export interface JobPage {
   hasMore: boolean;
 }
 
-export async function searchJobs(db: Queryable, context: ViewContext, filters: JobFilters, savedOnly = false): Promise<JobPage> {
+export async function searchJobs(db: Queryable, context: ViewContext, filters: JobFilters, only?: "saved" | "applied"): Promise<JobPage> {
   const params: unknown[] = contextParams(context);
   const bind = (value: unknown) => `$${params.push(value)}`;
   const contains = (value: string) => bind(`%${escapeLike(value)}%`);
@@ -141,7 +145,8 @@ export async function searchJobs(db: Queryable, context: ViewContext, filters: J
     where.push(`EXISTS (SELECT 1 FROM jsonb_array_elements(technologies) tech WHERE tech->>'name' ILIKE ${contains(filters.technology)})`);
   }
   if (filters.minScore !== undefined) where.push(`match_state = 'current' AND score >= ${bind(filters.minScore)}`);
-  if (savedOnly) where.push(`saved_at IS NOT NULL`);
+  if (only === "saved") where.push(`saved_at IS NOT NULL`);
+  if (only === "applied") where.push(`applied_at IS NOT NULL`);
 
   const order =
     filters.sort === "best"
@@ -207,6 +212,18 @@ export async function setSaved(db: Queryable, profileId: string, jobId: string, 
     );
   } else {
     await db.query(`DELETE FROM saved_jobs WHERE profile_id = $1 AND canonical_job_id = $2`, [profileId, jobId]);
+  }
+}
+
+/** Idempotent. Marking again keeps the first date, so a double submit does not move it. */
+export async function setApplied(db: Queryable, profileId: string, jobId: string, applied: boolean): Promise<void> {
+  if (applied) {
+    await db.query(
+      `INSERT INTO job_applications (profile_id, canonical_job_id) VALUES ($1, $2) ON CONFLICT DO NOTHING`,
+      [profileId, jobId],
+    );
+  } else {
+    await db.query(`DELETE FROM job_applications WHERE profile_id = $1 AND canonical_job_id = $2`, [profileId, jobId]);
   }
 }
 

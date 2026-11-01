@@ -21,6 +21,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <nav aria-label="Main">
             <Link href="/">Jobs</Link>
             <Link href="/saved">Saved</Link>
+            <Link href="/applied">Applied</Link>
             <Link href="/profile">Profile</Link>
             <Link href="/status">Status</Link>
             <Link href="/api/auth/signout">Sign out</Link>

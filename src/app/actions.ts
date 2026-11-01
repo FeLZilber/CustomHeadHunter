@@ -6,7 +6,7 @@ import { z } from "zod";
 import { requireOwner } from "../dashboard/auth";
 import { dashboardPool } from "../dashboard/db";
 import { parseProfileForm } from "../dashboard/profile-form";
-import { setSaved } from "../dashboard/queries";
+import { setApplied, setSaved } from "../dashboard/queries";
 import { hashMatchingProfile } from "../profile/schema";
 import { ensureProfile, saveProfile } from "../profile/store";
 
@@ -18,6 +18,17 @@ export async function toggleSaved(data: FormData) {
   const pool = dashboardPool();
   const { profileId } = await ensureProfile(pool);
   await setSaved(pool, profileId, form.jobId, form.saved === "true");
+  revalidatePath("/", "layout");
+}
+
+const AppliedForm = z.object({ jobId: z.string().regex(/^\d{1,18}$/), applied: z.enum(["true", "false"]) });
+
+export async function toggleApplied(data: FormData) {
+  await requireOwner();
+  const form = AppliedForm.parse({ jobId: data.get("jobId"), applied: data.get("applied") });
+  const pool = dashboardPool();
+  const { profileId } = await ensureProfile(pool);
+  await setApplied(pool, profileId, form.jobId, form.applied === "true");
   revalidatePath("/", "layout");
 }
 

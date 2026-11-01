@@ -20,6 +20,7 @@ export function JobList({ jobs, empty }: { jobs: JobSummary[]; empty: string }) 
               <span dir="auto">{job.company}</span>
               <span dir="auto">{job.location ?? "Location not stated"}</span>
               <span>Found {formatDate(job.discoveredAt)}</span>
+              {job.appliedAt ? <span className="badge badge-applied">Applied {formatDate(job.appliedAt)}</span> : null}
               {job.status === "expired" ? <span className="badge badge-expired">Expired</span> : null}
             </p>
             {job.technologies.length ? <p className="tags">{job.technologies.slice(0, 8).join(" · ")}</p> : null}

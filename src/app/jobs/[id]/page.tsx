@@ -3,6 +3,7 @@ import { requireOwner } from "../../../dashboard/auth";
 import { dashboardPool } from "../../../dashboard/db";
 import { getJob, loadContext } from "../../../dashboard/queries";
 import { formatDate, formatDateTime, humanize, safeHref } from "../../_components/format";
+import { ApplyButton } from "../../_components/apply-button";
 import { MatchBadge } from "../../_components/match-badge";
 import { SaveButton } from "../../_components/save-button";
 
@@ -48,6 +49,7 @@ export default async function JobPage({ params }: { params: Promise<{ id: string
       <div className="actions">
         <MatchBadge job={job} />
         <SaveButton jobId={job.id} saved={job.saved} />
+        <ApplyButton jobId={job.id} appliedAt={job.appliedAt} />
         {href ? (
           <a className="button" href={href} target="_blank" rel="noopener noreferrer nofollow">
             Open original posting

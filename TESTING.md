@@ -14,8 +14,8 @@ npm run test:e2e    # production build, then Playwright
 
 | Suite | Tests | Runs against |
 | --- | --- | --- |
-| Unit and integration | 383 in 16 files | Isolated PostgreSQL, mocked providers, scripted model |
-| Dashboard E2E | 26 | The production build in Chromium, a seeded database and signed test sessions |
+| Unit and integration | 386 in 16 files | Isolated PostgreSQL, mocked providers, scripted model |
+| Dashboard E2E | 29 | The production build in Chromium, a seeded database and signed test sessions |
 
 `tests/setup/postgres.ts` uses `TEST_DATABASE_URL` when set, which CI does with a Postgres service. Otherwise it starts `embedded-postgres`, so no Docker is needed. Tests truncate tables, so never point `TEST_DATABASE_URL` at a real database.
 
