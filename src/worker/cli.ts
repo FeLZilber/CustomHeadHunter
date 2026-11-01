@@ -22,9 +22,9 @@ import { HttpClient } from "../http/client";
 import { crawl, dryRunCrawl, type CrawlOptions } from "../ingest/crawl";
 import { seedCatalog } from "../ingest/seed";
 import { createLogger, redact } from "../logger";
-import { buildMatchConfig } from "../match/config";
+import { buildMatchConfig, hashMatchConfig } from "../match/config";
 import { OllamaClient } from "../match/ollama-client";
-import { countRunnable, evaluateJobs, forceRematch, recoverAbandoned, retryFailedTasks } from "../match/queue";
+import { countAffordable, countRunnable, evaluateJobs, forceRematch, recoverAbandoned, retryFailedTasks } from "../match/queue";
 import { runMatch } from "../match/runner";
 import { buildRelevance, startEpoch } from "../notify/outbox";
 import { runNotify } from "../notify/sender";
@@ -111,8 +111,9 @@ async function main(): Promise<number> {
       case "pending": {
         const policy = { maxAttempts: env.MAX_MATCH_ATTEMPTS, retryBaseSeconds: env.MATCH_RETRY_BASE_SECONDS };
         await recoverAbandoned(pool, policy);
-        const pending = await countRunnable(pool, buildMatchConfig(env));
-        log.info("Runnable match tasks", { pending });
+        const { pending, runnable, minutesUsed } = await countAffordable(pool, buildMatchConfig(env), env.AI_MINUTES_PER_MONTH);
+        log.info("Runnable match tasks", { pending, minutesUsed });
+        if (pending < runnable) log.warn("Monthly AI budget used; tasks wait for next month", { runnable, minutesUsed });
         if (process.env.GITHUB_OUTPUT) await appendFile(process.env.GITHUB_OUTPUT, `pending=${pending}\n`);
         return 0;
       }
@@ -167,7 +168,7 @@ async function main(): Promise<number> {
         return 0;
       }
       case "health": {
-        const health = await readHealth(pool, buildMatchConfig(env), env.STALE_DISCOVERY_HOURS);
+        const health = await readHealth(pool, hashMatchConfig(buildMatchConfig(env)), env.STALE_DISCOVERY_HOURS);
         const report = renderHealth(health);
         console.log(report);
         if (process.env.GITHUB_STEP_SUMMARY) await appendFile(process.env.GITHUB_STEP_SUMMARY, `${report}\n`);

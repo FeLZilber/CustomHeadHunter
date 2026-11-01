@@ -294,6 +294,32 @@ export async function countRunnable(pool: Pool, config: MatchConfig): Promise<nu
   return rows[0].n;
 }
 
+/** Time the AI stage has used since the UTC month began, which is how GitHub's allowance resets. */
+export async function readAiMinutesThisMonth(pool: Pool): Promise<number> {
+  const { rows } = await retryTransient(() =>
+    pool.query(
+      `SELECT coalesce(sum(extract(epoch FROM finished_at - started_at)), 0) / 60 AS minutes
+         FROM match_runs WHERE started_at >= date_trunc('month', now(), 'UTC')`,
+    ),
+  );
+  return Math.round(Number(rows[0].minutes));
+}
+
+export interface AffordableWork {
+  pending: number;
+  runnable: number;
+  minutesUsed: number;
+}
+
+/**
+ * A long backlog must not spend the Actions allowance, because GitHub would then
+ * block discovery too. Past the monthly cap Ollama stays off and tasks stay queued.
+ */
+export async function countAffordable(pool: Pool, config: MatchConfig, minutesPerMonth: number): Promise<AffordableWork> {
+  const [runnable, minutesUsed] = await Promise.all([countRunnable(pool, config), readAiMinutesThisMonth(pool)]);
+  return { pending: minutesUsed >= minutesPerMonth ? 0 : runnable, runnable, minutesUsed };
+}
+
 export interface Backlog {
   pending: number;
   due: number;
@@ -301,7 +327,10 @@ export interface Backlog {
   exhausted: number;
 }
 
-export async function readBacklog(pool: Pool, config: MatchConfig): Promise<Backlog> {
+export const readBacklog = (pool: Pool, config: MatchConfig) => readBacklogFor(pool, hashMatchConfig(config));
+
+/** The dashboard knows the worker's configuration only as the hash it stored. */
+export async function readBacklogFor(pool: Pool, configHash: string): Promise<Backlog> {
   const { rows } = await retryTransient(() =>
     pool.query(
       `SELECT count(*) FILTER (WHERE ${RUNNABLE})::int AS pending,
@@ -311,7 +340,7 @@ export async function readBacklog(pool: Pool, config: MatchConfig): Promise<Back
                 SELECT 1 FROM job_evaluations e WHERE e.canonical_job_id = t.canonical_job_id AND e.input_key = t.input_key
               ))::int AS exhausted
          FROM match_tasks t`,
-      [hashMatchConfig(config)],
+      [configHash],
     ),
   );
   const row = rows[0];

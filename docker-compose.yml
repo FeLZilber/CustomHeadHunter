@@ -1,0 +1,64 @@
+# Local development only. Production runs on Actions, Neon and Vercel, and needs none of this.
+#
+#   docker compose up -d                          Postgres and the dashboard
+#   docker compose run --rm worker migrate        worker commands run on demand
+#   docker compose --profile ollama up -d ollama  optional local model
+
+x-app: &app
+  build: .
+  environment: &app-env
+    DATABASE_URL: postgres://headhunter:headhunter@postgres:5432/headhunter
+    OLLAMA_BASE_URL: http://ollama:11434
+    LOG_LEVEL: ${LOG_LEVEL:-info}
+    DRY_RUN: ${DRY_RUN:-false}
+    TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
+    TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID:-}
+  depends_on:
+    postgres:
+      condition: service_healthy
+
+services:
+  postgres:
+    image: postgres:18-alpine@sha256:10a5c69a83035ab5239f5620d708520e8b28f5aa1f2b20143e6024532edadfb5
+    environment:
+      POSTGRES_USER: headhunter
+      POSTGRES_PASSWORD: headhunter
+      POSTGRES_DB: headhunter
+    ports:
+      - 127.0.0.1:5432:5432
+    volumes:
+      - postgres-data:/var/lib/postgresql
+    healthcheck:
+      test: [CMD-SHELL, pg_isready -U headhunter -d headhunter]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  dashboard:
+    <<: *app
+    environment:
+      <<: *app-env
+      NEXTAUTH_URL: ${NEXTAUTH_URL:-http://localhost:3000}
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET:-}
+      GITHUB_ID: ${GITHUB_ID:-}
+      GITHUB_SECRET: ${GITHUB_SECRET:-}
+      OWNER_GITHUB_ID: ${OWNER_GITHUB_ID:-}
+    ports:
+      - 127.0.0.1:3000:3000
+
+  # Not started by `up`. Use `docker compose run --rm worker <command>`.
+  worker:
+    <<: *app
+    profiles: [worker]
+    entrypoint: [node, --import, tsx, src/worker/cli.ts]
+
+  # Reachable by the worker over the Compose network, and never published to the host.
+  ollama:
+    image: ollama/ollama:0.40.13@sha256:b2f0122c476bc9fe7ce679d8bb4bd555351e25e2554eefb156f61cb0a89cf429
+    profiles: [ollama]
+    volumes:
+      - ollama-models:/root/.ollama
+
+volumes:
+  postgres-data:
+  ollama-models:

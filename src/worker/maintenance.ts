@@ -1,6 +1,5 @@
 import { retryTransient, type Pool } from "../db/pool";
-import { readBacklog, type Backlog } from "../match/queue";
-import type { MatchConfig } from "../match/config";
+import { readAiMinutesThisMonth, readBacklogFor, type Backlog } from "../match/queue";
 import { readOutbox } from "../notify/outbox";
 
 export interface CleanupSummary {
@@ -47,12 +46,13 @@ export interface Health {
   staleSources: number;
   activeJobs: number;
   backlog: Backlog;
+  aiMinutesThisMonth: number;
   outbox: Record<string, number>;
   lastNotify: { status: string; finishedAt: Date | null } | null;
 }
 
 /** A partial crawl still reconciled the sources it reached, so it counts as discovery having run. */
-export async function readHealth(pool: Pool, config: MatchConfig, staleHours: number): Promise<Health> {
+export async function readHealth(pool: Pool, configHash: string, staleHours: number): Promise<Health> {
   const { rows } = await retryTransient(() =>
     pool.query(
       `SELECT now() AS checked_at,
@@ -77,7 +77,8 @@ export async function readHealth(pool: Pool, config: MatchConfig, staleHours: nu
     discoveryStale: !lastSuccessfulCrawl || facts.checked_at.getTime() - lastSuccessfulCrawl.getTime() > staleHours * 3_600_000,
     staleSources: facts.stale_sources,
     activeJobs: facts.active_jobs,
-    backlog: await readBacklog(pool, config),
+    backlog: await readBacklogFor(pool, configHash),
+    aiMinutesThisMonth: await readAiMinutesThisMonth(pool),
     outbox: await readOutbox(pool),
     lastNotify: await latest("notify_runs"),
   };
@@ -99,6 +100,7 @@ export function renderHealth(health: Health): string {
     `| Sources without a recent complete snapshot | ${health.staleSources} |`,
     `| Active jobs | ${health.activeJobs} |`,
     `| AI backlog | ${backlog.pending} pending, ${backlog.due} due, oldest ${backlog.oldestAgeSeconds ?? 0} s, ${backlog.exhausted} exhausted |`,
+    `| AI time this month | ${health.aiMinutesThisMonth} min |`,
     `| Outbox | ${outbox.pending ?? 0} pending, ${outbox.retry ?? 0} retrying, ${outbox.sent ?? 0} sent, ${outbox.suppressed ?? 0} suppressed |`,
     `| Needs a person | ${outbox.ambiguous ?? 0} ambiguous, ${outbox.failed ?? 0} failed |`,
     `| Latest delivery | ${health.lastNotify?.status ?? "none"} |`,

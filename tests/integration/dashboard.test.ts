@@ -1,0 +1,280 @@
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
+import { loadContext, getJob, parseFilters, PAGE_SIZE, readStatus, searchJobs, setSaved, type ViewContext } from "../../src/dashboard/queries";
+import { migrate } from "../../src/db/migrate";
+import type { Pool } from "../../src/db/pool";
+import { createLogger } from "../../src/logger";
+import { buildMatchConfig, hashMatchConfig } from "../../src/match/config";
+import type { ChatResult } from "../../src/match/ollama-client";
+import { evaluateJobs } from "../../src/match/queue";
+import { runMatch, type MatchDeps } from "../../src/match/runner";
+import { buildRelevance } from "../../src/notify/outbox";
+import { runNotify } from "../../src/notify/sender";
+import { ensureProfile, saveProfile } from "../../src/profile/store";
+import { addSource, openPool, rawListing, resetDatabase, runCrawl, scriptedConnector, snapshot } from "./helpers";
+
+const config = buildMatchConfig({ OLLAMA_NUM_CTX: 3072, MAX_OUTPUT_TOKENS: 800, MAX_JOB_INPUT_TOKENS: 1600 });
+
+const modelReply = (skills = 25) =>
+  JSON.stringify({
+    role_category: "qa_automation",
+    matching_requirements: [{ requirement: "Automation", evidence: "Test automation" }],
+    missing_requirements: [{ requirement: "Go", evidence: "invented quote", candidate_fact: null }],
+    unknown_requirements: [],
+    concerns: [],
+    explanation: "A good fit.",
+    points: { role: 40, skills, experience: 8, location: 5, industry: 2 },
+  });
+
+const fakeModel = (reply: (prompt: string) => string): MatchDeps["model"] => ({
+  async modelDigest() {
+    return config.modelDigest;
+  },
+  async chat(request): Promise<ChatResult> {
+    const content = reply(request.messages.map((message) => message.content).join("\n"));
+    return { content, doneReason: "stop", totalMs: 1, loadMs: 0, promptTokens: 1, promptMs: 0, outputTokens: 1, outputMs: 0 };
+  },
+});
+
+describe("dashboard queries", () => {
+  let pool: Pool;
+  const log = createLogger("error", () => {});
+
+  beforeAll(async () => {
+    pool = openPool();
+    await migrate(pool);
+  });
+  beforeEach(async () => {
+    await resetDatabase(pool);
+    await addSource(pool);
+  });
+  afterAll(() => pool.end());
+
+  const crawlListings = async (...listings: ReturnType<typeof rawListing>[]) => {
+    const { connector } = scriptedConnector("greenhouse", [snapshot(listings)]);
+    await runCrawl(pool, connector);
+  };
+
+  const evaluate = async () => evaluateJobs(pool, config, await ensureProfile(pool));
+
+  async function match(reply: (prompt: string) => string = () => modelReply(), maxJobs = 50, maxAttempts = 3) {
+    await evaluate();
+    return runMatch(
+      { pool, model: fakeModel(reply), log },
+      { trigger: "test", config, maxJobs, timeBudgetSeconds: 600, inferenceTimeoutSeconds: 180, maxAttempts, retryBaseSeconds: 0 },
+    );
+  }
+
+  const context = async (): Promise<ViewContext> => ({ profile: await ensureProfile(pool), configHash: hashMatchConfig(config) });
+  const search = async (params: Record<string, string> = {}, savedOnly = false) =>
+    searchJobs(pool, await context(), parseFilters(params), savedOnly);
+  const titles = async (params: Record<string, string> = {}) => (await search(params)).jobs.map((job) => job.title);
+  const onlyJob = async () => (await search({ status: "all" })).jobs[0]!;
+
+  describe("search", () => {
+    it("matches title, company and location without regard to case", async () => {
+      await crawlListings(rawListing("a", { title: "QA Automation Lead" }), rawListing("b", { title: "SDET Automation", location: "Haifa, Israel" }));
+      expect(await titles({ q: "qa auto" })).toEqual(["QA Automation Lead"]);
+      expect(await titles({ company: "fixture" })).toHaveLength(2);
+      expect(await titles({ location: "haifa" })).toEqual(["SDET Automation"]);
+    });
+
+    it("finds Hebrew text", async () => {
+      await crawlListings(rawListing("he", { title: "בודק/ת תוכנה אוטומציה", location: "תל אביב" }));
+      expect(await titles({ q: "בודק" })).toHaveLength(1);
+      expect(await titles({ location: "תל אביב" })).toHaveLength(1);
+    });
+
+    it("treats LIKE wildcards in a search term as text", async () => {
+      await crawlListings(rawListing("a", { title: "QA Automation Engineer" }), rawListing("b", { title: "QA_Automation 100% Remote" }));
+      expect(await titles({ q: "%" })).toEqual(["QA_Automation 100% Remote"]);
+      expect(await titles({ q: "QA_A" })).toEqual(["QA_Automation 100% Remote"]);
+      expect(await titles({ q: "\\" })).toEqual([]);
+    });
+
+    it("binds hostile input instead of building SQL from it", async () => {
+      await crawlListings(rawListing("a"));
+      expect(await titles({ q: "'; DROP TABLE canonical_jobs; --" })).toEqual([]);
+      expect(await titles()).toHaveLength(1);
+    });
+
+    it("filters by extracted technology", async () => {
+      await crawlListings(
+        rawListing("a", { descriptionText: "We use Playwright and TypeScript." }),
+        rawListing("b", { descriptionText: "We use Selenium." }),
+      );
+      const { jobs } = await search({ technology: "playwright" });
+      expect(jobs.map((job) => job.id)).toHaveLength(1);
+      expect(jobs[0]!.technologies).toEqual(expect.arrayContaining(["Playwright", "TypeScript"]));
+    });
+
+    it("shows active jobs by default and expired ones on request", async () => {
+      await crawlListings(rawListing("a"), rawListing("b", { title: "Expired Role QA Automation" }));
+      await pool.query(`UPDATE canonical_jobs SET status = 'expired' WHERE title LIKE 'Expired%'`);
+      expect(await titles()).toEqual(["QA Automation Engineer a"]);
+      expect(await titles({ status: "expired" })).toEqual(["Expired Role QA Automation"]);
+      expect(await titles({ status: "all" })).toHaveLength(2);
+    });
+
+    it("pages through results and says when more remain", async () => {
+      await crawlListings(...Array.from({ length: PAGE_SIZE + 2 }, (_, index) => rawListing(`job-${index}`)));
+      const first = await search({ sort: "latest" });
+      const second = await search({ sort: "latest", page: "2" });
+      expect(first.jobs).toHaveLength(PAGE_SIZE);
+      expect(first.hasMore).toBe(true);
+      expect(second.jobs).toHaveLength(2);
+      expect(second.hasMore).toBe(false);
+      expect(new Set([...first.jobs, ...second.jobs].map((job) => job.id)).size).toBe(PAGE_SIZE + 2);
+    });
+
+    it("sorts by current score, with unscored jobs after", async () => {
+      await crawlListings(rawListing("low"), rawListing("high"));
+      await match((prompt) => modelReply(prompt.includes("Engineer high") ? 25 : 5));
+      await crawlListings(rawListing("low"), rawListing("high"), rawListing("new"));
+      await evaluate();
+      expect(await titles()).toEqual(["QA Automation Engineer high", "QA Automation Engineer low", "QA Automation Engineer new"]);
+      expect((await titles({ sort: "latest" }))[0]).toBe("QA Automation Engineer new");
+    });
+  });
+
+  describe("match states", () => {
+    it("reports a job no evaluation has reached", async () => {
+      await crawlListings(rawListing("a"));
+      expect(await onlyJob()).toMatchObject({ matchState: "not_evaluated", score: null });
+    });
+
+    it("reports a job waiting for the model", async () => {
+      await crawlListings(rawListing("a"));
+      await evaluate();
+      expect(await onlyJob()).toMatchObject({ matchState: "pending", score: null });
+    });
+
+    it("reports a current result with its score", async () => {
+      await crawlListings(rawListing("a"));
+      await match();
+      expect(await onlyJob()).toMatchObject({ matchState: "current", score: 80, recommendation: "strong_match" });
+    });
+
+    it("reports a rule rejection and its reasons, with no score", async () => {
+      await crawlListings(rawListing("office", { title: "Office Manager" }));
+      await match();
+      const job = await onlyJob();
+      expect(job).toMatchObject({ matchState: "filtered", score: null, recommendation: null });
+      expect(job.reasonCodes.length).toBeGreaterThan(0);
+    });
+
+    it("reports an exhausted evaluation as failed, not as a score of zero", async () => {
+      await crawlListings(rawListing("a"));
+      await match(() => "not json", 50, 1);
+      expect(await onlyJob()).toMatchObject({ matchState: "failed", score: null });
+    });
+
+    it("marks an old result out of date when the profile changes, and keeps it out of score filters", async () => {
+      await crawlListings(rawListing("a"));
+      await match();
+      const { matching } = await ensureProfile(pool);
+      await saveProfile(pool, { matching: { ...matching, preferredIndustries: ["Logistics"] } });
+
+      expect(await onlyJob()).toMatchObject({ matchState: "stale", score: 80 });
+      expect((await search({ minScore: "1" })).jobs).toEqual([]);
+      expect((await search({ match: "stale" })).jobs).toHaveLength(1);
+    });
+
+    it("shows a changed job as pending and labels its earlier score", async () => {
+      await crawlListings(rawListing("a"));
+      await match();
+      await crawlListings(rawListing("a", { descriptionText: "Test automation, now with new duties in a new team." }));
+      await evaluate();
+      expect(await onlyJob()).toMatchObject({ matchState: "pending", score: 80 });
+    });
+
+    it("hides an older score once the job is filtered out", async () => {
+      await crawlListings(rawListing("a"));
+      await match();
+      const { matching } = await ensureProfile(pool);
+      await saveProfile(pool, { matching: { ...matching, hardRules: { ...matching.hardRules, excludedTitleTerms: ["Engineer"] } } });
+      await evaluate();
+      const job = await onlyJob();
+      expect(job).toMatchObject({ matchState: "filtered", score: null });
+      expect((await getJob(pool, await context(), job.id))!.match).toBeNull();
+    });
+
+    it("takes the configuration from the newest evaluation", async () => {
+      await crawlListings(rawListing("a"));
+      await match();
+      const loaded = await loadContext(pool);
+      expect(loaded.configHash).toBe(hashMatchConfig(config));
+      expect((await searchJobs(pool, loaded, parseFilters({}))).jobs[0]!.matchState).toBe("current");
+    });
+  });
+
+  describe("job detail", () => {
+    it("returns the description, evidence checks and history", async () => {
+      await crawlListings(rawListing("a"));
+      await match();
+      const { id } = await onlyJob();
+      const job = await getJob(pool, await context(), id);
+
+      expect(job!.description).toContain("Test automation for team a");
+      expect(job!.match).toMatchObject({ unverified: ["invented quote"], evidenceTotal: 2, evidenceLiteral: 1, inputTruncated: false });
+      expect(job!.match!.response.explanation).toBe("A good fit.");
+      expect(job!.events.map((event) => event.type)).toContain("discovered");
+    });
+
+    it("returns nothing for an unknown id", async () => {
+      expect(await getJob(pool, await context(), "999999")).toBeNull();
+    });
+  });
+
+  describe("saved jobs", () => {
+    it("saves and removes idempotently, and keeps a saved job visible after it expires", async () => {
+      await crawlListings(rawListing("a"));
+      const { id } = await onlyJob();
+      const { profileId } = await ensureProfile(pool);
+
+      await setSaved(pool, profileId, id, true);
+      await setSaved(pool, profileId, id, true);
+      await pool.query(`UPDATE canonical_jobs SET status = 'expired'`);
+      expect((await search({ status: "all" }, true)).jobs.map((job) => job.saved)).toEqual([true]);
+
+      await setSaved(pool, profileId, id, false);
+      await setSaved(pool, profileId, id, false);
+      expect((await search({ status: "all" }, true)).jobs).toEqual([]);
+    });
+  });
+
+  describe("status", () => {
+    it("reports failed sources, unresolved deliveries, and a run stopped by its job limit", async () => {
+      await addSource(pool, "Broken Co", "broken");
+      const { connector } = scriptedConnector("greenhouse", [snapshot([rawListing("a"), rawListing("b")])]);
+      const failing = {
+        ...connector,
+        async *crawl(source: { providerKey: string; etag: string | null }, http: never) {
+          if (source.providerKey === "broken") throw new Error("Board unreachable");
+          return yield* connector.crawl(source, http);
+        },
+      };
+      await runCrawl(pool, failing as typeof connector);
+      const summary = await match(undefined, 1);
+      expect(summary.stopReason).toBe("job_cap");
+
+      const relevance = buildRelevance(await ensureProfile(pool), config);
+      await match();
+      await runNotify(
+        { pool, sender: { send: async () => ({ kind: "ambiguous", detail: "Connection lost" }) }, log, sleep: async () => {} },
+        { trigger: "test", relevance, dryRun: false, maxAlerts: 5, maxDigests: 2, digestSize: 5, maxAttempts: 3, retryBaseSeconds: 60, timeBudgetSeconds: 60 },
+      );
+
+      const status = await readStatus(pool, await context(), 14);
+      expect(status.sourceProblems).toEqual([expect.objectContaining({ company: "Broken Co", outcome: "failed", provider: "greenhouse" })]);
+      expect(status.deliveryProblems).toEqual([expect.objectContaining({ status: "ambiguous", kind: "digest", error: "Connection lost" })]);
+      expect(status.latestMatch).toMatchObject({ status: "succeeded", stopReason: "queue_empty", succeeded: 1 });
+      expect(status.health.activeJobs).toBe(2);
+    });
+
+    it("works on an empty database", async () => {
+      const status = await readStatus(pool, await loadContext(pool), 14);
+      expect(status).toMatchObject({ sourceProblems: [], deliveryProblems: [], latestMatch: null });
+      expect(status.health.discoveryStale).toBe(true);
+    });
+  });
+});

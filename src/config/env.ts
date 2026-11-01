@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { BudgetSchema, withoutBlanks } from "./budget";
+import { BudgetSchema, withoutBlanks, type EnvSource } from "./budget";
 
 const booleanFlag = z
   .enum(["true", "false", "1", "0"])
@@ -35,6 +35,6 @@ const WorkerEnvSchema = BudgetSchema.extend({
 
 export type WorkerEnv = z.infer<typeof WorkerEnvSchema>;
 
-export function loadWorkerEnv(env: NodeJS.ProcessEnv = process.env): WorkerEnv {
+export function loadWorkerEnv(env: EnvSource = process.env): WorkerEnv {
   return WorkerEnvSchema.parse(withoutBlanks(env));
 }

@@ -102,7 +102,7 @@ runs:
         MAX_AI_JOBS_PER_RUN: ${{ inputs.ai-jobs }}
         AI_TIME_BUDGET_SECONDS: ${{ inputs.ai-seconds }}
       run: |
-        "$GITHUB_ACTION_PATH/worker.sh" $(( AI_TIME_BUDGET_SECONDS + ${INFERENCE_TIMEOUT_SECONDS:-180} + 60 )) match --trigger "$TRIGGER"
+        "$GITHUB_ACTION_PATH/worker.sh" $(( AI_TIME_BUDGET_SECONDS + ${INFERENCE_TIMEOUT_SECONDS:-330} + 60 )) match --trigger "$TRIGGER"
 
     - if: ${{ always() && steps.ollama.outcome != 'skipped' }}
       shell: bash

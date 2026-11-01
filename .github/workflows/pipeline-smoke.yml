@@ -22,7 +22,7 @@ concurrency:
 jobs:
   smoke:
     runs-on: ubuntu-24.04
-    timeout-minutes: 20
+    timeout-minutes: 25
     services:
       postgres:
         image: postgres:18-alpine@sha256:10a5c69a83035ab5239f5620d708520e8b28f5aa1f2b20143e6024532edadfb5
@@ -45,4 +45,4 @@ jobs:
         with:
           trigger: smoke
           ai-jobs: "2"
-          ai-seconds: "420"
+          ai-seconds: "600"

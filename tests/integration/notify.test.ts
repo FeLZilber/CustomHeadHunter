@@ -2,7 +2,7 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { migrate } from "../../src/db/migrate";
 import { withTransaction, type Pool } from "../../src/db/pool";
 import { createLogger } from "../../src/logger";
-import { buildMatchConfig } from "../../src/match/config";
+import { buildMatchConfig, hashMatchConfig } from "../../src/match/config";
 import type { ChatResult } from "../../src/match/ollama-client";
 import { evaluateJobs, forceRematch } from "../../src/match/queue";
 import { runMatch, type MatchDeps } from "../../src/match/runner";
@@ -720,19 +720,19 @@ describe("notifications", () => {
     });
 
     it("reports stale discovery and work that needs a person", async () => {
-      expect((await readHealth(pool, config, 14)).discoveryStale).toBe(true);
+      expect((await readHealth(pool, hashMatchConfig(config), 14)).discoveryStale).toBe(true);
       await establishBaseline();
       await discover("a");
       await match();
       await notify(fakeSender([{ kind: "ambiguous", detail: "reset" }]).sender);
 
-      const fresh = await readHealth(pool, config, 14);
+      const fresh = await readHealth(pool, hashMatchConfig(config), 14);
       expect(fresh).toMatchObject({ discoveryStale: false, staleSources: 0 });
       expect(renderHealth(fresh)).toContain("1 ambiguous");
 
       await pool.query(`UPDATE crawl_runs SET finished_at = now() - interval '20 hours'`);
       await pool.query(`UPDATE job_sources SET last_complete_snapshot_at = now() - interval '20 hours'`);
-      const stale = await readHealth(pool, config, 14);
+      const stale = await readHealth(pool, hashMatchConfig(config), 14);
       expect(stale).toMatchObject({ discoveryStale: true, staleSources: 1 });
       expect(renderHealth(stale)).toContain("STALE");
     });

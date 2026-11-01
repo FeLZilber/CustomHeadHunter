@@ -4,7 +4,7 @@ import type { Pool } from "../../src/db/pool";
 import { createLogger } from "../../src/logger";
 import { buildMatchConfig, hashMatchConfig } from "../../src/match/config";
 import { OllamaError, type ChatRequest, type ChatResult } from "../../src/match/ollama-client";
-import { claimTask, evaluateJobs, forceRematch, readBacklog, recoverAbandoned, retryFailedTasks } from "../../src/match/queue";
+import { claimTask, countAffordable, evaluateJobs, forceRematch, readBacklog, recoverAbandoned, retryFailedTasks } from "../../src/match/queue";
 import { runMatch, type MatchDeps, type MatchOptions } from "../../src/match/runner";
 import { ensureProfile, saveProfile } from "../../src/profile/store";
 import { addSource, openPool, rawListing, resetDatabase, runCrawl, scriptedConnector, snapshot, type Script } from "./helpers";
@@ -181,6 +181,42 @@ describe("matching", () => {
       expect(await runMatch(deps(model), options())).toMatchObject({ claimed: 0, stopReason: "queue_empty" });
       expect(calls).toHaveLength(0);
       expect((await taskRows())[0].status).toBe("pending");
+    });
+  });
+
+  describe("monthly AI budget", () => {
+    const addRun = (startedAt: string, finishedAt: string | null) =>
+      pool.query(
+        `INSERT INTO match_runs (trigger, status, started_at, finished_at) VALUES ('test', 'succeeded', $1, $2)`,
+        [startedAt, finishedAt],
+      );
+    const monthStart = () => {
+      const now = new Date();
+      return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
+    };
+    const offsetMinutes = (from: Date, minutes: number) => new Date(from.getTime() + minutes * 60_000).toISOString();
+
+    it("offers the queue while the month has budget left", async () => {
+      await prepare(2);
+      const start = monthStart();
+      await addRun(offsetMinutes(start, 1), offsetMinutes(start, 31));
+      expect(await countAffordable(pool, config, 800)).toEqual({ pending: 2, runnable: 2, minutesUsed: 30 });
+    });
+
+    it("offers nothing once the cap is reached and keeps the tasks queued", async () => {
+      await prepare(2);
+      const start = monthStart();
+      await addRun(offsetMinutes(start, 1), offsetMinutes(start, 31));
+      expect(await countAffordable(pool, config, 30)).toEqual({ pending: 0, runnable: 2, minutesUsed: 30 });
+      expect((await taskRows()).map((task) => task.status)).toEqual(["pending", "pending"]);
+    });
+
+    it("counts this UTC month only and ignores a run that never finished", async () => {
+      await prepare(1);
+      const start = monthStart();
+      await addRun(offsetMinutes(start, -120), offsetMinutes(start, -60));
+      await addRun(offsetMinutes(start, 1), null);
+      expect((await countAffordable(pool, config, 800)).minutesUsed).toBe(0);
     });
   });
 

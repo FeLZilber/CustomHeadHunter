@@ -13,8 +13,8 @@ Resume document. Update after every milestone and any decision a new session cou
 | M0 Feasibility | Rerun 41311909404 passed with the new limits (short samples). Run 41316782301 measures full-size postings and is still running; `COSTS.md` and `OLLAMA_SETUP.md` wait on it. |
 | M1 Durable ingestion | Done, committed. Live-tested locally against real boards. Not deployed. |
 | M2 Bounded AI | Done, committed. Live-tested locally (GPU) on real postings. Not run on Actions yet; not deployed. |
-| M3 Notifications and automation | Outbox, Telegram client, maintenance and workflows written; 315 tests passing. Hosted CI and smoke being verified. Real Telegram delivery not tested: no bot exists. |
-| M4 Private dashboard and dev setup | Not started. |
+| M3 Notifications and automation | Done, committed (0ed6bf3). 315 tests passing. Hosted CI 41318074607 and pipeline smoke 41318074705 green. Real Telegram delivery not tested: no bot exists. Scheduled workflows not active: they need `master` and secrets. |
+| M4 Private dashboard and dev setup | Pages, owner-only auth, tests (26 E2E), Dockerfile, Compose and CI written; hosted checks follow this commit. |
 | M5 MVP hardening and handover | Not started. |
 
 ## M0 results

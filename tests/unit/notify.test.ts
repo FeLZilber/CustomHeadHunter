@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { BudgetSchema, loadBudget, withoutBlanks } from "../../src/config/budget";
 import { loadWorkerEnv } from "../../src/config/env";
@@ -183,5 +185,22 @@ describe("configuration from Actions", () => {
   it("does not read an unset variable as a limit of zero", () => {
     expect(loadBudget({ MAX_AI_JOBS_PER_RUN: "" }).MAX_AI_JOBS_PER_RUN).toBe(BudgetSchema.parse({}).MAX_AI_JOBS_PER_RUN);
     expect(withoutBlanks({ A: "", B: "0" })).toEqual({ B: "0" });
+  });
+});
+
+describe("workflow budgets", () => {
+  const timeout = BudgetSchema.parse({}).INFERENCE_TIMEOUT_SECONDS;
+  const seconds = (file: string) =>
+    [...readFileSync(path.resolve(".github/workflows", file), "utf8").matchAll(/ai-seconds:\D*(\d+)/g)].map((match) => Number(match[1]));
+
+  // The runner starts a job only if a full timeout still fits, so a smaller budget would silently never run one.
+  it.each(["discovery.yml", "maintenance.yml", "pipeline-smoke.yml"])("%s leaves room for at least one job", (file) => {
+    expect(seconds(file).length).toBeGreaterThan(0);
+    for (const budget of seconds(file)) expect(budget).toBeGreaterThan(timeout);
+  });
+
+  it("gives the configured default budget room for more than one long job", () => {
+    const { AI_TIME_BUDGET_SECONDS } = BudgetSchema.parse({});
+    expect(AI_TIME_BUDGET_SECONDS - timeout).toBeGreaterThan(216);
   });
 });
