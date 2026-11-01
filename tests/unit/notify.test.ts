@@ -3,6 +3,7 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { BudgetSchema, loadBudget, withoutBlanks } from "../../src/config/budget";
 import { loadWorkerEnv } from "../../src/config/env";
+import { buildMatchConfig } from "../../src/match/config";
 import { escapeHtml, MAX_MESSAGE_CHARS, renderAlert, renderDigest, visibleLength, type JobCard } from "../../src/notify/message";
 import { TelegramClient } from "../../src/notify/telegram";
 
@@ -197,6 +198,11 @@ describe("workflow budgets", () => {
   it.each(["discovery.yml", "maintenance.yml", "pipeline-smoke.yml"])("%s leaves room for at least one job", (file) => {
     expect(seconds(file).length).toBeGreaterThan(0);
     for (const budget of seconds(file)) expect(budget).toBeGreaterThan(timeout);
+  });
+
+  // Tests elsewhere pass explicit limits, so this is the one place the shipped defaults meet the guard.
+  it("ships defaults that fit the model's context", () => {
+    expect(() => buildMatchConfig(BudgetSchema.parse({}))).not.toThrow();
   });
 
   it("gives the configured default budget room for more than one long job", () => {

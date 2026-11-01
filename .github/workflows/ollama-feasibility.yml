@@ -8,6 +8,7 @@ on:
     branches: [mvp]
     paths:
       - benchmarks/ollama/**
+      - src/config/budget.ts
       - ollama/model-lock.json
       - .github/actions/ollama-start/**
       - .github/workflows/ollama-feasibility.yml
