@@ -46,7 +46,7 @@ Plan section 21. "Blocked" means it needs an operator account or action. A mocke
 | Real GitHub sign-in | An OAuth app |
 | Vercel deployment | A Vercel project |
 | Scheduled runs | Merge to `master`, secrets, `PRODUCTION_ENABLED` |
-| Local Ollama through Compose | A machine with Docker. It is absent here |
+| Local Ollama through Compose | A running Docker engine and Compose. This machine has the Docker CLI (Homebrew 29.9.2) but no engine or Compose plugin |
 | Actual Actions spend | Billing page, or a `gh` token with the `user` scope |
 | Evaluation labels | A person to review them |
 
@@ -92,7 +92,7 @@ Follow `DEPLOYMENT.md`, then review the labels in `benchmarks/eval/dataset.json`
 - **Database:** Neon Free. Supabase Free rejected (pauses after a week, 500 MB).
 - **Secrets:** repository secrets, because environments are unavailable on private repositories on GitHub Free.
 - **Docker builds** use `npm ci --ignore-scripts`.
-- **Tests:** vitest global setup uses `TEST_DATABASE_URL` when set, otherwise `embedded-postgres`, because this machine has no Docker and no Postgres.
+- **Tests:** vitest global setup uses `TEST_DATABASE_URL` when set, otherwise `embedded-postgres`, so routine tests need neither a Docker engine nor an installed Postgres.
 - **Locks:** transaction-scoped advisory locks only (safe with Neon pooling), plus leases for crawl claims.
 - **Lever ETags:** stored only when a complete snapshot fit in one page, because a 304 proves a whole board unchanged only then.
 - **Input key:** content hash, profile matching hash, match config hash (model digest, prompt, schema, rubric, inference options, input limit). The filter version is excluded on purpose: a filter release re-evaluates and reuses answers.
