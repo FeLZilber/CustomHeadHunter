@@ -65,6 +65,8 @@ A job moves between `active` and `expired`:
 
 **The model judges and the code does the arithmetic.** The plan's contract has the model return `score` and `recommendation`. Here it returns per-criterion `points`, and `score` and `recommendation` are derived in code. A small CPU model adds up unreliably, and derived values cannot contradict the points. This is a deliberate deviation.
 
+**The alert threshold is a profile preference.** The plan names a `MIN_MATCH_SCORE` environment variable. It is deliberately not implemented, because the owner edits the threshold on the dashboard (default 75), and a change there starts a new epoch like any other relevance change. A second setting in the environment could only disagree with it.
+
 Output is validated with Zod. Evidence quotes are checked against the posting and stored as verified or unverified, because literal evidence from this model is weak, especially in Hebrew. A failed evaluation stays a failure and is never turned into a score of zero. Job text is untrusted, and the model gets no tools, secrets or network access.
 
 **Queue guarantees.** Claims are leased, so an abandoned claim is recovered. `drainQueue` starts a job only if a full inference timeout still fits before the deadline. It therefore cannot overrun the budget, and a budget below the timeout runs nothing. `unavailable` releases the claim without spending an attempt. `timeout` spends one and continues. `http` spends one and stops. A task becomes `exhausted` after `MAX_MATCH_ATTEMPTS`, and a run reports the backlog count and oldest task age.

@@ -9,7 +9,7 @@
 | `pipeline-smoke` | Pipeline changes on `mvp`, manual | The real pipeline against a throwaway Postgres | 25 min |
 | `ci` | Push, pull request | Type-check, unit, integration, E2E. No secrets | 10 min |
 | `compose-smoke` | Docker file changes, manual | Builds the image and checks the local setup | 15 min |
-| `ollama-feasibility` | Benchmark changes on `mvp`, manual | Hosted benchmark. It costs about 30 runner minutes | 35 min per job |
+| `ollama-feasibility` | Benchmark changes on `mvp`, manual | Hosted benchmark. It costs about 36 runner minutes | 35 min per job |
 
 `discovery` and `maintenance` run only when the repository variable `PRODUCTION_ENABLED` is `true`.
 
