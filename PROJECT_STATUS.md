@@ -53,7 +53,7 @@ Plan section 21. "Blocked" means it needs an operator account or action. A mocke
 
 Everything left needs the operator's accounts. Tick these off here as they happen. Details are in `DEPLOYMENT.md`.
 
-- [ ] Create a Neon Free project and keep the direct and pooled connection strings.
+- [x] Create a Neon project: `headhunter` (`proud-glade-09445629`), org `org-raspy-cake-67592538`, `aws-eu-central-1`, Postgres 18, created 2026-11-02. The org is on the Free plan. Fetch the direct and pooled connection strings from the Neon console or `neon connection-string`, and keep them out of the repo. Schema not migrated yet.
 - [ ] Create a Telegram bot with @BotFather and find the chat id.
 - [ ] Create a GitHub OAuth app (callback `<dashboard URL>/api/auth/callback/github`) and look up the owner's numeric GitHub id.
 - [ ] Create a Vercel Hobby project from the repository and set the dashboard variables.
