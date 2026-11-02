@@ -1,0 +1,37 @@
+name: ollama-feasibility
+
+# Runs a cold cache miss then a cache hit on fresh runners. It costs real
+# Actions usage, so it runs only when the benchmark itself changes.
+on:
+  workflow_dispatch:
+  push:
+    branches: [mvp]
+    paths:
+      - benchmarks/ollama/**
+      - src/config/budget.ts
+      - ollama/model-lock.json
+      - .github/actions/ollama-start/**
+      - .github/workflows/ollama-feasibility.yml
+      - .github/workflows/ollama-benchmark-run.yml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ollama-feasibility
+  cancel-in-progress: false
+
+jobs:
+  cache-miss:
+    uses: ./.github/workflows/ollama-benchmark-run.yml
+    with:
+      phase: cache-miss
+      key-suffix: -spike-${{ github.run_id }}-${{ github.run_attempt }}
+      passes: 1
+  cache-hit:
+    needs: cache-miss
+    uses: ./.github/workflows/ollama-benchmark-run.yml
+    with:
+      phase: cache-hit
+      key-suffix: -spike-${{ github.run_id }}-${{ github.run_attempt }}
+      passes: 1

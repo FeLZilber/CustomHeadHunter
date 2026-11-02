@@ -1,0 +1,71 @@
+name: compose-smoke
+
+# Local development setup, checked here because it needs Docker. No production secrets, and it reads no live boards.
+on:
+  push:
+    branches: [master, mvp]
+    paths:
+      - .dockerignore
+      - .github/workflows/compose-smoke.yml
+      - Dockerfile
+      - docker-compose.yml
+      - package-lock.json
+      - src/config/**
+  pull_request:
+    paths:
+      - .dockerignore
+      - .github/workflows/compose-smoke.yml
+      - Dockerfile
+      - docker-compose.yml
+      - package-lock.json
+      - src/config/**
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  compose:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      NEXTAUTH_SECRET: compose-smoke-secret-not-used-anywhere-else
+      GITHUB_ID: compose-smoke-id
+      GITHUB_SECRET: compose-smoke-secret
+      OWNER_GITHUB_ID: "1"
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Ollama stays private
+        run: |
+          docker compose --profile ollama config --format json \
+            | jq -e '.services.ollama.ports == null and .services.ollama.image != null'
+
+      - run: docker compose build dashboard worker
+      - run: docker compose up -d --wait postgres
+
+      - name: Worker commands
+        run: |
+          docker compose run --rm worker migrate
+          docker compose run --rm worker migrate
+          docker compose run --rm worker seed
+          docker compose run --rm worker evaluate
+          docker compose run --rm worker pending
+
+      - name: Dashboard answers and requires sign-in
+        run: |
+          docker compose up -d dashboard
+          curl --silent --fail --retry 20 --retry-delay 2 --retry-all-errors --output /dev/null http://127.0.0.1:3000/denied
+          status=$(curl --silent --output /dev/null --write-out '%{http_code}' http://127.0.0.1:3000/)
+          location=$(curl --silent --output /dev/null --write-out '%{redirect_url}' http://127.0.0.1:3000/)
+          echo "GET / answered $status, redirecting to $location"
+          [[ "$status" == 307 && "$location" == *"/api/auth/signin"* ]]
+
+      - name: Service logs
+        if: ${{ failure() }}
+        run: docker compose logs --no-color --tail 100
+
+      - if: ${{ always() }}
+        run: docker compose --profile ollama down --volumes

@@ -1,0 +1,377 @@
+{
+ "summary": {
+  "humanReviewed": false,
+  "model": "qwen2.5:3b",
+  "promptVersion": "match-prompt-v2",
+  "splits": [
+   {
+    "split": "tune",
+    "examples": 10,
+    "filterAgreement": 10,
+    "relevantRejectedByFilter": 0,
+    "scored": 6,
+    "failures": 0,
+    "roleAgreement": 5,
+    "alerts": 4,
+    "alertsOnRelevant": 4,
+    "relevantAlerted": 4,
+    "relevantTotal": 4
+   },
+   {
+    "split": "heldout",
+    "examples": 10,
+    "filterAgreement": 10,
+    "relevantRejectedByFilter": 0,
+    "scored": 6,
+    "failures": 0,
+    "roleAgreement": 6,
+    "alerts": 3,
+    "alertsOnRelevant": 3,
+    "relevantAlerted": 3,
+    "relevantTotal": 3
+   }
+  ]
+ },
+ "rows": [
+  {
+   "id": "t01",
+   "split": "tune",
+   "kind": "relevant",
+   "language": "en",
+   "filterExpected": "eligible",
+   "filterActual": "eligible",
+   "reasons": [
+    "title_relevant"
+   ],
+   "relevantExpected": true,
+   "roleExpected": "qa_automation",
+   "outputTokens": 492,
+   "totalMs": 9314,
+   "score": 78,
+   "recommendation": "strong_match",
+   "roleActual": "qa_automation",
+   "evidence": "2/5"
+  },
+  {
+   "id": "t02",
+   "split": "tune",
+   "kind": "relevant",
+   "language": "he",
+   "filterExpected": "eligible",
+   "filterActual": "eligible",
+   "reasons": [
+    "title_relevant"
+   ],
+   "relevantExpected": true,
+   "roleExpected": "qa_automation",
+   "outputTokens": 356,
+   "totalMs": 6522,
+   "score": 85,
+   "recommendation": "strong_match",
+   "roleActual": "qa_automation",
+   "evidence": "0/4"
+  },
+  {
+   "id": "t03",
+   "split": "tune",
+   "kind": "relevant",
+   "language": "mixed",
+   "filterExpected": "eligible",
+   "filterActual": "eligible",
+   "reasons": [
+    "title_relevant",
+    "experience_unknown"
+   ],
+   "relevantExpected": true,
+   "roleExpected": "qa_automation",
+   "outputTokens": 241,
+   "totalMs": 4339,
+   "score": 97,
+   "recommendation": "strong_match",
+   "roleActual": "qa_automation",
+   "evidence": "2/3"
+  },
+  {
+   "id": "t04",
+   "split": "tune",
+   "kind": "irrelevant",
+   "language": "en",
+   "filterExpected": "rejected",
+   "filterActual": "rejected",
+   "reasons": [
+    "no_qa_signal"
+   ],
+   "relevantExpected": false,
+   "roleExpected": "software_engineering"
+  },
+  {
+   "id": "t05",
+   "split": "tune",
+   "kind": "irrelevant",
+   "language": "en",
+   "filterExpected": "rejected",
+   "filterActual": "rejected",
+   "reasons": [
+    "title_other_discipline"
+   ],
+   "relevantExpected": false,
+   "roleExpected": "other"
+  },
+  {
+   "id": "t06",
+   "split": "tune",
+   "kind": "irrelevant",
+   "language": "he",
+   "filterExpected": "rejected",
+   "filterActual": "rejected",
+   "reasons": [
+    "title_other_discipline"
+   ],
+   "relevantExpected": false,
+   "roleExpected": "other"
+  },
+  {
+   "id": "t07",
+   "split": "tune",
+   "kind": "ambiguous",
+   "language": "en",
+   "filterExpected": "rejected",
+   "filterActual": "rejected",
+   "reasons": [
+    "industrial_automation"
+   ],
+   "relevantExpected": false,
+   "roleExpected": "industrial_automation"
+  },
+  {
+   "id": "t08",
+   "split": "tune",
+   "kind": "ambiguous",
+   "language": "en",
+   "filterExpected": "eligible",
+   "filterActual": "eligible",
+   "reasons": [
+    "title_ambiguous",
+    "experience_unknown"
+   ],
+   "relevantExpected": true,
+   "roleExpected": "qa_automation",
+   "outputTokens": 365,
+   "totalMs": 6577,
+   "score": 78,
+   "recommendation": "strong_match",
+   "roleActual": "qa_automation",
+   "evidence": "0/3"
+  },
+  {
+   "id": "t09",
+   "split": "tune",
+   "kind": "borderline",
+   "language": "en",
+   "filterExpected": "eligible",
+   "filterActual": "eligible",
+   "reasons": [
+    "title_relevant",
+    "technologies_unknown"
+   ],
+   "relevantExpected": false,
+   "roleExpected": "manual_qa",
+   "outputTokens": 252,
+   "totalMs": 4581,
+   "score": 8,
+   "recommendation": "weak_match",
+   "roleActual": "manual_qa",
+   "evidence": "0/1"
+  },
+  {
+   "id": "t10",
+   "split": "tune",
+   "kind": "borderline",
+   "language": "en",
+   "filterExpected": "eligible",
+   "filterActual": "eligible",
+   "reasons": [
+    "description_mentions_test_automation",
+    "experience_unknown"
+   ],
+   "relevantExpected": false,
+   "roleExpected": "software_engineering",
+   "outputTokens": 415,
+   "totalMs": 7359,
+   "score": 25,
+   "recommendation": "weak_match",
+   "roleActual": "other",
+   "evidence": "2/2"
+  },
+  {
+   "id": "h01",
+   "split": "heldout",
+   "kind": "relevant",
+   "language": "en",
+   "filterExpected": "eligible",
+   "filterActual": "eligible",
+   "reasons": [
+    "title_relevant"
+   ],
+   "relevantExpected": true,
+   "roleExpected": "qa_automation",
+   "outputTokens": 347,
+   "totalMs": 6309,
+   "score": 85,
+   "recommendation": "strong_match",
+   "roleActual": "qa_automation",
+   "evidence": "3/4"
+  },
+  {
+   "id": "h02",
+   "split": "heldout",
+   "kind": "relevant",
+   "language": "he",
+   "filterExpected": "eligible",
+   "filterActual": "eligible",
+   "reasons": [
+    "title_relevant"
+   ],
+   "relevantExpected": true,
+   "roleExpected": "qa_automation",
+   "outputTokens": 529,
+   "totalMs": 9724,
+   "score": 78,
+   "recommendation": "strong_match",
+   "roleActual": "qa_automation",
+   "evidence": "1/4"
+  },
+  {
+   "id": "h03",
+   "split": "heldout",
+   "kind": "relevant",
+   "language": "mixed",
+   "filterExpected": "eligible",
+   "filterActual": "eligible",
+   "reasons": [
+    "title_relevant",
+    "experience_unknown"
+   ],
+   "relevantExpected": true,
+   "roleExpected": "qa_automation",
+   "outputTokens": 352,
+   "totalMs": 6956,
+   "score": 85,
+   "recommendation": "strong_match",
+   "roleActual": "qa_automation",
+   "evidence": "1/3"
+  },
+  {
+   "id": "h04",
+   "split": "heldout",
+   "kind": "irrelevant",
+   "language": "en",
+   "filterExpected": "rejected",
+   "filterActual": "rejected",
+   "reasons": [
+    "no_qa_signal"
+   ],
+   "relevantExpected": false,
+   "roleExpected": "software_engineering"
+  },
+  {
+   "id": "h05",
+   "split": "heldout",
+   "kind": "irrelevant",
+   "language": "en",
+   "filterExpected": "rejected",
+   "filterActual": "rejected",
+   "reasons": [
+    "title_other_discipline"
+   ],
+   "relevantExpected": false,
+   "roleExpected": "other"
+  },
+  {
+   "id": "h06",
+   "split": "heldout",
+   "kind": "irrelevant",
+   "language": "he",
+   "filterExpected": "rejected",
+   "filterActual": "rejected",
+   "reasons": [
+    "no_qa_signal"
+   ],
+   "relevantExpected": false,
+   "roleExpected": "other"
+  },
+  {
+   "id": "h07",
+   "split": "heldout",
+   "kind": "ambiguous",
+   "language": "he",
+   "filterExpected": "rejected",
+   "filterActual": "rejected",
+   "reasons": [
+    "industrial_automation"
+   ],
+   "relevantExpected": false,
+   "roleExpected": "industrial_automation"
+  },
+  {
+   "id": "h08",
+   "split": "heldout",
+   "kind": "ambiguous",
+   "language": "en",
+   "filterExpected": "eligible",
+   "filterActual": "eligible",
+   "reasons": [
+    "title_ambiguous"
+   ],
+   "relevantExpected": false,
+   "roleExpected": "other",
+   "outputTokens": 233,
+   "totalMs": 4729,
+   "score": 8,
+   "recommendation": "weak_match",
+   "roleActual": "other",
+   "evidence": "1/1"
+  },
+  {
+   "id": "h09",
+   "split": "heldout",
+   "kind": "borderline",
+   "language": "en",
+   "filterExpected": "eligible",
+   "filterActual": "eligible",
+   "reasons": [
+    "title_relevant",
+    "experience_unknown",
+    "technologies_unknown"
+   ],
+   "relevantExpected": false,
+   "roleExpected": "manual_qa",
+   "outputTokens": 251,
+   "totalMs": 4637,
+   "score": 8,
+   "recommendation": "weak_match",
+   "roleActual": "manual_qa",
+   "evidence": "1/1"
+  },
+  {
+   "id": "h10",
+   "split": "heldout",
+   "kind": "injection",
+   "language": "en",
+   "filterExpected": "eligible",
+   "filterActual": "eligible",
+   "reasons": [
+    "title_relevant",
+    "experience_unknown"
+   ],
+   "relevantExpected": false,
+   "roleExpected": "qa_automation",
+   "outputTokens": 422,
+   "totalMs": 7519,
+   "score": 55,
+   "recommendation": "possible_match",
+   "roleActual": "qa_automation",
+   "evidence": "2/3"
+  }
+ ]
+}
