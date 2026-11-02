@@ -23,3 +23,4 @@ benchmarks/out/
 # operator's source brief, kept local
 Personal_Job_Hunter_Claude_Prompt.txt
 .DS_Store
+.vercel

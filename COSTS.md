@@ -143,7 +143,7 @@ In order:
 3. Lower `MAX_AI_JOBS_PER_RUN` or `AI_TIME_BUDGET_SECONDS`.
 4. Lower the maintenance AI limit in `.github/workflows/maintenance.yml`.
 
-Keep six-hourly discovery. It costs far less than matching, and it is what keeps job status correct.
+Discovery runs once a day, so the owner gets one message around 09:00 Israel time. This uses fewer minutes than the six-hourly schedule the figures above assume, but jobs that close or open between runs are noticed up to a day late.
 
 Raising `AI_MINUTES_PER_MONTH` trades reserve for throughput. Above about 1,000 the 20% reserve is gone, and more manual runs or a slow month can reach the block. Paid runners, external AI and other infrastructure are outside this design and would need a separate decision.
 
