@@ -4,7 +4,7 @@ A private job discovery system for one person in Israel. It watches Greenhouse a
 
 It needs no always-on computer, paid AI API or self-hosted runner. Scheduled work runs on GitHub Actions, the model runs in Docker on the same runner, and data lives in PostgreSQL.
 
-**Status: built and tested, not deployed.** No database, bot or dashboard exists in production yet. See [PROJECT_STATUS.md](PROJECT_STATUS.md) for what has been verified and [DEPLOYMENT.md](DEPLOYMENT.md) for the remaining operator steps.
+**Status: deployed for one owner.** A dry-run discovery has passed in production. Real Telegram delivery and scheduled runs are not yet verified. See [PROJECT_STATUS.md](PROJECT_STATUS.md) for what has been verified and [DEPLOYMENT.md](DEPLOYMENT.md) for the remaining operator steps.
 
 ## What it does
 

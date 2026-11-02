@@ -1,6 +1,6 @@
 # Deployment
 
-Nothing here has been done yet. No Neon project, Telegram bot, OAuth app, Vercel project or Actions secret exists. Each step is an operator action, and a step that was not run must not be reported as working. Provider facts were checked on 2026-11-01. See `COSTS.md` for limits.
+Steps 1 to 6 were done for this project on 2026-11-02, and a dry-run discovery passed. This guide still describes how to repeat them. Each step is an operator action, and a step that was not run must not be reported as working. Provider facts were checked on 2026-11-01. See `COSTS.md` for limits.
 
 Follow the order below, because each step needs the one before.
 
