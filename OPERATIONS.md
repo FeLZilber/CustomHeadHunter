@@ -4,8 +4,8 @@
 
 | Workflow | Trigger | Does | Timeout |
 | --- | --- | --- | --- |
-| `discovery` | `17 */6 * * *` UTC, manual | Crawl, evaluate, match, notify, health | 38 min |
-| `maintenance` | `41 3 * * *` UTC, manual | The same on the cheap ETag path with 2 AI jobs, then cleanup and a stale-discovery check | 30 min |
+| `discovery` | `17 6 * * *` UTC (about 09:00 in Israel), manual | Crawl, evaluate, match, notify, health | 38 min |
+| `maintenance` | `17 7 * * *` UTC, an hour after discovery, manual | The same on the cheap ETag path with 2 AI jobs, then cleanup and a stale-discovery check | 30 min |
 | `pipeline-smoke` | Pipeline changes on `mvp`, manual | The real pipeline against a throwaway Postgres | 25 min |
 | `ci` | Push, pull request | Type-check, unit, integration, E2E. No secrets | 10 min |
 | `compose-smoke` | Docker file changes, manual | Builds the image and checks the local setup | 15 min |
@@ -49,7 +49,7 @@ The dashboard's status page shows everything below. `worker health` prints the s
 
 ### Discovery is stale
 
-`maintenance` fails when no crawl succeeded within `STALE_DISCOVERY_HOURS`, because a red run is how this reaches the owner. GitHub can delay or drop scheduled runs, so one miss is not a fault: run `discovery` by hand. If runs are missing altogether, check:
+`maintenance` fails when no crawl succeeded within `STALE_DISCOVERY_HOURS`, because a red run is how this reaches the owner. The default is 30 hours, so one dropped daily run turns it red. GitHub can delay or drop scheduled runs, so run `discovery` by hand. If runs are missing altogether, check:
 
 - `PRODUCTION_ENABLED` is `true`.
 - Actions is not blocked for billing. Without a payment method, GitHub blocks Actions when the included amount is used.

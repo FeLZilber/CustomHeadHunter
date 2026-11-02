@@ -23,7 +23,7 @@ const WorkerEnvSchema = BudgetSchema.extend({
   NOTIFY_TIME_BUDGET_SECONDS: z.coerce.number().int().min(10).max(1800).default(180),
   TELEGRAM_BOT_TOKEN: z.string().min(1).optional(),
   TELEGRAM_CHAT_ID: z.string().min(1).optional(),
-  STALE_DISCOVERY_HOURS: z.coerce.number().int().min(1).max(720).default(14),
+  STALE_DISCOVERY_HOURS: z.coerce.number().int().min(1).max(720).default(30),
   RETENTION_DAYS: z.coerce.number().int().min(7).max(3650).default(90),
   FRESHNESS_GRACE_SNAPSHOTS: z.coerce.number().int().min(1).max(20).default(2),
   SUSPICIOUS_DROP_RATIO: z.coerce.number().min(0).max(1).default(0.5),

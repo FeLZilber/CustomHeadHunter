@@ -4,7 +4,7 @@ Resume document. Update after every milestone and any decision a new session cou
 
 - **Plan:** `Personal_Job_Hunter_Claude_Prompt.txt` in the repo root (gitignored, operator's local brief). Sections 18 (tests) and 21 (final report) define done.
 - **Branch:** `mvp`, pushed. Default branch is `master`. Scheduled and dispatch workflows only operate once they reach `master`.
-- **State:** Deployed 2026-11-02. The dashboard is live at `headhunter-lovat.vercel.app` and the owner signed in. A manual dry-run discovery on `master` passed against Neon (run 41432026270). `PRODUCTION_ENABLED` is `true`, so the six-hourly schedule is active. **Not yet verified:** a real Telegram delivery, a scheduled run, and refusal of a second GitHub account.
+- **State:** Deployed 2026-11-02. The dashboard is live at `headhunter-lovat.vercel.app` and the owner signed in. A manual dry-run discovery on `master` passed against Neon (run 41432026270). `PRODUCTION_ENABLED` is `true`, so the daily schedule is active (discovery 06:17 UTC, about 09:00 in Israel; maintenance 07:17 UTC). **Not yet verified:** a real Telegram delivery, a scheduled run, and refusal of a second GitHub account.
 - **Last updated:** 2026-11-01
 
 ## Milestones
