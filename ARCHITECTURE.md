@@ -5,7 +5,7 @@ A single TypeScript package. The CLI worker runs on GitHub Actions and the Next.
 ## Data flow
 
 ```
-Greenhouse, Lever
+Greenhouse, Lever, Ashby
       │  crawl: conditional requests, SSRF-safe client
       ▼
 source_snapshots ─► source_listings ─► canonical_jobs ─► job_events
@@ -31,7 +31,7 @@ Each stage commits before the next starts, so jobs are never lost to a later fai
 
 | Directory | Holds |
 | --- | --- |
-| `src/connectors` | Greenhouse and Lever clients |
+| `src/connectors` | Greenhouse, Lever and Ashby clients |
 | `src/http` | Crawler HTTP client with DNS-aware SSRF protection |
 | `src/normalize` | Location, technology, seniority and text normalization |
 | `src/ingest` | Crawl, identity, lifecycle and events |
@@ -41,7 +41,7 @@ Each stage commits before the next starts, so jobs are never lost to a later fai
 | `src/notify` | Outbox, message rendering and Telegram client |
 | `src/worker` | CLI and maintenance |
 | `src/dashboard`, `src/app` | Server-side queries and auth, and Next.js pages |
-| `catalog/sources.json` | Verified sources. 21 entries: 19 Greenhouse, 2 Lever |
+| `catalog/sources.json` | Verified sources. 30 entries: 25 Greenhouse, 2 Lever, 3 Ashby |
 | `ollama/model-lock.json` | Pinned image, model and digest |
 
 ## Identity and lifecycle
@@ -62,6 +62,7 @@ A job moves between `active` and `expired`:
 - An unchanged key is never rematched, so a full crawl does not re-run AI.
 - A changed key queues new work and marks the old result stale. Stale results stay readable and labelled.
 - A filter version is left out of the key on purpose: a filter release re-evaluates and reuses existing answers.
+- A job can pass on its description alone when the title does not rule it out. Other engineering disciplines (DevOps, backend, data and similar) are rejected on the title, because they mention test tools as part of their own stack. A plain "Software Engineer" is not, because it can hide an SDET role.
 
 **The model judges and the code does the arithmetic.** The plan's contract has the model return `score` and `recommendation`. Here it returns per-criterion `points`, and `score` and `recommendation` are derived in code. A small CPU model adds up unreliably, and derived values cannot contradict the points. This is a deliberate deviation.
 
@@ -69,7 +70,7 @@ A job moves between `active` and `expired`:
 
 Output is validated with Zod. Evidence quotes are checked against the posting and stored as verified or unverified, because literal evidence from this model is weak, especially in Hebrew. A failed evaluation stays a failure and is never turned into a score of zero. Job text is untrusted, and the model gets no tools, secrets or network access.
 
-**Queue guarantees.** Claims are leased, so an abandoned claim is recovered. `drainQueue` starts a job only if a full inference timeout still fits before the deadline. It therefore cannot overrun the budget, and a budget below the timeout runs nothing. `unavailable` releases the claim without spending an attempt. `timeout` spends one and continues. `http` spends one and stops. A task becomes `exhausted` after `MAX_MATCH_ATTEMPTS`, and a run reports the backlog count and oldest task age.
+**Queue guarantees.** Tasks are claimed by priority, then newest posting first, so a small budget goes to fresh jobs. Older postings stay eligible. Claims are leased, so an abandoned claim is recovered. `drainQueue` starts a job only if a full inference timeout still fits before the deadline. It therefore cannot overrun the budget, and a budget below the timeout runs nothing. `unavailable` releases the claim without spending an attempt. `timeout` spends one and continues. `http` spends one and stops. A task becomes `exhausted` after `MAX_MATCH_ATTEMPTS`, and a run reports the backlog count and oldest task age.
 
 ## Notifications
 
@@ -85,6 +86,8 @@ The outbox is derived from committed match results and identified by a unique `e
 Every page starts with `await requireOwner()` and so does every server action. A static test fails if one does not. Access requires the numeric GitHub id in `OWNER_GITHUB_ID`, which unlike a username cannot be reassigned. Signing in with any other account is refused at the callback and again on each request.
 
 Source text renders as plain text, so no posting HTML reaches the browser. The dashboard reads and writes through server-only modules, and the CSP blocks third-party scripts, images and framing. Saved jobs and applications are separate tables (`saved_jobs`, `job_applications`) from job lifecycle status, so an expired or reopened posting never changes what the owner marked. Applying is a single mark with a date, set from the job page and undone the same way. It does not stop alerts for that job. Interview stages and notes are roadmap work and are not built.
+
+The job list can filter and sort by posting date, using the discovery date when a provider gives none. The default shows every open job, so an old posting that is still open is never hidden silently. `/search` builds links for the owner to open by hand, one for each site the worker does not crawl. Nothing there is fetched by the worker, and the jobs it finds are not tracked.
 
 ## Budget controls
 
@@ -104,7 +107,7 @@ Workflows share the `job-hunter-worker` concurrency group, and migrate, evaluate
 
 ## Trade-offs
 
-- **Recall depends on the catalog.** These boards list few Israeli QA jobs. New ATS connectors are roadmap work.
+- **Recall depends on the catalog.** These boards list few Israeli QA jobs. Comeet is left out on purpose, see `PROJECT_STATUS.md`. Other ATS connectors are roadmap work.
 - **Six-hourly discovery is not real time.** GitHub can delay or drop scheduled runs, and maintenance gives a daily second chance.
 - **Scores vary across runners.** The same seed gave `mixed-sdet` 63 on one runner and 78 and 85 on others. Treat a score as a band, not a measurement.
 - **Single owner, single profile.** Multi-user support is out of scope.

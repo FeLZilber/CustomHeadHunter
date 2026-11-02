@@ -26,6 +26,13 @@ describe("catalog", () => {
     expect(await listEnabledSources(pool, { company: "nanit" })).toHaveLength(1);
   });
 
+  it("accepts every catalog provider in the database", async () => {
+    await seedCatalog(pool);
+    const ashby = await listEnabledSources(pool, { provider: "ashby" });
+    expect(ashby.length).toBeGreaterThan(0);
+    await expect(addSource(pool, "Unknown Co", "unknown", "workday" as never)).rejects.toThrow(/job_sources_provider_check/);
+  });
+
   it("contains no synthetic companies", async () => {
     const text = await readFile(CATALOG_PATH, "utf8");
     expect(text).not.toMatch(/example\.|fixture|synthetic company/i);

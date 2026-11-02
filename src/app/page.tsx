@@ -63,10 +63,20 @@ export default async function JobsPage({ searchParams }: { searchParams: Params 
           </select>
         </label>
         <label>
+          Posted
+          <select name="posted" defaultValue={filters.posted}>
+            <option value="any">Any time</option>
+            <option value="14">Last 14 days</option>
+            <option value="30">Last 30 days</option>
+            <option value="90">Last 90 days</option>
+          </select>
+        </label>
+        <label>
           Sort
           <select name="sort" defaultValue={filters.sort}>
             <option value="best">Best match</option>
-            <option value="latest">Latest</option>
+            <option value="latest">Latest found</option>
+            <option value="posted">Latest posted</option>
           </select>
         </label>
         <button type="submit" className="button">

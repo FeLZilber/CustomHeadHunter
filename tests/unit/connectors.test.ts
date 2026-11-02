@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { ashbyConnector } from "../../src/connectors/ashby";
 import { greenhouseConnector } from "../../src/connectors/greenhouse";
 import { LEVER_MAX_PAGES, LEVER_PAGE_SIZE, leverConnector } from "../../src/connectors/lever";
 import type { Connector, CrawlOutcome, CrawlPage, RawListing } from "../../src/connectors/types";
@@ -189,5 +190,93 @@ describe("lever connector", () => {
 
   it("keeps an empty board as complete for the sanity checks to judge", async () => {
     expect((await collect(leverConnector, http(() => json([])).client)).outcome).toMatchObject({ kind: "complete", listings: 0 });
+  });
+});
+
+const ashbyJob = (id: string, overrides: object = {}) => ({
+  id,
+  title: "QA Automation Engineer",
+  employmentType: "FullTime",
+  location: "Remote",
+  secondaryLocations: [],
+  publishedAt: "2026-08-23T10:42:35.045+00:00",
+  isListed: true,
+  workplaceType: "Hybrid",
+  address: { postalAddress: { addressCountry: "Israel", addressLocality: "Tel Aviv" } },
+  jobUrl: `https://jobs.ashbyhq.com/acme/${id}`,
+  applyUrl: `https://jobs.ashbyhq.com/acme/${id}/application`,
+  descriptionHtml: "<p>Playwright &amp; TypeScript</p>",
+  descriptionPlain: "Playwright & TypeScript",
+  ...overrides,
+});
+
+describe("ashby connector", () => {
+  it("maps a job, adding the address country to its locations", async () => {
+    const { client, urls } = http(() => json({ apiVersion: "1", jobs: [ashbyJob("a")] }, { etag: "v1" }));
+    const { listings, outcome } = await collect(ashbyConnector, client);
+    expect(urls[0]).toBe("https://api.ashbyhq.com/posting-api/job-board/acme");
+    expect(outcome).toMatchObject({ kind: "complete", listings: 1, etag: "v1" });
+    expect(listings[0]).toMatchObject({
+      providerJobId: "a",
+      descriptionText: "Playwright & TypeScript",
+      location: "Remote",
+      extraLocations: ["Israel"],
+      workplaceType: "hybrid",
+      commitment: "Full Time",
+      applicationUrl: "https://jobs.ashbyhq.com/acme/a",
+    });
+    expect(listings[0]?.publishedAt?.toISOString()).toBe("2026-08-23T10:42:35.045Z");
+  });
+
+  it("includes secondary locations and tolerates a missing address", async () => {
+    const secondaryLocations = [
+      { location: "New York", address: { postalAddress: { addressCountry: "United States" } } },
+      { location: "Mexico City (DF)", address: null },
+    ];
+    const { client } = http(() => json({ jobs: [ashbyJob("a", { address: null, secondaryLocations })] }));
+    const { listings } = await collect(ashbyConnector, client);
+    expect(listings[0]?.extraLocations).toEqual(["New York", "Mexico City (DF)", "United States"]);
+  });
+
+  it("spells provider values the way the normalizer expects", async () => {
+    const { client } = http(() => json({ jobs: [ashbyJob("a", { employmentType: "PartTime", workplaceType: "OnSite" })] }));
+    expect((await collect(ashbyConnector, client)).listings[0]).toMatchObject({ commitment: "Part Time", workplaceType: "on-site" });
+  });
+
+  it("falls back to the HTML when there is no plain description", async () => {
+    const { client } = http(() => json({ jobs: [ashbyJob("a", { descriptionPlain: undefined })] }));
+    expect((await collect(ashbyConnector, client)).listings[0]?.descriptionText).toBe("Playwright & TypeScript");
+  });
+
+  it("skips an unlisted job without treating it as invalid", async () => {
+    const { client } = http(() => json({ jobs: [ashbyJob("a"), ashbyJob("hidden", { isListed: false })] }));
+    const { listings, outcome } = await collect(ashbyConnector, client);
+    expect(listings.map((listing) => listing.providerJobId)).toEqual(["a"]);
+    expect(outcome.kind).toBe("complete");
+  });
+
+  it("is partial on an invalid record but keeps the valid ones", async () => {
+    const { client } = http(() => json({ jobs: [ashbyJob("a"), { id: "broken" }] }));
+    const { listings, outcome, pages } = await collect(ashbyConnector, client);
+    expect(listings).toHaveLength(1);
+    expect(pages[0]?.invalidRecords).toBe(1);
+    expect(outcome.kind).toBe("partial");
+  });
+
+  it("sends the ETag and reports a 304 and a block", async () => {
+    const seen: Record<string, string>[] = [];
+    const { client } = http((_url, headers) => {
+      seen.push(headers);
+      return status(304);
+    });
+    expect((await collect(ashbyConnector, client, "v1")).outcome.kind).toBe("not_modified");
+    expect(seen[0]?.["if-none-match"]).toBe("v1");
+    expect((await collect(ashbyConnector, http(() => status(403)).client)).outcome.kind).toBe("blocked");
+  });
+
+  it("fails on a response that is not the expected shape", async () => {
+    expect((await collect(ashbyConnector, http(() => json({ positions: [] })).client)).outcome.kind).toBe("failed");
+    const notJson: TransportResponse = { status: 200, body: "<html>", headers: {} };
+    expect((await collect(ashbyConnector, http(() => notJson).client)).outcome.kind).toBe("failed");
   });
 });
