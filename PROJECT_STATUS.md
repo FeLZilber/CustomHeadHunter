@@ -121,6 +121,17 @@ Everything left needs the operator's accounts. Tick these off here as they happe
 - **Pipeline:** `.github/actions/pipeline` is shared by discovery, maintenance and smoke. Later stages run after a crawl or Ollama failure, and the job stays red.
 - **Defaults come from measurements.** Change `src/config/budget.ts` and `COSTS.md` together. Shipped limits: output 1000, context 3200, timeout 330 s, input 1600, 8 jobs and 900 s per run, 800 AI minutes a month.
 
+## Resuming on a new machine
+
+Everything except the items below is in GitHub (code, docs, history), Neon (data), and GitHub or Vercel (secrets, variables).
+
+1. Clone `FeLZilber/headHunter`, check out `mvp`, run `nvm use` (Node 24) and `npm ci`.
+2. Copy back `Personal_Job_Hunter_Claude_Prompt.txt` (gitignored, the original plan) from your own backup into the repo root.
+3. Log in again: `gh auth login` (as `FeLZilber`), `neon login`, `npx vercel login` then `npx vercel link --project headhunter`.
+4. Set `git config user.email` to the GitHub no-reply address. Do not use the work address.
+5. Optional, to rebuild the Neon skill and MCP: `neon skills -s neon --agent claude-code -y` and `neon mcp --oauth --project --agent claude-code -y`. They are not committed.
+6. Not recoverable from GitHub or Vercel, because secrets cannot be read back: the Telegram bot token (BotFather `/mybots` shows it again) and the GitHub OAuth client secret (generate a new one and update `GITHUB_SECRET` in Vercel).
+
 ## Things not to forget
 
 - Two `gh` accounts are logged in; `FeLZilber` is active.
