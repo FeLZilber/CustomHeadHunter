@@ -1,6 +1,6 @@
 # Deployment
 
-Nothing here has been done yet. No Neon project, Telegram bot, OAuth app, Vercel project or Actions secret exists. Each step is an operator action, and a step that was not run must not be reported as working. Provider facts were checked on 2026-11-01. See `COSTS.md` for limits.
+Steps 1 to 6 were done for this project on 2026-11-02, and a dry-run discovery passed. This guide still describes how to repeat them. Each step is an operator action, and a step that was not run must not be reported as working. Provider facts were checked on 2026-11-01. See `COSTS.md` for limits.
 
 Follow the order below, because each step needs the one before.
 
@@ -52,7 +52,7 @@ gh api users/<login> --jq .id
 
 ## 5. Dashboard (Vercel Hobby)
 
-Hobby is for personal, non-commercial use. Import the repository at [vercel.com/new](https://vercel.com/new). The framework is detected and `engines` in `package.json` selects Node 24, which matters because Vercel's default is 26. Set the production branch to `master`, and set these variables for Production only:
+Hobby is for personal, non-commercial use. Import the repository at [vercel.com/new](https://vercel.com/new). `vercel.json` pins the framework to Next.js. Without it, a wrong Framework Preset failed the first deploys on 2026-11-02 (`STATIC_BUILD_NO_OUT_DIR` for "Other", "No entrypoint found" for a Node preset), each after a good build. The framework is normally detected and `engines` in `package.json` selects Node 24, which matters because Vercel's default is 26. Set the production branch to `master`, and set these variables for Production only:
 
 | Variable | Value |
 | --- | --- |
@@ -89,7 +89,7 @@ Work through these in order, and stop at the first failure.
 3. Set the repository variable `PRODUCTION_ENABLED` to `true`.
 4. Run `discovery` by hand with `notify-dry-run` on. Expect a green run, 21 sources and about 270 active jobs. The figure was 272 on 2026-11-01 and will drift. Matching runs for real; only sending is skipped.
 5. Run `discovery` without dry run, then confirm the baseline digest arrives in Telegram.
-6. Check the next scheduled run at `17 */6 * * *` UTC, and `maintenance` at `41 3 * * *` UTC.
+6. Check the next scheduled run at `17 6 * * *` UTC (08:17 in Israeli winter time, 09:17 in summer time), and `maintenance` at `17 7 * * *` UTC.
 7. In GitHub billing, set a $0 budget for Actions overage if a payment method is on file. Check actual use after the first week and compare it with `COSTS.md`.
 
 Only after these pass is it true to call the system deployed.
