@@ -52,7 +52,7 @@ gh api users/<login> --jq .id
 
 ## 5. Dashboard (Vercel Hobby)
 
-Hobby is for personal, non-commercial use. Import the repository at [vercel.com/new](https://vercel.com/new). The framework is detected and `engines` in `package.json` selects Node 24, which matters because Vercel's default is 26. Set the production branch to `master`, and set these variables for Production only:
+Hobby is for personal, non-commercial use. Import the repository at [vercel.com/new](https://vercel.com/new). Check that Framework Preset says Next.js: it was "Other" on the first import (2026-11-02), and the deploy then failed with `STATIC_BUILD_NO_OUT_DIR` after a good build. The framework is normally detected and `engines` in `package.json` selects Node 24, which matters because Vercel's default is 26. Set the production branch to `master`, and set these variables for Production only:
 
 | Variable | Value |
 | --- | --- |
