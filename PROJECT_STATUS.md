@@ -4,7 +4,7 @@ Resume document. Update after every milestone and any decision a new session cou
 
 - **Plan:** `Personal_Job_Hunter_Claude_Prompt.txt` in the repo root (gitignored, operator's local brief). Sections 18 (tests) and 21 (final report) define done.
 - **Branch:** `mvp`, pushed. Default branch is `master`. Scheduled and dispatch workflows only operate once they reach `master`.
-- **State:** MVP built and tested. **Not deployed.** Every remaining step needs an operator account. See `DEPLOYMENT.md`.
+- **State:** Deployed 2026-11-02. The dashboard is live at `headhunter-lovat.vercel.app` and the owner signed in. A manual dry-run discovery on `master` passed against Neon (run 41432026270). `PRODUCTION_ENABLED` is `true`, so the six-hourly schedule is active. **Not yet verified:** a real Telegram delivery, a scheduled run, and refusal of a second GitHub account.
 - **Last updated:** 2026-11-01
 
 ## Milestones
@@ -12,8 +12,8 @@ Resume document. Update after every milestone and any decision a new session cou
 | Milestone | State |
 | --- | --- |
 | M0 Feasibility | Done. Final hosted run 41320394097 with the shipped defaults: 20 of 20 attempts valid. See `COSTS.md`. |
-| M1 Durable ingestion | Done. Live-tested against real boards. Not deployed. |
-| M2 Bounded AI | Done. Live-tested on local GPU and on a hosted runner (`pipeline-smoke`, 2 real postings). Not deployed. |
+| M1 Durable ingestion | Done. Live-tested against real boards, and run on Neon through the pooled string on 2026-11-02. |
+| M2 Bounded AI | Done. Live-tested on local GPU and on a hosted runner (`pipeline-smoke`, 2 real postings), and in production on 2026-11-02: 4 scored, 0 failures. |
 | M3 Notifications and automation | Done. Hosted CI and pipeline smoke green. Real Telegram delivery not tested: no bot exists. Schedules not active: they need `master` and secrets. |
 | M4 Private dashboard and dev setup | Done. 29 E2E tests (applied tracking added after the hosted run below), CI 41320412960 and `compose-smoke` 41320413027 green at bd45bb3. Deployed to Vercel 2026-11-02 and the owner signed in with GitHub. A stranger's sign-in was not tested. |
 | M5 MVP hardening and handover | Done as far as access allows: docs written, failure tests complete, monthly cap added, benchmark and costs recorded. Live checks below remain blocked. |
