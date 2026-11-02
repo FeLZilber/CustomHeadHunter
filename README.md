@@ -8,7 +8,7 @@ It needs no always-on computer, paid AI API or self-hosted runner. Scheduled wor
 
 ## What it does
 
-- Crawls 21 verified company boards every six hours, using conditional requests where the provider supports them.
+- Crawls 21 verified company boards once a day, around 09:00 Israel time, using conditional requests where the provider supports them.
 - Stores every job before any AI runs, and expires a job only after repeated, complete evidence that it closed.
 - Filters deterministically, then matches shortlisted jobs with `qwen2.5:3b` on the runner's CPU, within per-job, per-run and monthly limits.
 - Sends each alert once through a database outbox, and holds any delivery it cannot confirm.

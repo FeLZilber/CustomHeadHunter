@@ -7,7 +7,7 @@ const DashboardEnvSchema = z.object({
   GITHUB_ID: z.string().min(1),
   GITHUB_SECRET: z.string().min(1),
   OWNER_GITHUB_ID: z.string().regex(/^\d+$/, "OWNER_GITHUB_ID must be the numeric GitHub user id"),
-  STALE_DISCOVERY_HOURS: z.coerce.number().int().min(1).max(720).default(14),
+  STALE_DISCOVERY_HOURS: z.coerce.number().int().min(1).max(720).default(30),
 });
 
 export type DashboardEnv = z.infer<typeof DashboardEnvSchema>;

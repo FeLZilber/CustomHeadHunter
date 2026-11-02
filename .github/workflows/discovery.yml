@@ -4,7 +4,7 @@ name: discovery
 # minutes or reaches the database until the operator has set the secrets.
 on:
   schedule:
-    - cron: "17 */6 * * *"
+    - cron: "17 6 * * *"
   workflow_dispatch:
     inputs:
       mode:

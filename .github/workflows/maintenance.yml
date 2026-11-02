@@ -4,7 +4,7 @@ name: maintenance
 # removes expired history and fails visibly when discovery has gone stale.
 on:
   schedule:
-    - cron: "41 3 * * *"
+    - cron: "17 7 * * *"
   workflow_dispatch:
 
 permissions:
