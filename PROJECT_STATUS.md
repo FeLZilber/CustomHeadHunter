@@ -54,11 +54,11 @@ Plan section 21. "Blocked" means it needs an operator account or action. A mocke
 Everything left needs the operator's accounts. Tick these off here as they happen. Details are in `DEPLOYMENT.md`.
 
 - [x] Create a Neon project: `headhunter` (`proud-glade-09445629`), org `org-raspy-cake-67592538`, `aws-eu-central-1`, Postgres 18, created 2026-11-02. The org is on the Free plan. Fetch the direct and pooled connection strings from the Neon console or `neon connection-string`, and keep them out of the repo. Schema not migrated yet.
-- [ ] Create a Telegram bot with @BotFather and find the chat id.
+- [x] Create a Telegram bot with @BotFather and find the chat id. Bot and chat exist (private chat, id `9228977584`). A real message has not been sent by the app yet.
 - [ ] Create a GitHub OAuth app (callback `<dashboard URL>/api/auth/callback/github`) and look up the owner's numeric GitHub id.
 - [ ] Create a Vercel Hobby project from the repository and set the dashboard variables.
-- [ ] Add the repository secrets (`DATABASE_URL`, `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`).
-- [ ] Run `migrate` once against Neon through the direct connection string. This also creates `job_applications`.
+- [ ] Add the repository secrets. `DATABASE_URL` (pooled) and `TELEGRAM_CHAT_ID` are set, 2026-11-02. `TELEGRAM_BOT_TOKEN` is still missing.
+- [x] Run `migrate` once against Neon through the direct connection string. Done 2026-11-02: migrations 0001 to 0005 applied, 21 sources seeded. The pooler is still untested.
 - [ ] Open a pull request from `mvp` and merge it into `master`. Schedules and manual dispatch need the files there.
 - [ ] Run the activation checks in order: dashboard as owner and as a stranger, edit the profile, set `PRODUCTION_ENABLED`, dry-run discovery, real discovery, first Telegram digest, scheduled run.
 - [ ] Set a $0 Actions budget if a payment method is on file. Compare real use with `COSTS.md` after a week.
