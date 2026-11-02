@@ -3,9 +3,9 @@
 Resume document. Update after every milestone and any decision a new session could not re-derive.
 
 - **Plan:** `Personal_Job_Hunter_Claude_Prompt.txt` in the repo root (gitignored, operator's local brief). Sections 18 (tests) and 21 (final report) define done.
-- **Branch:** `mvp`, pushed. Default branch is `master`. Scheduled and dispatch workflows only operate once they reach `master`.
+- **Branch:** `master`, the default branch. `search-recall` merged 2026-11-02. Scheduled and dispatch workflows only operate once they reach `master`.
 - **State:** Deployed 2026-11-02. The dashboard is live at `headhunter-lovat.vercel.app` and the owner signed in. A manual dry-run discovery on `master` passed against Neon (run 41432026270). `PRODUCTION_ENABLED` is `true`, so the daily schedule is active (discovery 06:17 UTC, about 09:00 in Israel; maintenance 07:17 UTC). **Not yet verified:** a real Telegram delivery, a scheduled run, and refusal of a second GitHub account.
-- **Last updated:** 2026-11-01
+- **Last updated:** 2026-11-02
 
 ## Milestones
 
@@ -24,7 +24,7 @@ Plan section 21. "Blocked" means it needs an operator account or action. A mocke
 
 | # | Behavior | Implemented | Fixture-tested | Live-tested | Deployed |
 | --- | --- | --- | --- | --- | --- |
-| 1 | Greenhouse and Lever discovery, identity and links | Yes | Yes | Yes, 21 sources, 272 jobs | Blocked |
+| 1 | Greenhouse, Lever and Ashby discovery, identity and links | Yes | Yes | Yes, 30 sources, 377 jobs, throwaway database | Blocked |
 | 2 | Postgres persists before AI, no duplicates on repeat | Yes | Yes | Yes, throwaway Postgres | Blocked |
 | 3 | Incremental avoids needless matching, full snapshots handled | Yes | Yes | Yes, second crawl all `not_modified` | Blocked |
 | 4 | Partial or failed crawls never expire jobs, grace and reopening | Yes | Yes | Not exercised: no real closure or failure seen live | Blocked |
@@ -34,7 +34,7 @@ Plan section 21. "Blocked" means it needs an operator account or action. A mocke
 | 8 | Telegram delivery, outbox retry and ambiguity | Yes | Yes | **Blocked: no bot** | Blocked |
 | 9 | Scheduled and manual workflows, bounded maintenance | Yes | Yes | Shared pipeline passed in smoke. Schedules **blocked: need `master` and secrets** | Blocked |
 | 10 | Owner-only dashboard | Yes | Yes, E2E with signed test sessions Owner sign-in worked on `headhunter-lovat.vercel.app` (2026-11-02). Stranger refusal not tested live | Yes, dashboard only. Workers not active |
-| 11 | Automated tests pass, setup reproducible | Yes | 386 + 29 pass | CI green. Compose built on a runner, and run locally with Ollama from a fresh clone | n/a |
+| 11 | Automated tests pass, setup reproducible | Yes | 407 + 33 pass | CI green. Compose built on a runner, and run locally with Ollama from a fresh clone | n/a |
 | 12 | No always-on PC, self-hosted runner, VPS or paid AI API | Yes | n/a | Holds by construction | Blocked |
 
 ## Blocked checks
@@ -56,10 +56,12 @@ Everything left needs the operator's accounts. Tick these off here as they happe
 - [x] Create a Neon project: `headhunter` (`proud-glade-09445629`), org `org-raspy-cake-67592538`, `aws-eu-central-1`, Postgres 18, created 2026-11-02. The org is on the Free plan. Fetch the direct and pooled connection strings from the Neon console or `neon connection-string`, and keep them out of the repo. Schema not migrated yet.
 - [x] Create a Telegram bot with @BotFather and find the chat id. Bot and chat exist (private chat, id `9228977584`). A real message has not been sent by the app yet.
 - [x] Create a GitHub OAuth app and look up the owner's numeric GitHub id (`FeLZilber`, 121975106). Done 2026-11-02.
-- [x] Create a Vercel Hobby project (`headhunter-lovat.vercel.app`, production branch `master`) and set the dashboard variables. Done 2026-11-02. `vercel.json` pins the framework (PR #2, not merged yet).
+- [x] Create a Vercel Hobby project (`headhunter-lovat.vercel.app`, production branch `master`) and set the dashboard variables. Done 2026-11-02. `vercel.json` pins the framework (PR #2, merged 2026-11-02).
 - [ ] Add the repository secrets. `DATABASE_URL` (pooled) and `TELEGRAM_CHAT_ID` are set, 2026-11-02. `TELEGRAM_BOT_TOKEN` was set by the owner the same day. All three exist, and none has been used by a real run yet.
 - [x] Run `migrate` once against Neon through the direct connection string. Done 2026-11-02: migrations 0001 to 0005 applied, 21 sources seeded. The pooler is still untested.
-- [ ] Merge pull request #1 (`mvp` into `master`). Opened 2026-11-02, not merged. Schedules and manual dispatch need the files on `master`.
+- [x] Merge `search-recall` into `master`. Done 2026-11-02.
+- [ ] After the next pipeline run, which applies migration 0006, seeds the 30 sources and re-evaluates under `filter-v2`, confirm in production: the eligible count, no pending tasks for rejected jobs, and no crawl failures on the nine new sources.
+- [x] Merge pull request #1 (`mvp` into `master`). Done 2026-11-02.
 - [ ] Run the activation checks in order: dashboard as owner and as a stranger, edit the profile, set `PRODUCTION_ENABLED`, dry-run discovery, real discovery, first Telegram digest, scheduled run.
 - [ ] Set a $0 Actions budget if a payment method is on file. Compare real use with `COSTS.md` after a week.
 - [ ] Review the labels in `benchmarks/eval/dataset.json`. Until then quality is unconfirmed.
@@ -74,8 +76,10 @@ Everything left needs the operator's accounts. Tick these off here as they happe
 
 **Product**
 
-- **Target-role recall is the main risk.** Of 1,776 raw postings across the catalog, 272 are in Israeli scope, and only one is plausibly a QA role (Cato "Automation Engineer"). This is catalog coverage, not a filter bug: these boards list few Israeli QA jobs. Do not pad the catalog with unverified sources. New ATS connectors are roadmap work and need separate authorization.
-- **Catalog gap:** 19 Greenhouse and 2 Lever sources, few banks or government employers.
+- **Target-role recall is the main risk.** On 2026-11-02 the catalog held 377 Israeli jobs, and `filter-v2` kept 11. Six have test or automation titles (three at Island, one at Navan, two at Cato, one of those for network automation). Five are not QA roles. This is catalog coverage, not a filter bug: these boards list few Israeli QA jobs. Do not pad the catalog with unverified sources. New ATS connectors are roadmap work and need separate authorization.
+- **Comeet is the largest known gap, and it is deliberately not crawled.** It holds most of the Israeli QA roles found: about 11 software QA titles among 383 Israeli jobs on the boards sampled, 2026-11-02. It has no public feed, so crawling means parsing hosted pages. [Spark Hire's job-seeker terms](https://www.sparkhire.com/terms/job-seeker) ban scraping but do not name Comeet, and Comeet's own terms pages returned 403 and are unread. The owner reaches it by hand through the `/search` page.
+- **AllJobs and Drushim are not crawled, checked 2026-11-02.** Drushim's `robots.txt` and sitemap allow access, but [its terms](https://www.drushim.co.il/article/2/) ban collecting information with automated software and limit use to personal job applications. AllJobs answers non-browser requests with a Radware block page and CAPTCHA, and [its terms](https://www.alljobs.co.il/UserAgreement.aspx) ban copying content without written permission. Both stay on the `/search` page.
+- **Catalog gap:** 25 Greenhouse, 2 Lever and 3 Ashby sources, few banks or government employers.
 - **Human calibration is outstanding.** Evaluation labels are machine-proposed, so results measure agreement with a draft, not quality.
 - **Evidence is weak,** especially in Hebrew: about a third of quotes are literal on hosted runs. Evidence is stored and shown as verified or not.
 - **Scores vary across runners.** Same seed, 85 and 78 in one case, 15 and 23 in another, so a score near the threshold can flip.

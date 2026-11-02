@@ -27,6 +27,16 @@ describe("applyFilter", () => {
     }
   });
 
+  it("treats common title variations as QA", () => {
+    for (const title of ["Test Development Engineer", "Test Developer", "Software Developer in Test", "בודקות תוכנה"]) {
+      expect(applyFilter(job({ title }), profile).reasons, title).toContain("title_relevant");
+    }
+  });
+
+  it("keeps a Hebrew quality title for the model to judge", () => {
+    expect(applyFilter(job({ title: "מהנדס/ת איכות" }), profile).reasons).toContain("title_ambiguous");
+  });
+
   it("does not let JavaScript alone establish relevance", () => {
     const result = applyFilter(job({
       title: "Backend Developer",
@@ -63,6 +73,21 @@ describe("applyFilter", () => {
   it("keeps a non-QA title whose text is about test automation, at the lowest priority", () => {
     const result = applyFilter(job({ title: "Software Engineer", descriptionText: `${LONG_TEXT} Build our test automation.` }), profile);
     expect(result).toMatchObject({ decision: "eligible", priority: 0 });
+  });
+
+  it("rejects another engineering discipline that only mentions test tools", () => {
+    const descriptionText = `${LONG_TEXT} We use Playwright and Cypress.`;
+    for (const title of ["DevOps Team Lead", "Senior BI Engineer", "Full-Stack Developer", "Security Researcher", "Platform Engineering Team Leader"]) {
+      expect(applyFilter(job({ title, descriptionText }), profile), title)
+        .toMatchObject({ decision: "rejected", reasons: ["title_other_engineering"] });
+    }
+  });
+
+  it("keeps a mixed title that names QA or automation", () => {
+    const descriptionText = `${LONG_TEXT} We use Playwright and Cypress.`;
+    for (const title of ["DevOps QA Engineer", "Backend Developer, Test Automation", "Full Stack Automation Engineer"]) {
+      expect(applyFilter(job({ title, descriptionText }), profile).decision, title).toBe("eligible");
+    }
   });
 
   it("does not reject a posting too short to judge", () => {

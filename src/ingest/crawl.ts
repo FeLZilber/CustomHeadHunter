@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import { ashbyConnector } from "../connectors/ashby";
 import { greenhouseConnector } from "../connectors/greenhouse";
 import { leverConnector } from "../connectors/lever";
 import type { Connector, CrawlOutcome, CrawlPage, Provider } from "../connectors/types";
@@ -21,6 +22,7 @@ import {
 export const defaultConnectors: Record<Provider, Connector> = {
   greenhouse: greenhouseConnector,
   lever: leverConnector,
+  ashby: ashbyConnector,
 };
 
 const TRANSACTION_BATCH = 50;

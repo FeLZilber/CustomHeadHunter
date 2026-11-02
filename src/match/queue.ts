@@ -158,8 +158,10 @@ export async function claimTask(pool: Pool, config: MatchConfig, owner: string, 
     pool.query(
       `UPDATE match_tasks SET status = 'claimed', attempts = attempts + 1, lease_owner = $2,
               lease_until = now() + make_interval(secs => $3), updated_at = now()
-        WHERE id = (SELECT t.id FROM match_tasks t WHERE ${RUNNABLE} AND t.next_attempt_at <= now()
-                     ORDER BY t.priority DESC, t.id DESC LIMIT 1 FOR UPDATE SKIP LOCKED)
+        WHERE id = (SELECT t.id FROM match_tasks t JOIN source_listings posting ON posting.id = t.source_listing_id
+                     WHERE ${RUNNABLE} AND t.next_attempt_at <= now()
+                     ORDER BY t.priority DESC, posting.published_at DESC NULLS LAST, t.id DESC
+                     LIMIT 1 FOR UPDATE OF t SKIP LOCKED)
         RETURNING id`,
       [hashMatchConfig(config), owner, leaseSeconds],
     ),

@@ -276,6 +276,123 @@
       "enabled": true,
       "verifiedAt": "2026-11-01T00:00:00Z",
       "verificationSourceUrl": "https://api.lever.co/v0/postings/walkme?mode=json"
+    },
+    {
+      "company": "Island",
+      "industry": "enterprise software",
+      "provider": "greenhouse",
+      "providerKey": "island",
+      "careerUrl": "https://job-boards.greenhouse.io/island",
+      "countryCoverage": [
+        "IL"
+      ],
+      "enabled": true,
+      "verifiedAt": "2026-11-02T00:00:00Z",
+      "verificationSourceUrl": "https://boards-api.greenhouse.io/v1/boards/island/jobs"
+    },
+    {
+      "company": "Navan",
+      "industry": "enterprise software",
+      "provider": "greenhouse",
+      "providerKey": "tripactions",
+      "careerUrl": "https://navan.com/careers/openings",
+      "countryCoverage": [
+        "IL"
+      ],
+      "enabled": true,
+      "verifiedAt": "2026-11-02T00:00:00Z",
+      "verificationSourceUrl": "https://boards-api.greenhouse.io/v1/boards/tripactions/jobs"
+    },
+    {
+      "company": "Gong",
+      "industry": "enterprise software",
+      "provider": "greenhouse",
+      "providerKey": "gongio",
+      "careerUrl": "https://www.gong.io/careers",
+      "countryCoverage": [
+        "IL"
+      ],
+      "enabled": true,
+      "verifiedAt": "2026-11-02T00:00:00Z",
+      "verificationSourceUrl": "https://boards-api.greenhouse.io/v1/boards/gongio/jobs"
+    },
+    {
+      "company": "Wiz",
+      "industry": "enterprise software",
+      "provider": "greenhouse",
+      "providerKey": "wizinc",
+      "careerUrl": "https://www.wiz.io/careers",
+      "countryCoverage": [
+        "IL"
+      ],
+      "enabled": true,
+      "verifiedAt": "2026-11-02T00:00:00Z",
+      "verificationSourceUrl": "https://boards-api.greenhouse.io/v1/boards/wizinc/jobs"
+    },
+    {
+      "company": "Bluevine",
+      "industry": "fintech",
+      "provider": "greenhouse",
+      "providerKey": "bluevineisrael",
+      "careerUrl": "https://job-boards.greenhouse.io/bluevineisrael",
+      "countryCoverage": [
+        "IL"
+      ],
+      "enabled": true,
+      "verifiedAt": "2026-11-02T00:00:00Z",
+      "verificationSourceUrl": "https://boards-api.greenhouse.io/v1/boards/bluevineisrael/jobs"
+    },
+    {
+      "company": "Perion",
+      "industry": "technology",
+      "provider": "greenhouse",
+      "providerKey": "perionnetworkltd",
+      "careerUrl": "https://job-boards.greenhouse.io/perionnetworkltd",
+      "countryCoverage": [
+        "IL"
+      ],
+      "enabled": true,
+      "verifiedAt": "2026-11-02T00:00:00Z",
+      "verificationSourceUrl": "https://boards-api.greenhouse.io/v1/boards/perionnetworkltd/jobs"
+    },
+    {
+      "company": "Moon Active",
+      "industry": "technology",
+      "provider": "ashby",
+      "providerKey": "moonactive",
+      "careerUrl": "https://jobs.ashbyhq.com/moonactive",
+      "countryCoverage": [
+        "IL"
+      ],
+      "enabled": true,
+      "verifiedAt": "2026-11-02T00:00:00Z",
+      "verificationSourceUrl": "https://api.ashbyhq.com/posting-api/job-board/moonactive"
+    },
+    {
+      "company": "HoneyBook",
+      "industry": "enterprise software",
+      "provider": "ashby",
+      "providerKey": "honeybook",
+      "careerUrl": "https://jobs.ashbyhq.com/honeybook",
+      "countryCoverage": [
+        "IL"
+      ],
+      "enabled": true,
+      "verifiedAt": "2026-11-02T00:00:00Z",
+      "verificationSourceUrl": "https://api.ashbyhq.com/posting-api/job-board/honeybook"
+    },
+    {
+      "company": "Sisense",
+      "industry": "enterprise software",
+      "provider": "ashby",
+      "providerKey": "sisense",
+      "careerUrl": "https://jobs.ashbyhq.com/sisense",
+      "countryCoverage": [
+        "IL"
+      ],
+      "enabled": true,
+      "verifiedAt": "2026-11-02T00:00:00Z",
+      "verificationSourceUrl": "https://api.ashbyhq.com/posting-api/job-board/sisense"
     }
   ]
 }

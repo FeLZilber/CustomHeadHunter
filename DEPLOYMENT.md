@@ -87,7 +87,7 @@ Work through these in order, and stop at the first failure.
 1. Open the dashboard. A non-owner account must land on the denied page, and the owner must see an empty job list.
 2. Edit the profile on the dashboard before any AI work runs, because a later edit rematches everything.
 3. Set the repository variable `PRODUCTION_ENABLED` to `true`.
-4. Run `discovery` by hand with `notify-dry-run` on. Expect a green run, 21 sources and about 270 active jobs. The figure was 272 on 2026-11-01 and will drift. Matching runs for real; only sending is skipped.
+4. Run `discovery` by hand with `notify-dry-run` on. Expect a green run, 30 sources and about 380 active jobs. The figure was 377 on 2026-11-02 and will drift. Matching runs for real; only sending is skipped.
 5. Run `discovery` without dry run, then confirm the baseline digest arrives in Telegram.
 6. Check the next scheduled run at `17 6 * * *` UTC (08:17 in Israeli winter time, 09:17 in summer time), and `maintenance` at `17 7 * * *` UTC.
 7. In GitHub billing, set a $0 budget for Actions overage if a payment method is on file. Check actual use after the first week and compare it with `COSTS.md`.
