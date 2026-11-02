@@ -299,6 +299,31 @@ describe("matching", () => {
       expect((await taskRows())[0]).toMatchObject({ status: "exhausted", attempts: 2 });
     });
 
+    it("claims the most recently posted job first within a priority", async () => {
+      const posted = (date: string) => ({ publishedAt: new Date(date) });
+      await crawlJobs([
+        snapshot([
+          rawListing("older", posted("2026-01-01")),
+          rawListing("undated"),
+          rawListing("newer", posted("2026-10-01")),
+          rawListing("low", { ...posted("2026-10-30"), title: "Software Engineer", descriptionText: `${"Build things for people. ".repeat(12)} Playwright.` }),
+        ]),
+      ]);
+      await evaluateJobs(pool, config, await ensureProfile(pool));
+      const order: string[] = [];
+      for (;;) {
+        const task = await claimTask(pool, config, "a", 60);
+        if (!task) break;
+        order.push(task.job.title);
+      }
+      expect(order).toEqual([
+        "QA Automation Engineer newer",
+        "QA Automation Engineer older",
+        "QA Automation Engineer undated",
+        "Software Engineer",
+      ]);
+    });
+
     it("hands one task to only one worker", async () => {
       await prepare();
       const claims = await Promise.all([claimTask(pool, config, "a", 60), claimTask(pool, config, "b", 60)]);

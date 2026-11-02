@@ -14,8 +14,8 @@ npm run test:e2e    # production build, then Playwright
 
 | Suite | Tests | Runs against |
 | --- | --- | --- |
-| Unit and integration | 386 in 16 files | Isolated PostgreSQL, mocked providers, scripted model |
-| Dashboard E2E | 29 | The production build in Chromium, a seeded database and signed test sessions |
+| Unit and integration | 407 in 17 files | Isolated PostgreSQL, mocked providers, scripted model |
+| Dashboard E2E | 33 | The production build in Chromium, a seeded database and signed test sessions |
 
 `tests/setup/postgres.ts` uses `TEST_DATABASE_URL` when set, which CI does with a Postgres service. Otherwise it starts `embedded-postgres`, so no Docker is needed. Tests truncate tables, so never point `TEST_DATABASE_URL` at a real database.
 
@@ -31,7 +31,7 @@ GitHub sign-in is not exercised. The tests mint session cookies with the test se
 - **Ingestion:** repeated and concurrent runs, no expiry after partial, failed, blocked or suspicious snapshots, grace rule, reopening.
 - **AI:** persistence before matching, invalid output, bounded retries, abandoned claims, model outage, digest mismatch, stale work, reuse of unchanged results.
 - **Notifications:** outbox uniqueness, retries, ambiguous acknowledgement, suppression of obsolete events, token redaction.
-- **Dashboard:** owner-only access on every page and action, wrong-secret sessions, replayed server actions, hostile posting text, Hebrew search, phone width, security headers.
+- **Dashboard:** owner-only access on every page and action, wrong-secret sessions, replayed server actions, hostile posting text, Hebrew search, posting date filter, search links, phone width, security headers.
 - **Budgets:** workflow budgets exceed the inference timeout, shipped defaults fit the model context, the monthly cap holds Ollama off and leaves tasks queued.
 
 ## Opt-in checks
@@ -49,6 +49,17 @@ These use real services or runner minutes, so they run only when chosen.
 | Local Docker setup | `compose-smoke` workflow | About 1 runner minute |
 
 ## Live results
+
+### Ingestion, 2026-11-02, real boards, throwaway database, `search-recall`
+
+Crawl stage only, with Ashby and the nine new sources.
+
+| Run | Duration | Snapshots | Canonical jobs | Listings | Duplicate keys |
+| --- | --- | --- | --- | --- | --- |
+| First | 8.3 s | 30 complete | 377 | 377 | 0 |
+| Second | 6.8 s | 30 `not_modified` | 377 | 377 | 0 |
+
+Under `filter-v2`, 366 were rejected and 11 stayed eligible: `no_qa_signal` 292, `title_other_discipline` 67, `title_other_engineering` 7, `excluded_employment_type` 2, `experience_far_above_candidate` 1. No model ran. This branch has not run against production.
 
 ### Ingestion, 2026-11-01, real boards, throwaway database
 

@@ -2,7 +2,7 @@ import { foldText, type Place, type RemoteScope } from "../normalize/location";
 import type { EmploymentType, ExperienceRequirement, Seniority, TechnologyMention } from "../normalize/extract";
 import type { MatchingProfile } from "../profile/schema";
 
-export const FILTER_VERSION = "filter-v1";
+export const FILTER_VERSION = "filter-v2";
 
 export interface FilterJob {
   title: string;
@@ -27,15 +27,21 @@ const word = (pattern: string) => new RegExp(`(?<![\\p{L}\\d])(?:${pattern})(?![
 // Text is folded first: lower case, punctuation becomes spaces.
 const QA_TITLE = word(
   "qa|qe|sdet|sdets|quality assurance|quality engineer|quality engineering|test automation|automation test(?:er|ing)?|" +
-    "test engineer|software tester|tester|software engineer in test|[ובהל]?בדיקות|בודק|בודקת|בודקי",
+    "test engineer|test development|test developer|software tester|tester|software engineer in test|" +
+    "developer in test|developers in test|[ובהל]?בדיקות|בודק|בודקת|בודקי|בודקות",
 );
-const AMBIGUOUS_TITLE = word("automation|automations|quality|test|testing|validation|verification|[ובהל]?אוטומציה");
+const AMBIGUOUS_TITLE = word("automation|automations|quality|test|testing|validation|verification|[ובהל]?אוטומציה|[ובהל]?איכות");
 const OTHER_DISCIPLINE_TITLE = word(
   "sales|account executive|account manager|business development|bdr|sdr|marketing|growth marketer|brand|content|" +
     "finance|financial analyst|accountant|accounting|controller|bookkeeper|legal|counsel|paralegal|" +
     "recruiter|recruiting|talent|human resources|hr|people partner|office manager|procurement|" +
     "customer success|customer support|support specialist|ad operation|ad operations|mechanical|" +
     "graphic designer|ux designer|ui designer|product designer|product marketing|מכירות|שיווק|חשב|חשבת|משאבי אנוש|גיוס",
+);
+// These engineers mention test tools as part of their own stack. A plain "Software Engineer" is left out: it can hide an SDET role.
+const OTHER_ENGINEERING_TITLE = word(
+  "devops|site reliability|sre|backend|back end|frontend|front end|full stack|fullstack|data engineer|bi engineer|" +
+    "bi developer|security researcher|platform engineer|platform engineering",
 );
 const SOFTWARE_TEST_SIGNAL = word(
   "test automation|automated test|automated tests|automated testing|automation framework|automation frameworks|" +
@@ -63,7 +69,10 @@ function classifyTitle(title: string, description: string, profile: MatchingProf
     if (isIndustrial && !hasSignal) return { reject: "industrial_automation", reason: "", priority: 0 };
     return { reject: null, reason: "title_ambiguous", priority: hasSignal ? 2 : 1 };
   }
-  if (hasSignal) return { reject: null, reason: "description_mentions_test_automation", priority: 0 };
+  if (hasSignal) {
+    if (OTHER_ENGINEERING_TITLE.test(title)) return { reject: "title_other_engineering", reason: "", priority: 0 };
+    return { reject: null, reason: "description_mentions_test_automation", priority: 0 };
+  }
   if (description.length < MIN_DESCRIBED_CHARS) return { reject: null, reason: "description_too_short", priority: 0 };
   return { reject: "no_qa_signal", reason: "", priority: 0 };
 }
