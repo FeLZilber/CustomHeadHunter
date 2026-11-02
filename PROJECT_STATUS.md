@@ -57,7 +57,7 @@ Everything left needs the operator's accounts. Tick these off here as they happe
 - [x] Create a Telegram bot with @BotFather and find the chat id. Bot and chat exist (private chat, id `9228977584`). A real message has not been sent by the app yet.
 - [ ] Create a GitHub OAuth app (callback `<dashboard URL>/api/auth/callback/github`) and look up the owner's numeric GitHub id.
 - [ ] Create a Vercel Hobby project from the repository and set the dashboard variables.
-- [ ] Add the repository secrets. `DATABASE_URL` (pooled) and `TELEGRAM_CHAT_ID` are set, 2026-11-02. `TELEGRAM_BOT_TOKEN` is still missing.
+- [ ] Add the repository secrets. `DATABASE_URL` (pooled) and `TELEGRAM_CHAT_ID` are set, 2026-11-02. `TELEGRAM_BOT_TOKEN` was set by the owner the same day. All three exist, and none has been used by a real run yet.
 - [x] Run `migrate` once against Neon through the direct connection string. Done 2026-11-02: migrations 0001 to 0005 applied, 21 sources seeded. The pooler is still untested.
 - [ ] Merge pull request #1 (`mvp` into `master`). Opened 2026-11-02, not merged. Schedules and manual dispatch need the files on `master`.
 - [ ] Run the activation checks in order: dashboard as owner and as a stranger, edit the profile, set `PRODUCTION_ENABLED`, dry-run discovery, real discovery, first Telegram digest, scheduled run.
