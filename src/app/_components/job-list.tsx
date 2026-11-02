@@ -19,6 +19,7 @@ export function JobList({ jobs, empty }: { jobs: JobSummary[]; empty: string }) 
             <p className="meta">
               <span dir="auto">{job.company}</span>
               <span dir="auto">{job.location ?? "Location not stated"}</span>
+              {job.postedAt ? <span>Posted {formatDate(job.postedAt)}</span> : null}
               <span>Found {formatDate(job.discoveredAt)}</span>
               {job.appliedAt ? <span className="badge badge-applied">Applied {formatDate(job.appliedAt)}</span> : null}
               {job.status === "expired" ? <span className="badge badge-expired">Expired</span> : null}

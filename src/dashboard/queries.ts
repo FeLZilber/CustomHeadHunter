@@ -20,7 +20,8 @@ export const JobFiltersSchema = z.object({
   status: z.enum(["active", "expired", "all"]).catch("active"),
   match: z.enum(["all", "current", "pending", "stale", "filtered", "failed"]).catch("all"),
   minScore: z.preprocess(blankToUndefined, z.coerce.number().int().min(0).max(100).optional()).catch(undefined),
-  sort: z.enum(["best", "latest"]).catch("best"),
+  posted: z.enum(["any", "14", "30", "90"]).catch("any"),
+  sort: z.enum(["best", "latest", "posted"]).catch("best"),
   page: z.coerce.number().int().min(1).max(10_000).catch(1),
 });
 
@@ -76,7 +77,8 @@ const MATCH_STATE = `
 
 const JOB_COLUMNS = `
   c.id, c.title, co.name AS company, c.status, c.first_discovered_at, c.last_seen_at,
-  l.original_location, l.work_arrangement, l.technologies, l.application_url,
+  l.original_location, l.work_arrangement, l.technologies, l.application_url, l.published_at,
+  COALESCE(l.published_at, c.first_discovered_at) AS posted_or_found_at,
   r.score, r.recommendation, s.saved_at, ja.applied_at, e.reason_codes, ${MATCH_STATE} AS match_state`;
 
 const contextParams = ({ profile, configHash }: ViewContext) => [profile.profileId, profile.matchingHash, configHash, FILTER_VERSION];
@@ -90,6 +92,8 @@ export interface JobSummary {
   workArrangement: string | null;
   technologies: string[];
   applicationUrl: string;
+  /** Null when the provider gives no publishing date. */
+  postedAt: Date | null;
   discoveredAt: Date;
   lastSeenAt: Date;
   matchState: MatchState;
@@ -113,6 +117,7 @@ function toSummary(row: Record<string, any>): JobSummary {
     workArrangement: row.work_arrangement,
     technologies: (row.technologies as Array<{ name: string }>).map((technology) => technology.name),
     applicationUrl: row.application_url,
+    postedAt: row.published_at,
     discoveredAt: row.first_discovered_at,
     lastSeenAt: row.last_seen_at,
     matchState: row.match_state,
@@ -145,13 +150,16 @@ export async function searchJobs(db: Queryable, context: ViewContext, filters: J
     where.push(`EXISTS (SELECT 1 FROM jsonb_array_elements(technologies) tech WHERE tech->>'name' ILIKE ${contains(filters.technology)})`);
   }
   if (filters.minScore !== undefined) where.push(`match_state = 'current' AND score >= ${bind(filters.minScore)}`);
+  if (filters.posted !== "any") where.push(`posted_or_found_at >= now() - make_interval(days => ${bind(Number(filters.posted))})`);
   if (only === "saved") where.push(`saved_at IS NOT NULL`);
   if (only === "applied") where.push(`applied_at IS NOT NULL`);
 
-  const order =
-    filters.sort === "best"
-      ? `CASE WHEN match_state = 'current' THEN score END DESC NULLS LAST, first_discovered_at DESC, id DESC`
-      : `first_discovered_at DESC, id DESC`;
+  const orders = {
+    best: `CASE WHEN match_state = 'current' THEN score END DESC NULLS LAST, first_discovered_at DESC, id DESC`,
+    latest: `first_discovered_at DESC, id DESC`,
+    posted: `posted_or_found_at DESC, id DESC`,
+  };
+  const order = orders[filters.sort];
   const { rows } = await db.query(
     `SELECT * FROM (SELECT ${JOB_COLUMNS} FROM ${JOB_ROWS}) job
       ${where.length ? `WHERE ${where.join(" AND ")}` : ""}

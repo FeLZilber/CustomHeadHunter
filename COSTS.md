@@ -107,7 +107,7 @@ The 1.5 minutes for a run without AI is an estimate, because no production run e
 
 **Why the cap exists.** Without it, a permanent backlog costs 124 × 18.5 for discovery, 31 × 13.5 for maintenance and 250 for the rest, about 2,960 minutes. That would use up the allowance around day 21, and GitHub would then block discovery along with matching.
 
-**Expected case.** The base 583, plus about 21 eligible jobs a month across 10 AI runs, gives 640 to 680 minutes. The 21 is an assumption of about 5 new eligible postings a week, not a measurement. Only 11 of 274 current jobs pass the filter.
+**Expected case.** The base 583, plus about 21 eligible jobs a month across 10 AI runs, gives 640 to 680 minutes. The 21 is an assumption of about 5 new eligible postings a week, not a measurement. Only 11 of 377 current jobs pass the filter.
 
 ## Throughput
 

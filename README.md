@@ -1,6 +1,6 @@
 # headHunter
 
-A private job discovery system for one person in Israel. It watches Greenhouse and Lever boards, scores shortlisted postings against a profile with a small local model, sends Telegram alerts, and shows everything on an owner-only dashboard.
+A private job discovery system for one person in Israel. It watches Greenhouse, Lever and Ashby boards, scores shortlisted postings against a profile with a small local model, sends Telegram alerts, and shows everything on an owner-only dashboard.
 
 It needs no always-on computer, paid AI API or self-hosted runner. Scheduled work runs on GitHub Actions, the model runs in Docker on the same runner, and data lives in PostgreSQL.
 
@@ -8,13 +8,14 @@ It needs no always-on computer, paid AI API or self-hosted runner. Scheduled wor
 
 ## What it does
 
-- Crawls 21 verified company boards once a day, around 09:00 Israel time, using conditional requests where the provider supports them.
+- Crawls 30 verified company boards once a day, around 09:00 Israel time, using conditional requests where the provider supports them.
 - Stores every job before any AI runs, and expires a job only after repeated, complete evidence that it closed.
 - Filters deterministically, then matches shortlisted jobs with `qwen2.5:3b` on the runner's CPU, within per-job, per-run and monthly limits.
 - Sends each alert once through a database outbox, and holds any delivery it cannot confirm.
 - Shows jobs, evidence, saved and applied jobs, profile editing and system health to the configured GitHub account only.
+- Lists ready-made searches for sites it does not crawl, such as LinkedIn and Comeet, for the owner to open by hand.
 
-You can mark a job as applied for on its page. The Applied page lists those jobs. Tracking goes no further than that: interview stages and notes, like new ATS connectors, are roadmap items and are not part of this MVP.
+You can mark a job as applied for on its page. The Applied page lists those jobs. Tracking goes no further than that: interview stages and notes, like further ATS connectors, are roadmap items and are not part of this MVP.
 
 ## Quick start
 

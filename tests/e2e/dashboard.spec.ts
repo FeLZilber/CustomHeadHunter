@@ -2,7 +2,7 @@ import { expect, test, type APIRequestContext, type BrowserContext, type Page } 
 import { encode } from "next-auth/jwt";
 import { BASE_URL, NEXTAUTH_SECRET, OWNER_ID, STRANGER_ID, TITLES } from "./constants";
 
-const PRIVATE_PATHS = ["/", "/saved", "/applied", "/profile", "/status", "/jobs/1"];
+const PRIVATE_PATHS = ["/", "/saved", "/applied", "/search", "/profile", "/status", "/jobs/1"];
 
 const sessionCookie = async (githubId: string, secret = NEXTAUTH_SECRET) => ({
   name: "next-auth.session-token",
@@ -116,6 +116,29 @@ test.describe("as the owner", () => {
 
     await page.goto("/?company=nobody");
     await expect(page.getByText("No jobs match these filters.")).toBeVisible();
+  });
+
+  test("shows a known posting date and filters by it", async ({ page }) => {
+    await page.goto("/");
+    await expect(jobRow(page, TITLES.low)).toContainText("Posted");
+    await expect(jobRow(page, TITLES.hostile)).not.toContainText("Posted");
+
+    await page.locator("select[name=posted]").selectOption("30");
+    await page.getByRole("button", { name: "Search" }).click();
+    await expect(page).toHaveURL(/posted=30/);
+    await expect(jobRow(page, TITLES.low)).toHaveCount(0);
+    await expect(jobRow(page, TITLES.hostile)).toBeVisible();
+  });
+
+  test("links out to searches on sites the worker does not crawl", async ({ page }) => {
+    await page.goto("/");
+    await page.getByRole("link", { name: "Search", exact: true }).click();
+    await expect(page.getByRole("heading", { name: "Search elsewhere" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Company career systems" })).toBeVisible();
+    const comeet = page.getByRole("link", { name: "Comeet" });
+    await expect(comeet).toHaveAttribute("href", /^https:\/\/www\.google\.com\/search\?/);
+    await expect(comeet).toHaveAttribute("target", "_blank");
+    await expect(comeet).toHaveAttribute("rel", /noopener/);
   });
 
   test("shows hostile posting text as text and runs none of it", async ({ page }) => {

@@ -134,6 +134,25 @@ describe("dashboard queries", () => {
       expect(await titles()).toEqual(["QA Automation Engineer high", "QA Automation Engineer low", "QA Automation Engineer new"]);
       expect((await titles({ sort: "latest" }))[0]).toBe("QA Automation Engineer new");
     });
+
+    it("shows and filters by posting date, using the found date when none is given", async () => {
+      const daysAgo = (days: number) => new Date(Date.now() - days * 86_400_000);
+      await crawlListings(
+        rawListing("recent", { publishedAt: daysAgo(5) }),
+        rawListing("month", { publishedAt: daysAgo(20) }),
+        rawListing("old", { publishedAt: daysAgo(200) }),
+        rawListing("undated"),
+      );
+      const short = (list: string[]) => list.map((title) => title.replace("QA Automation Engineer ", "")).sort();
+      expect(short(await titles({ posted: "14" }))).toEqual(["recent", "undated"]);
+      expect(short(await titles({ posted: "30" }))).toEqual(["month", "recent", "undated"]);
+      expect(short(await titles())).toEqual(["month", "old", "recent", "undated"]);
+      expect(short(await titles({ posted: "nonsense" }))).toEqual(["month", "old", "recent", "undated"]);
+      const { jobs } = await search({ sort: "posted" });
+      expect(jobs.at(-1)?.title).toBe("QA Automation Engineer old");
+      expect(jobs.find((job) => job.title.endsWith("undated"))?.postedAt).toBeNull();
+      expect(jobs.find((job) => job.title.endsWith("recent"))?.postedAt).toBeInstanceOf(Date);
+    });
   });
 
   describe("match states", () => {
