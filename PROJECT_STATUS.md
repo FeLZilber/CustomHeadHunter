@@ -59,7 +59,7 @@ Everything left needs the operator's accounts. Tick these off here as they happe
 - [ ] Create a Vercel Hobby project from the repository and set the dashboard variables.
 - [ ] Add the repository secrets. `DATABASE_URL` (pooled) and `TELEGRAM_CHAT_ID` are set, 2026-11-02. `TELEGRAM_BOT_TOKEN` is still missing.
 - [x] Run `migrate` once against Neon through the direct connection string. Done 2026-11-02: migrations 0001 to 0005 applied, 21 sources seeded. The pooler is still untested.
-- [ ] Open a pull request from `mvp` and merge it into `master`. Schedules and manual dispatch need the files there.
+- [ ] Merge pull request #1 (`mvp` into `master`). Opened 2026-11-02, not merged. Schedules and manual dispatch need the files on `master`.
 - [ ] Run the activation checks in order: dashboard as owner and as a stranger, edit the profile, set `PRODUCTION_ENABLED`, dry-run discovery, real discovery, first Telegram digest, scheduled run.
 - [ ] Set a $0 Actions budget if a payment method is on file. Compare real use with `COSTS.md` after a week.
 - [ ] Review the labels in `benchmarks/eval/dataset.json`. Until then quality is unconfirmed.
