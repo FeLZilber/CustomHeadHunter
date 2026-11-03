@@ -2,7 +2,7 @@ import { foldText, type Place, type RemoteScope } from "../normalize/location";
 import type { EmploymentType, ExperienceRequirement, Seniority, TechnologyMention } from "../normalize/extract";
 import type { MatchingProfile } from "../profile/schema";
 
-export const FILTER_VERSION = "filter-v2";
+export const FILTER_VERSION = "filter-v3";
 
 export interface FilterJob {
   title: string;
@@ -30,7 +30,10 @@ const QA_TITLE = word(
     "test engineer|test development|test developer|software tester|tester|software engineer in test|" +
     "developer in test|developers in test|[ובהל]?בדיקות|בודק|בודקת|בודקי|בודקות",
 );
-const AMBIGUOUS_TITLE = word("automation|automations|quality|test|testing|validation|verification|[ובהל]?אוטומציה|[ובהל]?איכות");
+const AMBIGUOUS_TITLE = word(
+  "automation|automations|quality|test|testing|validation|verification|e2e|end to end|developer productivity|" +
+    "engineering productivity|[ובהל]?אוטומציה|[ובהל]?איכות",
+);
 const OTHER_DISCIPLINE_TITLE = word(
   "sales|account executive|account manager|business development|bdr|sdr|marketing|growth marketer|brand|content|" +
     "finance|financial analyst|accountant|accounting|controller|bookkeeper|legal|counsel|paralegal|" +

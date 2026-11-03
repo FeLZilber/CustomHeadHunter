@@ -37,6 +37,18 @@ describe("applyFilter", () => {
     expect(applyFilter(job({ title: "מהנדס/ת איכות" }), profile).reasons).toContain("title_ambiguous");
   });
 
+  it("keeps staff-level infrastructure titles for the model to judge", () => {
+    const text = `${LONG_TEXT} Own our Playwright framework.`;
+    for (const title of ["Staff Automation Engineer", "E2E Platform Engineer", "Developer Productivity Engineer", "Test Infrastructure Engineer"]) {
+      expect(applyFilter(job({ title, descriptionText: text }), profile).decision, title).toBe("eligible");
+    }
+  });
+
+  it("does not reject a senior job for asking 15 years of experience", () => {
+    const experience = { level: "required", minYears: 15 } as never;
+    expect(applyFilter(job({ title: "Staff Automation Engineer", experience }), profile).decision).toBe("eligible");
+  });
+
   it("does not let JavaScript alone establish relevance", () => {
     const result = applyFilter(job({
       title: "Backend Developer",
@@ -95,11 +107,12 @@ describe("applyFilter", () => {
   });
 
   it("rejects experience only when a stated requirement is far above the candidate", () => {
+    const mid = MatchingProfileSchema.parse({ ...SEED_MATCH_PROFILE, candidateExperienceYears: { min: 5, max: 8 } });
     const required = (minYears: number, level = "required") => ({ experience: { minYears, level } as never });
-    expect(applyFilter(job(required(11)), profile)).toMatchObject({ decision: "eligible" });
-    expect(applyFilter(job(required(12)), profile).reasons).toEqual(["experience_far_above_candidate"]);
-    expect(applyFilter(job(required(20, "unspecified")), profile).decision).toBe("eligible");
-    expect(applyFilter(job(), profile).reasons).toContain("experience_unknown");
+    expect(applyFilter(job(required(11)), mid)).toMatchObject({ decision: "eligible" });
+    expect(applyFilter(job(required(12)), mid).reasons).toEqual(["experience_far_above_candidate"]);
+    expect(applyFilter(job(required(20, "unspecified")), mid).decision).toBe("eligible");
+    expect(applyFilter(job(), mid).reasons).toContain("experience_unknown");
   });
 
   it("rejects by location only when the job is clearly elsewhere", () => {
