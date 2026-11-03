@@ -6,7 +6,7 @@ import { z } from "zod";
 import { requireOwner } from "../dashboard/auth";
 import { dashboardPool } from "../dashboard/db";
 import { parseProfileForm } from "../dashboard/profile-form";
-import { setApplied, setSaved } from "../dashboard/queries";
+import { DISMISS_REASONS, setApplied, setDismissed, setSaved } from "../dashboard/queries";
 import { hashMatchingProfile } from "../profile/schema";
 import { ensureProfile, saveProfile } from "../profile/store";
 
@@ -29,6 +29,17 @@ export async function toggleApplied(data: FormData) {
   const pool = dashboardPool();
   const { profileId } = await ensureProfile(pool);
   await setApplied(pool, profileId, form.jobId, form.applied === "true");
+  revalidatePath("/", "layout");
+}
+
+const DismissForm = z.object({ jobId: z.string().regex(/^\d{1,18}$/), reason: z.enum([...DISMISS_REASONS, "restore"]) });
+
+export async function dismissJob(data: FormData) {
+  await requireOwner();
+  const form = DismissForm.parse({ jobId: data.get("jobId"), reason: data.get("reason") });
+  const pool = dashboardPool();
+  const { profileId } = await ensureProfile(pool);
+  await setDismissed(pool, profileId, form.jobId, form.reason === "restore" ? null : form.reason);
   revalidatePath("/", "layout");
 }
 

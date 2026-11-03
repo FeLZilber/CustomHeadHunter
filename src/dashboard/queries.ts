@@ -50,6 +50,10 @@ export async function loadContext(pool: Pool): Promise<ViewContext> {
   return { profile, configHash: rows[0]?.config_hash ?? "" };
 }
 
+/** Why the owner marked a job "not relevant". The database enforces the same list. */
+export const DISMISS_REASONS = ["wrong_role", "wrong_seniority", "wrong_location", "wrong_company", "other"] as const;
+export type DismissReason = (typeof DISMISS_REASONS)[number];
+
 /** What the page may claim about a job's score. */
 export type MatchState = "not_evaluated" | "stale" | "filtered" | "current" | "failed" | "pending";
 
@@ -63,7 +67,8 @@ const JOB_ROWS = `
                       ORDER BY (mr.input_key = e.input_key) DESC NULLS LAST, mr.id DESC LIMIT 1) r ON true
   LEFT JOIN match_tasks t ON t.canonical_job_id = c.id AND t.input_key = e.input_key
   LEFT JOIN saved_jobs s ON s.canonical_job_id = c.id AND s.profile_id = $1
-  LEFT JOIN job_applications ja ON ja.canonical_job_id = c.id AND ja.profile_id = $1`;
+  LEFT JOIN job_applications ja ON ja.canonical_job_id = c.id AND ja.profile_id = $1
+  LEFT JOIN dismissed_jobs dj ON dj.canonical_job_id = c.id AND dj.profile_id = $1`;
 
 const MATCH_STATE = `
   CASE
@@ -79,7 +84,7 @@ const JOB_COLUMNS = `
   c.id, c.title, co.name AS company, c.status, c.first_discovered_at, c.last_seen_at,
   l.original_location, l.work_arrangement, l.technologies, l.application_url, l.published_at,
   COALESCE(l.published_at, c.first_discovered_at) AS posted_or_found_at,
-  r.score, r.recommendation, s.saved_at, ja.applied_at, e.reason_codes, ${MATCH_STATE} AS match_state`;
+  r.score, r.recommendation, s.saved_at, ja.applied_at, dj.reason AS dismissed_reason, e.reason_codes, ${MATCH_STATE} AS match_state`;
 
 const contextParams = ({ profile, configHash }: ViewContext) => [profile.profileId, profile.matchingHash, configHash, FILTER_VERSION];
 
@@ -104,6 +109,8 @@ export interface JobSummary {
   saved: boolean;
   /** When the owner marked the job as applied for. Independent of the posting's lifecycle. */
   appliedAt: Date | null;
+  /** Set when the owner marked the job "not relevant". Dismissed jobs leave the main lists. */
+  dismissedReason: DismissReason | null;
 }
 
 function toSummary(row: Record<string, any>): JobSummary {
@@ -126,6 +133,7 @@ function toSummary(row: Record<string, any>): JobSummary {
     reasonCodes: row.reason_codes ?? [],
     saved: row.saved_at !== null,
     appliedAt: row.applied_at,
+    dismissedReason: row.dismissed_reason ?? null,
   };
 }
 
@@ -136,7 +144,7 @@ export interface JobPage {
   hasMore: boolean;
 }
 
-export async function searchJobs(db: Queryable, context: ViewContext, filters: JobFilters, only?: "saved" | "applied"): Promise<JobPage> {
+export async function searchJobs(db: Queryable, context: ViewContext, filters: JobFilters, only?: "saved" | "applied" | "dismissed"): Promise<JobPage> {
   const params: unknown[] = contextParams(context);
   const bind = (value: unknown) => `$${params.push(value)}`;
   const contains = (value: string) => bind(`%${escapeLike(value)}%`);
@@ -153,6 +161,9 @@ export async function searchJobs(db: Queryable, context: ViewContext, filters: J
   if (filters.posted !== "any") where.push(`posted_or_found_at >= now() - make_interval(days => ${bind(Number(filters.posted))})`);
   if (only === "saved") where.push(`saved_at IS NOT NULL`);
   if (only === "applied") where.push(`applied_at IS NOT NULL`);
+  // Saved and applied views keep showing a job even if it was dismissed; the main lists do not.
+  if (only === "dismissed") where.push(`dismissed_reason IS NOT NULL`);
+  if (only === undefined) where.push(`dismissed_reason IS NULL`);
 
   const orders = {
     best: `CASE WHEN match_state = 'current' THEN score END DESC NULLS LAST, first_discovered_at DESC, id DESC`,
@@ -233,6 +244,48 @@ export async function setApplied(db: Queryable, profileId: string, jobId: string
   } else {
     await db.query(`DELETE FROM job_applications WHERE profile_id = $1 AND canonical_job_id = $2`, [profileId, jobId]);
   }
+}
+
+/** Idempotent. Dismissing again changes the reason and keeps the first date; `null` restores the job. */
+export async function setDismissed(db: Queryable, profileId: string, jobId: string, reason: DismissReason | null): Promise<void> {
+  if (reason) {
+    await db.query(
+      `INSERT INTO dismissed_jobs (profile_id, canonical_job_id, reason) VALUES ($1, $2, $3)
+       ON CONFLICT (profile_id, canonical_job_id) DO UPDATE SET reason = EXCLUDED.reason`,
+      [profileId, jobId, reason],
+    );
+  } else {
+    await db.query(`DELETE FROM dismissed_jobs WHERE profile_id = $1 AND canonical_job_id = $2`, [profileId, jobId]);
+  }
+}
+
+export interface DismissalSummary {
+  total: number;
+  byReason: Array<{ reason: DismissReason; count: number }>;
+  /** Companies dismissed at least twice, the likeliest candidates for an exclusion. */
+  repeatCompanies: Array<{ company: string; count: number }>;
+}
+
+export async function readDismissals(db: Queryable, profileId: string): Promise<DismissalSummary> {
+  const { rows: reasons } = await db.query(
+    `SELECT reason, count(*)::int AS count FROM dismissed_jobs WHERE profile_id = $1 GROUP BY reason ORDER BY count DESC, reason`,
+    [profileId],
+  );
+  const { rows: companies } = await db.query(
+    `SELECT co.name AS company, count(*)::int AS count
+       FROM dismissed_jobs dj
+       JOIN canonical_jobs c ON c.id = dj.canonical_job_id
+       JOIN companies co ON co.id = c.company_id
+      WHERE dj.profile_id = $1
+      GROUP BY co.name HAVING count(*) >= 2
+      ORDER BY count DESC, co.name LIMIT 5`,
+    [profileId],
+  );
+  return {
+    total: reasons.reduce((sum, row) => sum + row.count, 0),
+    byReason: reasons.map((row) => ({ reason: row.reason, count: row.count })),
+    repeatCompanies: companies.map((row) => ({ company: row.company, count: row.count })),
+  };
 }
 
 export interface SourceProblem {
