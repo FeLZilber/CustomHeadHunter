@@ -69,7 +69,7 @@ describe("dashboard queries", () => {
   }
 
   const context = async (): Promise<ViewContext> => ({ profile: await ensureProfile(pool), configHash: hashMatchConfig(config) });
-  const search = async (params: Record<string, string> = {}, only?: "saved" | "applied" | "dismissed" | "filtered" | "flagged") =>
+  const search = async (params: Record<string, string> = {}, only?: "saved" | "applied" | "dismissed" | "filtered" | "flagged" | "near") =>
     searchJobs(pool, await context(), parseFilters(params), only);
   const titles = async (params: Record<string, string> = {}) => (await search(params)).jobs.map((job) => job.title);
   const onlyJob = async () => (await search({ status: "all" })).jobs[0]!;
@@ -358,6 +358,19 @@ describe("dashboard queries", () => {
       expect(summary.byReason).toEqual([{ reason: "wrong_role", count: 2 }, { reason: "wrong_seniority", count: 1 }]);
       expect(summary.repeatCompanies).toHaveLength(1);
       expect(summary.repeatCompanies[0]?.count).toBe(3);
+    });
+  });
+
+  describe("near misses", () => {
+    it("lists current results between the floor and the alert threshold, and not dismissed ones", async () => {
+      await crawlListings(rawListing("strong"), rawListing("near"), rawListing("low"));
+      await match((prompt) => modelReply(prompt.includes("QA Automation Engineer near") ? 10 : prompt.includes("QA Automation Engineer low") ? -20 : 25));
+      expect((await search({ status: "all" }, "near")).jobs.map((job) => [job.title, job.score])).toEqual([["QA Automation Engineer near", 65]]);
+
+      const { profileId } = await ensureProfile(pool);
+      const [near] = (await search({ status: "all" }, "near")).jobs;
+      await setDismissed(pool, profileId, near!.id, "wrong_role");
+      expect((await search({ status: "all" }, "near")).jobs).toEqual([]);
     });
   });
 

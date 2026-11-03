@@ -2,7 +2,7 @@ import { expect, test, type APIRequestContext, type BrowserContext, type Page } 
 import { encode } from "next-auth/jwt";
 import { BASE_URL, NEXTAUTH_SECRET, OWNER_ID, STRANGER_ID, TITLES } from "./constants";
 
-const PRIVATE_PATHS = ["/", "/saved", "/applied", "/dismissed", "/filtered", "/search", "/profile", "/status", "/jobs/1"];
+const PRIVATE_PATHS = ["/", "/near", "/saved", "/applied", "/dismissed", "/filtered", "/search", "/profile", "/status", "/jobs/1"];
 
 const sessionCookie = async (githubId: string, secret = NEXTAUTH_SECRET) => ({
   name: "next-auth.session-token",
