@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { NavLink } from "./_components/nav-link";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Job Hunter",
+  title: { default: "Job Hunter", template: "%s · Job Hunter" },
   robots: { index: false, follow: false },
 };
 
@@ -14,24 +15,29 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <body>
+        <a className="skip-link" href="#content">
+          Skip to content
+        </a>
         <header className="site-header">
           <Link href="/" className="brand">
             Job Hunter
           </Link>
           <nav aria-label="Main">
-            <Link href="/">Jobs</Link>
-            <Link href="/near">Near misses</Link>
-            <Link href="/saved">Saved</Link>
-            <Link href="/applied">Applied</Link>
-            <Link href="/dismissed">Dismissed</Link>
-            <Link href="/filtered">Filtered out</Link>
-            <Link href="/search">Search</Link>
-            <Link href="/profile">Profile</Link>
-            <Link href="/status">Status</Link>
-            <Link href="/api/auth/signout">Sign out</Link>
+            <NavLink href="/">Jobs</NavLink>
+            <NavLink href="/near">Near misses</NavLink>
+            <NavLink href="/saved">Saved</NavLink>
+            <NavLink href="/applied">Applied</NavLink>
+            <NavLink href="/dismissed">Dismissed</NavLink>
+            <NavLink href="/filtered">Filtered out</NavLink>
+            <NavLink href="/search">Search</NavLink>
+            <NavLink href="/profile">Profile</NavLink>
+            <NavLink href="/status">Status</NavLink>
           </nav>
+          <Link href="/api/auth/signout" className="signout" prefetch={false}>
+            Sign out
+          </Link>
         </header>
-        <main>{children}</main>
+        <main id="content">{children}</main>
       </body>
     </html>
   );

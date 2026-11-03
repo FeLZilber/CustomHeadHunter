@@ -1,3 +1,4 @@
+import { SubmitButton } from "./submit-button";
 import { toggleApplied } from "../actions";
 import { formatDate } from "./format";
 
@@ -6,9 +7,9 @@ export function ApplyButton({ jobId, appliedAt }: { jobId: string; appliedAt: Da
     <form action={toggleApplied}>
       <input type="hidden" name="jobId" value={jobId} />
       <input type="hidden" name="applied" value={String(!appliedAt)} />
-      <button type="submit" className="button">
+      <SubmitButton>
         {appliedAt ? `Applied ${formatDate(appliedAt)}, undo` : "Mark as applied"}
-      </button>
+      </SubmitButton>
     </form>
   );
 }

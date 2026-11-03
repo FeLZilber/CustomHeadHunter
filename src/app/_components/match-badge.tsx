@@ -10,10 +10,12 @@ const LABELS: Record<MatchState, string> = {
 };
 
 /** The label travels with the score, so an old or missing result is never read as a current verdict. */
-export function MatchBadge({ job }: { job: Pick<JobSummary, "matchState" | "score"> }) {
+export function MatchBadge({ job }: { job: Pick<JobSummary, "matchState" | "score" | "recommendation"> }) {
   const current = job.matchState === "current";
+  // Colour carries the verdict only for a current result; everything else keeps its state colour.
+  const tier = current ? ` badge-${job.recommendation === "strong_match" ? "strong" : "fair"}` : "";
   return (
-    <span className={`badge badge-${job.matchState}`}>
+    <span className={`badge badge-${job.matchState}${tier}`}>
       {current && job.score !== null ? `${job.score}/100` : LABELS[job.matchState]}
       {!current && job.score !== null ? ` · was ${job.score}` : ""}
     </span>
