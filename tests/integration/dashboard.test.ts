@@ -10,6 +10,7 @@ import { runMatch, type MatchDeps } from "../../src/match/runner";
 import { buildRelevance } from "../../src/notify/outbox";
 import { runNotify } from "../../src/notify/sender";
 import { ensureProfile, saveProfile } from "../../src/profile/store";
+import { scriptedFacts } from "../scripted-facts";
 import { addSource, openPool, rawListing, resetDatabase, runCrawl, scriptedConnector, snapshot } from "./helpers";
 
 const config = buildMatchConfig({ OLLAMA_NUM_CTX: 3072, MAX_OUTPUT_TOKENS: 800, MAX_JOB_INPUT_TOKENS: 1600 });
@@ -25,12 +26,15 @@ const modelReply = (skills = 25) =>
     points: { role: 40, skills, experience: 8, location: 5, industry: 2 },
   });
 
+const facts = scriptedFacts();
+
 const fakeModel = (reply: (prompt: string) => string): MatchDeps["model"] => ({
   async modelDigest() {
     return config.modelDigest;
   },
   async chat(request): Promise<ChatResult> {
     const content = reply(request.messages.map((message) => message.content).join("\n"));
+    facts.observe(content);
     return { content, doneReason: "stop", totalMs: 1, loadMs: 0, promptTokens: 1, promptMs: 0, outputTokens: 1, outputMs: 0 };
   },
 });
@@ -59,7 +63,7 @@ describe("dashboard queries", () => {
   async function match(reply: (prompt: string) => string = () => modelReply(), maxJobs = 50, maxAttempts = 3) {
     await evaluate();
     return runMatch(
-      { pool, model: fakeModel(reply), log },
+      { pool, model: fakeModel(reply), log, scoreFacts: facts.scoreFacts },
       { trigger: "test", config, maxJobs, timeBudgetSeconds: 600, inferenceTimeoutSeconds: 180, maxAttempts, retryBaseSeconds: 0 },
     );
   }

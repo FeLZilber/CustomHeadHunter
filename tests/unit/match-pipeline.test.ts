@@ -14,7 +14,6 @@ const VALID = {
   unknown_requirements: [],
   concerns: [],
   explanation: "Fine.",
-  points: { role: 40, skills: 20, experience: 8, location: 5, industry: 2 },
 };
 
 describe("match config", () => {
@@ -65,7 +64,6 @@ describe("parseModelOutput", () => {
     expect(parseModelOutput("not json", "stop")).toMatchObject({ ok: false, kind: "invalid_json" });
     expect(parseModelOutput(JSON.stringify({ ...VALID, explanation: undefined }), "stop"))
       .toMatchObject({ ok: false, kind: "invalid_schema", feedback: expect.stringContaining("explanation") });
-    expect(parseModelOutput(JSON.stringify({ ...VALID, points: { ...VALID.points, role: 41 } }), "stop").ok).toBe(false);
   });
 });
 

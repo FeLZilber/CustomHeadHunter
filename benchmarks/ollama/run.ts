@@ -14,6 +14,7 @@ import { loadBudget } from "../../src/config/budget";
 import { buildMatchConfig } from "../../src/match/config";
 import { OllamaClient, OllamaError, type ChatResult } from "../../src/match/ollama-client";
 import { buildMatchMessages, prepareJobDescription, verifyEvidence } from "../../src/match/prompt";
+import { UNKNOWN } from "../../src/match/facts";
 import { deriveMatchResponse, modelOutputJsonSchema, ModelOutputSchema } from "../../src/match/schema";
 import { SEED_MATCH_PROFILE } from "../../src/profile/seed";
 
@@ -287,7 +288,7 @@ function classify(result: ChatResult, attempt: Attempt, sourceText: string): Att
     attempt.error = validated.error.message.slice(0, 400);
     return "invalid_schema";
   }
-  const response = deriveMatchResponse(validated.data);
+  const response = deriveMatchResponse(validated.data, UNKNOWN); // The benchmark measures the model, so fact points stay neutral.
   attempt.score = response.score;
   attempt.recommendation = response.recommendation;
   const evidence = verifyEvidence(validated.data, sourceText);
