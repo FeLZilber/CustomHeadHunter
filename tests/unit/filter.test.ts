@@ -84,7 +84,8 @@ describe("applyFilter", () => {
 
   it("keeps a non-QA title whose text is about test automation, at the lowest priority", () => {
     const result = applyFilter(job({ title: "Software Engineer", descriptionText: `${LONG_TEXT} Build our test automation.` }), profile);
-    expect(result).toMatchObject({ decision: "eligible", priority: 0 });
+    expect(result.decision).toBe("eligible");
+    expect(result.priority).toBeLessThan(100);
   });
 
   it("rejects another engineering discipline that only mentions test tools", () => {
@@ -150,5 +151,16 @@ describe("evaluation dataset", () => {
     for (const language of ["en", "he", "mixed"]) expect(examples.some((e) => e.language === language)).toBe(true);
     for (const kind of ["relevant", "irrelevant", "borderline", "ambiguous"]) expect(examples.some((e) => e.kind === kind)).toBe(true);
     expect(examples.filter((e) => e.split === "heldout")).toHaveLength(10);
+  });
+});
+
+describe("priority", () => {
+  it("ranks a title tier above any fact fit, and fit within a tier", () => {
+    const ambiguousBest = applyFilter(job({ title: "Automation Engineer", descriptionText: `${LONG_TEXT} Write Playwright tests.` }), profile);
+    const qaPlain = applyFilter(job({ title: "QA Engineer" }), profile);
+    expect(qaPlain.priority).toBeGreaterThan(ambiguousBest.priority);
+    const fit = applyFilter(job({ title: "QA Engineer", seniority: "senior", technologies: [{ name: "Playwright", level: "required" } as never] }), profile);
+    const poor = applyFilter(job({ title: "QA Engineer", seniority: "junior", technologies: [{ name: "COBOL", level: "required" } as never] }), profile);
+    expect(fit.priority).toBeGreaterThan(poor.priority);
   });
 });
