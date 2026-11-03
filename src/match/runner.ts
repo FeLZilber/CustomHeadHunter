@@ -17,6 +17,7 @@ import {
   type MatchTask,
   type RetryPolicy,
 } from "./queue";
+import { scoreFacts } from "./facts";
 import { deriveMatchResponse, modelOutputJsonSchema, ModelOutputSchema, type ModelOutput } from "./schema";
 
 export type MatchModel = Pick<OllamaClient, "modelDigest" | "chat">;
@@ -34,6 +35,8 @@ export interface MatchDeps {
   model: MatchModel;
   log: Logger;
   now?: () => number;
+  /** Scores the posting's structured facts. Replaceable so tests can pin the score. */
+  scoreFacts?: typeof scoreFacts;
 }
 
 export type StopReason =
@@ -128,7 +131,7 @@ async function inferMatch(deps: MatchDeps, options: MatchOptions, task: MatchTas
 
   const source = [task.job.title, task.job.company, task.job.location ?? "", input.text].join("\n");
   return {
-    response: deriveMatchResponse(reply.output),
+    response: deriveMatchResponse(reply.output, (deps.scoreFacts ?? scoreFacts)(task.matching, task.facts)),
     input,
     evidence: verifyEvidence(reply.output, source),
     durationMs: now() - started,

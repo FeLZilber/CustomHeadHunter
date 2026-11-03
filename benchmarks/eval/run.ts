@@ -14,7 +14,8 @@ import { OllamaClient } from "../../src/match/ollama-client";
 import { buildMatchMessages, prepareJobDescription, verifyEvidence } from "../../src/match/prompt";
 import { parseModelOutput } from "../../src/match/runner";
 import { deriveMatchResponse, modelOutputJsonSchema, STRONG_MATCH_SCORE } from "../../src/match/schema";
-import { evalProfile, filterExample, loadDataset } from "./lib";
+import { scoreFacts } from "../../src/match/facts";
+import { evalProfile, factsForExample, filterExample, loadDataset } from "./lib";
 
 const { values } = parseArgs({ options: { "filter-only": { type: "boolean" }, out: { type: "string" } } });
 
@@ -49,7 +50,7 @@ for (const example of loadDataset()) {
     row.outputTokens = chat.outputTokens;
     row.totalMs = chat.totalMs;
     if (parsed.ok) {
-      const response = deriveMatchResponse(parsed.output);
+      const response = deriveMatchResponse(parsed.output, scoreFacts(evalProfile, factsForExample(example)));
       const evidence = verifyEvidence(parsed.output, `${example.title}\n${input.text}`);
       Object.assign(row, {
         score: response.score,

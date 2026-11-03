@@ -1,4 +1,5 @@
 import type { Connector, RawListing } from "../../src/connectors/types";
+import { scriptedFacts } from "../scripted-facts";
 import type { Pool } from "../../src/db/pool";
 import { HttpClient } from "../../src/http/client";
 import { crawl, type CrawlOptions } from "../../src/ingest/crawl";
@@ -62,6 +63,8 @@ function connectorFor(listings: RawListing[]): Connector {
   };
 }
 
+const facts = scriptedFacts();
+
 const reply = (skills: number) =>
   JSON.stringify({
     role_category: "qa_automation",
@@ -95,12 +98,15 @@ export async function seedFixtures(pool: Pool) {
     {
       pool,
       log,
+      scoreFacts: facts.scoreFacts,
       model: {
         modelDigest: async () => config.modelDigest,
         async chat({ messages }) {
           const prompt = messages.map((message) => message.content).join("\n");
           if (prompt.includes(TITLES.failed)) return { ...chatResult, content: "not json" };
-          return { ...chatResult, content: reply(prompt.includes(TITLES.low) ? 5 : 25) };
+          const content = reply(prompt.includes(TITLES.low) ? 5 : 25);
+          facts.observe(content);
+          return { ...chatResult, content };
         },
       },
     },

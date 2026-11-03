@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { z } from "zod";
+import type { JobFacts } from "../../src/match/facts";
 import { applyFilter, type FilterResult } from "../../src/filter";
 import { normalizeListing } from "../../src/normalize";
 import { MatchingProfileSchema } from "../../src/profile/schema";
@@ -26,9 +27,8 @@ export function loadDataset(): EvalExample[] {
 
 export const evalProfile = MatchingProfileSchema.parse(SEED_MATCH_PROFILE);
 
-/** Passes a synthetic posting through the same normalizer and filter as a crawled one. */
-export function filterExample(example: EvalExample): FilterResult {
-  const listing = normalizeListing({
+function normalizeExample(example: EvalExample) {
+  return normalizeListing({
     providerJobId: example.id,
     requisitionId: null,
     title: example.title,
@@ -43,5 +43,22 @@ export function filterExample(example: EvalExample): FilterResult {
     publishedAt: null,
     providerUpdatedAt: null,
   });
-  return applyFilter(listing, evalProfile);
+}
+
+/** Passes a synthetic posting through the same normalizer and filter as a crawled one. */
+export function filterExample(example: EvalExample): FilterResult {
+  return applyFilter(normalizeExample(example), evalProfile);
+}
+
+/** The structured facts the matcher scores in code, from the same normalizer as a crawled posting. */
+export function factsForExample(example: EvalExample): JobFacts {
+  const listing = normalizeExample(example);
+  return {
+    seniority: listing.seniority,
+    experience: listing.experience,
+    technologies: listing.technologies,
+    locations: listing.locations,
+    remoteScope: listing.remoteScope,
+    industry: null,
+  };
 }

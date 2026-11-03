@@ -107,7 +107,7 @@ Everything left needs the operator's accounts. Tick these off here as they happe
 
 ## Decisions a new session should keep
 
-- **Model judges, code does arithmetic.** `score` and `recommendation` are derived from per-criterion `points`. Documented in `ARCHITECTURE.md`.
+- **Model judges, code does arithmetic.** The model returns no points. Code scores skills, experience, seniority, location and industry from extracted facts (`rubric-v2`), and the model's role category sets the role points. Documented in `ARCHITECTURE.md`.
 - **`MIN_MATCH_SCORE` is not implemented.** The threshold is a profile preference. Documented in `ARCHITECTURE.md`.
 - **Database:** Neon Free. Supabase Free rejected (pauses after a week, 500 MB).
 - **Secrets:** repository secrets, because environments are unavailable on private repositories on GitHub Free.
