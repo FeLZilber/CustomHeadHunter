@@ -1,7 +1,8 @@
 import Link from "next/link";
 import type { JobSummary } from "../../dashboard/queries";
-import { formatDate } from "./format";
+import { formatDate, humanize } from "./format";
 import { DismissButton } from "./dismiss-button";
+import { MissedButton } from "./missed-button";
 import { MatchBadge } from "./match-badge";
 import { SaveButton } from "./save-button";
 
@@ -25,12 +26,16 @@ export function JobList({ jobs, empty }: { jobs: JobSummary[]; empty: string }) 
               {job.appliedAt ? <span className="badge badge-applied">Applied {formatDate(job.appliedAt)}</span> : null}
               {job.status === "expired" ? <span className="badge badge-expired">Expired</span> : null}
             </p>
+            {job.matchState === "filtered" && job.reasonCodes.length ? (
+              <p className="meta">Filtered: {job.reasonCodes.map(humanize).join(", ")}</p>
+            ) : null}
             {job.technologies.length ? <p className="tags">{job.technologies.slice(0, 8).join(" · ")}</p> : null}
           </div>
           <div className="job-side">
             <MatchBadge job={job} />
             <SaveButton jobId={job.id} saved={job.saved} />
             <DismissButton jobId={job.id} reason={job.dismissedReason} />
+            {job.matchState === "filtered" ? <MissedButton jobId={job.id} flagged={job.flaggedMissed} /> : null}
           </div>
         </li>
       ))}

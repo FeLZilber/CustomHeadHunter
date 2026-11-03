@@ -6,7 +6,7 @@ import { z } from "zod";
 import { requireOwner } from "../dashboard/auth";
 import { dashboardPool } from "../dashboard/db";
 import { parseProfileForm } from "../dashboard/profile-form";
-import { DISMISS_REASONS, setApplied, setDismissed, setSaved } from "../dashboard/queries";
+import { DISMISS_REASONS, setApplied, setDismissed, setMissed, setSaved } from "../dashboard/queries";
 import { hashMatchingProfile } from "../profile/schema";
 import { ensureProfile, saveProfile } from "../profile/store";
 
@@ -40,6 +40,17 @@ export async function dismissJob(data: FormData) {
   const pool = dashboardPool();
   const { profileId } = await ensureProfile(pool);
   await setDismissed(pool, profileId, form.jobId, form.reason === "restore" ? null : form.reason);
+  revalidatePath("/", "layout");
+}
+
+const MissedForm = z.object({ jobId: z.string().regex(/^\d{1,18}$/), flagged: z.enum(["true", "false"]) });
+
+export async function toggleMissed(data: FormData) {
+  await requireOwner();
+  const form = MissedForm.parse({ jobId: data.get("jobId"), flagged: data.get("flagged") });
+  const pool = dashboardPool();
+  const { profileId } = await ensureProfile(pool);
+  await setMissed(pool, profileId, form.jobId, form.flagged === "true");
   revalidatePath("/", "layout");
 }
 
