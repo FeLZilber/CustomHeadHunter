@@ -393,6 +393,97 @@
       "enabled": true,
       "verifiedAt": "2026-11-02T00:00:00Z",
       "verificationSourceUrl": "https://api.ashbyhq.com/posting-api/job-board/sisense"
+    },
+    {
+      "company": "Lemonade",
+      "industry": "insurtech",
+      "provider": "ashby",
+      "providerKey": "lemonade",
+      "careerUrl": "https://jobs.ashbyhq.com/lemonade",
+      "countryCoverage": [
+        "IL"
+      ],
+      "enabled": true,
+      "verifiedAt": "2026-11-03T16:39:04Z",
+      "verificationSourceUrl": "https://api.ashbyhq.com/posting-api/job-board/lemonade"
+    },
+    {
+      "company": "Transmit Security",
+      "industry": "cybersecurity",
+      "provider": "greenhouse",
+      "providerKey": "transmitsecurity",
+      "careerUrl": "https://job-boards.greenhouse.io/transmitsecurity",
+      "countryCoverage": [
+        "IL"
+      ],
+      "enabled": true,
+      "verifiedAt": "2026-11-03T16:39:15Z",
+      "verificationSourceUrl": "https://boards-api.greenhouse.io/v1/boards/transmitsecurity/jobs"
+    },
+    {
+      "company": "Elastic",
+      "industry": "enterprise software",
+      "provider": "greenhouse",
+      "providerKey": "elastic",
+      "careerUrl": "https://job-boards.greenhouse.io/elastic",
+      "countryCoverage": [
+        "IL"
+      ],
+      "enabled": true,
+      "verifiedAt": "2026-11-03T16:39:18Z",
+      "verificationSourceUrl": "https://boards-api.greenhouse.io/v1/boards/elastic/jobs"
+    },
+    {
+      "company": "Salt Security",
+      "industry": "cybersecurity",
+      "provider": "greenhouse",
+      "providerKey": "saltsecurity",
+      "careerUrl": "https://job-boards.greenhouse.io/saltsecurity",
+      "countryCoverage": [
+        "IL"
+      ],
+      "enabled": true,
+      "verifiedAt": "2026-11-03T16:39:46Z",
+      "verificationSourceUrl": "https://boards-api.greenhouse.io/v1/boards/saltsecurity/jobs"
+    },
+    {
+      "company": "BigID",
+      "industry": "cybersecurity",
+      "provider": "greenhouse",
+      "providerKey": "bigid",
+      "careerUrl": "https://job-boards.greenhouse.io/bigid",
+      "countryCoverage": [
+        "IL"
+      ],
+      "enabled": true,
+      "verifiedAt": "2026-11-03T16:39:47Z",
+      "verificationSourceUrl": "https://boards-api.greenhouse.io/v1/boards/bigid/jobs"
+    },
+    {
+      "company": "BioCatch",
+      "industry": "fintech",
+      "provider": "lever",
+      "providerKey": "biocatch",
+      "careerUrl": "https://jobs.lever.co/biocatch",
+      "countryCoverage": [
+        "IL"
+      ],
+      "enabled": true,
+      "verifiedAt": "2026-11-03T16:39:50Z",
+      "verificationSourceUrl": "https://api.lever.co/v0/postings/biocatch"
+    },
+    {
+      "company": "ScaleOps",
+      "industry": "cloud infrastructure",
+      "provider": "greenhouse",
+      "providerKey": "scaleops",
+      "careerUrl": "https://job-boards.greenhouse.io/scaleops",
+      "countryCoverage": [
+        "IL"
+      ],
+      "enabled": true,
+      "verifiedAt": "2026-11-03T16:39:52Z",
+      "verificationSourceUrl": "https://boards-api.greenhouse.io/v1/boards/scaleops/jobs"
     }
   ]
 }
