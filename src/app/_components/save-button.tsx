@@ -1,3 +1,4 @@
+import { SubmitButton } from "./submit-button";
 import { toggleSaved } from "../actions";
 
 export function SaveButton({ jobId, saved }: { jobId: string; saved: boolean }) {
@@ -5,9 +6,9 @@ export function SaveButton({ jobId, saved }: { jobId: string; saved: boolean }) 
     <form action={toggleSaved}>
       <input type="hidden" name="jobId" value={jobId} />
       <input type="hidden" name="saved" value={String(!saved)} />
-      <button type="submit" className="button">
+      <SubmitButton>
         {saved ? "Remove from saved" : "Save job"}
-      </button>
+      </SubmitButton>
     </form>
   );
 }

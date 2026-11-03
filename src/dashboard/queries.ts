@@ -45,10 +45,11 @@ export interface ViewContext {
  * rewrites every row when the configuration changes.
  */
 export async function loadContext(pool: Pool): Promise<ViewContext> {
-  const profile = await ensureProfile(pool);
-  const { rows } = await retryTransient(() =>
-    pool.query(`SELECT config_hash FROM job_evaluations ORDER BY evaluated_at DESC, canonical_job_id DESC LIMIT 1`),
-  );
+  // Independent reads, so they share one round trip instead of two.
+  const [profile, { rows }] = await Promise.all([
+    ensureProfile(pool),
+    retryTransient(() => pool.query(`SELECT config_hash FROM job_evaluations ORDER BY evaluated_at DESC, canonical_job_id DESC LIMIT 1`)),
+  ]);
   return { profile, configHash: rows[0]?.config_hash ?? "" };
 }
 

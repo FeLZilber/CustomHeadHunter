@@ -1,3 +1,4 @@
+import { SubmitButton } from "./submit-button";
 import { dismissJob } from "../actions";
 import { DISMISS_REASONS, type DismissReason } from "../../dashboard/queries";
 import { humanize } from "./format";
@@ -16,9 +17,9 @@ export function DismissButton({ jobId, reason }: { jobId: string; reason: Dismis
       <form action={dismissJob}>
         <input type="hidden" name="jobId" value={jobId} />
         <input type="hidden" name="reason" value="restore" />
-        <button type="submit" className="button">
+        <SubmitButton>
           Dismissed ({LABELS[reason] ?? humanize(reason)}), restore
-        </button>
+        </SubmitButton>
       </form>
     );
   }
@@ -32,9 +33,9 @@ export function DismissButton({ jobId, reason }: { jobId: string; reason: Dismis
           </option>
         ))}
       </select>
-      <button type="submit" className="button">
+      <SubmitButton>
         Not relevant
-      </button>
+      </SubmitButton>
     </form>
   );
 }

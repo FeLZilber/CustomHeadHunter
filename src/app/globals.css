@@ -9,6 +9,8 @@
   --good: #1b6e43;
   --warn: #8a5a00;
   --bad: #a4262c;
+  --accent-strong: #1d5fa8;
+  --good-strong: #1b6e43;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -22,6 +24,8 @@
     --good: #6fce9d;
     --warn: #e6b65c;
     --bad: #f08a8f;
+    --accent-strong: #2d6fb8;
+    --good-strong: #25804f;
   }
 }
 
@@ -310,4 +314,472 @@ textarea {
   width: auto;
   min-width: 0;
   max-width: 100%;
+}
+
+/* ---- Navigation ---- */
+.skip-link {
+  position: absolute;
+  inset-inline-start: 0.5rem;
+  inset-block-start: -4rem;
+  z-index: 20;
+  padding: 0.5rem 0.9rem;
+  color: var(--text);
+  background: var(--surface);
+  border: 2px solid var(--accent);
+  border-radius: 6px;
+}
+
+.skip-link:focus {
+  inset-block-start: 0.5rem;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.site-header {
+  position: sticky;
+  inset-block-start: 0;
+  z-index: 10;
+  flex-wrap: nowrap;
+}
+
+.site-header nav {
+  flex: 1;
+  flex-wrap: nowrap;
+  gap: 0.25rem;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.site-header nav a,
+.signout {
+  padding: 0.3rem 0.6rem;
+  color: var(--muted);
+  border-radius: 6px;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.site-header nav a:hover,
+.signout:hover {
+  color: var(--text);
+  background: var(--bg);
+}
+
+.site-header nav a[aria-current="page"] {
+  color: var(--text);
+  font-weight: 600;
+  background: var(--bg);
+  box-shadow: inset 0 -2px 0 var(--accent);
+}
+
+/* ---- Interaction ---- */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.button:hover:not(:disabled) {
+  border-color: var(--accent);
+}
+
+.button:disabled {
+  cursor: progress;
+  opacity: 0.6;
+}
+
+.button-primary {
+  color: #fff;
+  background: var(--accent-strong);
+  border-color: var(--accent-strong);
+}
+
+.button-primary:hover:not(:disabled) {
+  border-color: var(--accent-strong);
+  filter: brightness(1.1);
+}
+
+/* ---- Filters ---- */
+.more-filters {
+  grid-column: 1 / -1;
+}
+
+.more-filters summary {
+  width: fit-content;
+  color: var(--accent);
+  cursor: pointer;
+}
+
+.more-filters .filters {
+  margin-block: 0.75rem 0;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  align-items: center;
+  margin-block: 0 1rem;
+}
+
+.chip {
+  padding: 0.15rem 0.6rem;
+  font-size: 0.85rem;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  text-decoration: none;
+}
+
+.chip:hover {
+  border-color: var(--bad);
+}
+
+.chip-clear {
+  font-size: 0.85rem;
+}
+
+.empty-state {
+  display: grid;
+  gap: 0.5rem;
+  justify-items: start;
+  padding-block: 2rem;
+}
+
+/* ---- Job cards ---- */
+.job {
+  /* Skip layout and paint for cards that are off screen. A long list renders as fast as a short one. */
+  content-visibility: auto;
+  contain-intrinsic-size: auto 7rem;
+  transition: opacity 0.15s, border-color 0.15s;
+}
+
+.job:hover {
+  border-color: var(--muted);
+}
+
+/* A card whose form is in flight dims, so a click is never met with silence. */
+.job:has([aria-busy="true"]) {
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+.badge {
+  font-variant-numeric: tabular-nums;
+}
+
+.badge-strong {
+  color: #fff;
+  background: var(--good-strong);
+  border-color: var(--good-strong);
+}
+
+.badge-fair {
+  color: var(--good);
+}
+
+.job-side {
+  min-width: 9rem;
+}
+
+.pager {
+  align-items: center;
+  justify-content: space-between;
+  padding-block-start: 1rem;
+  border-block-start: 1px solid var(--border);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .job {
+    transition: none;
+  }
+}
+
+/* ---- Touch ---- */
+@media (pointer: coarse) {
+  .button,
+  input,
+  select,
+  .site-header nav a {
+    min-height: 2.75rem;
+  }
+}
+
+@media (max-width: 30rem) {
+  .job-side {
+    min-width: 0;
+  }
+}
+
+/* ---- Modern surface ---- */
+:root {
+  --radius: 14px;
+  --shadow: 0 1px 2px rgb(16 24 32 / 6%), 0 4px 16px rgb(16 24 32 / 5%);
+  --shadow-hover: 0 2px 4px rgb(16 24 32 / 8%), 0 10px 28px rgb(16 24 32 / 10%);
+  --ring: color-mix(in srgb, var(--accent) 22%, transparent);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --shadow: 0 1px 2px rgb(0 0 0 / 40%), 0 4px 16px rgb(0 0 0 / 25%);
+    --shadow-hover: 0 2px 4px rgb(0 0 0 / 50%), 0 10px 28px rgb(0 0 0 / 40%);
+  }
+}
+
+body {
+  background:
+    radial-gradient(60rem 24rem at 10% -10%, color-mix(in srgb, var(--accent) 9%, transparent), transparent 70%),
+    var(--bg);
+  background-attachment: fixed;
+  font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans Hebrew", sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1 {
+  font-size: 1.9rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.site-header {
+  background: color-mix(in srgb, var(--surface) 82%, transparent);
+  backdrop-filter: saturate(1.6) blur(14px);
+  border-block-end-color: color-mix(in srgb, var(--border) 70%, transparent);
+}
+
+.brand {
+  display: inline-flex;
+  gap: 0.5rem;
+  align-items: center;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.brand::before {
+  content: "";
+  width: 1.15rem;
+  height: 1.15rem;
+  background: linear-gradient(135deg, var(--accent), #8b5cf6);
+  border-radius: 6px;
+}
+
+.site-header nav a,
+.signout {
+  border-radius: 999px;
+  font-size: 0.9rem;
+  transition: background 0.15s, color 0.15s;
+}
+
+.site-header nav a[aria-current="page"] {
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  box-shadow: none;
+}
+
+input,
+select,
+textarea {
+  padding: 0.6rem 0.75rem;
+  border-radius: 10px;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  border-color: var(--accent);
+  outline: none;
+  box-shadow: 0 0 0 4px var(--ring);
+}
+
+.filters {
+  padding: 1rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.more-filters .filters {
+  padding: 0;
+  background: none;
+  border: 0;
+  box-shadow: none;
+}
+
+.button {
+  padding: 0.5rem 0.95rem;
+  font-weight: 500;
+  border-radius: 10px;
+  transition: border-color 0.15s, background 0.15s, transform 0.1s;
+}
+
+.button:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.button-primary {
+  background: linear-gradient(135deg, var(--accent-strong), color-mix(in srgb, var(--accent-strong) 70%, #8b5cf6));
+  border: 0;
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--accent-strong) 35%, transparent);
+}
+
+.jobs {
+  gap: 0.85rem;
+}
+
+.job {
+  position: relative;
+  align-items: center;
+  padding: 1.1rem 1.25rem;
+  border-color: transparent;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  transition: box-shadow 0.2s, transform 0.2s, opacity 0.15s;
+}
+
+.job:hover {
+  border-color: transparent;
+  box-shadow: var(--shadow-hover);
+  transform: translateY(-1px);
+}
+
+.job h2 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.job h2 a {
+  color: var(--text);
+  text-decoration: none;
+}
+
+.job h2 a:hover {
+  color: var(--accent);
+}
+
+.tags {
+  color: var(--accent);
+  font-weight: 500;
+}
+
+.job-side {
+  align-items: stretch;
+}
+
+.job-side .badge {
+  align-self: flex-end;
+  padding: 0.25rem 0.8rem;
+  font-size: 0.95rem;
+}
+
+.job-side .button {
+  width: 100%;
+  font-size: 0.8rem;
+}
+
+.badge {
+  border-color: transparent;
+  background: color-mix(in srgb, currentcolor 12%, transparent);
+}
+
+.badge-strong {
+  background: linear-gradient(135deg, var(--good-strong), color-mix(in srgb, var(--good-strong) 70%, #14b8a6));
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--good-strong) 35%, transparent);
+}
+
+.notice {
+  border-radius: 10px;
+  box-shadow: var(--shadow);
+}
+
+.pager {
+  border-block-start: 0;
+}
+
+.pager a {
+  padding: 0.45rem 0.9rem;
+  text-decoration: none;
+  background: var(--surface);
+  border-radius: 999px;
+  box-shadow: var(--shadow);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .job:hover,
+  .button:active {
+    transform: none;
+  }
+}
+
+/* ---- Compact card actions ---- */
+.job {
+  align-items: flex-start;
+}
+
+.job-side {
+  flex: 0 1 15rem;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.job-side .badge {
+  order: -1;
+  flex: 0 0 auto;
+  margin-inline-end: auto;
+}
+
+.job-side .button {
+  width: auto;
+  padding: 0.35rem 0.7rem;
+}
+
+.job-side .dismiss select {
+  padding: 0.35rem 0.5rem;
+  font-size: 0.8rem;
+}
+
+@media (max-width: 30rem) {
+  .site-header {
+    gap: 0.5rem;
+    padding-inline: 0.75rem;
+  }
+
+  .brand {
+    font-size: 0;
+  }
+
+  .brand::before {
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+
+  .filters {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .filters > label:first-child,
+  .filters > .button {
+    grid-column: 1 / -1;
+  }
+
+  .job-side {
+    flex-basis: 100%;
+    justify-content: flex-start;
+  }
+
 }
