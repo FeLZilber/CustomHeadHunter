@@ -3,6 +3,7 @@
  *
  *   npm run worker -- migrate
  *   npm run worker -- seed
+ *   npm run worker -- adopt
  *   npm run worker -- crawl [--trigger manual] [--mode incremental|full] [--provider lever] [--company Nanit]
  *   npm run worker -- evaluate
  *   npm run worker -- requeue [--retry-failed] [--force-rematch]
@@ -20,6 +21,7 @@ import { createPool } from "../db/pool";
 import { migrate } from "../db/migrate";
 import { HttpClient } from "../http/client";
 import { crawl, dryRunCrawl, type CrawlOptions } from "../ingest/crawl";
+import { adoptRequestedSources } from "../ingest/requests";
 import { seedCatalog } from "../ingest/seed";
 import { createLogger, redact } from "../logger";
 import { buildMatchConfig, hashMatchConfig } from "../match/config";
@@ -73,6 +75,9 @@ async function main(): Promise<number> {
         return 0;
       case "seed":
         log.info("Catalog seeded", { ...(await seedCatalog(pool)) });
+        return 0;
+      case "adopt":
+        log.info("Requested sources checked", { ...(await adoptRequestedSources(pool, new HttpClient())) });
         return 0;
       case "crawl": {
         const options: CrawlOptions = {
@@ -175,7 +180,7 @@ async function main(): Promise<number> {
         return args["fail-on-stale"] && health.discoveryStale ? 1 : 0;
       }
       default:
-        console.error("Usage: worker <migrate|seed|crawl|evaluate|requeue|pending|match|notify|cleanup|health> [options]");
+        console.error("Usage: worker <migrate|seed|adopt|crawl|evaluate|requeue|pending|match|notify|cleanup|health> [options]");
         return 2;
     }
   } finally {

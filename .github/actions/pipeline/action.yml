@@ -60,6 +60,7 @@ runs:
       run: |
         "$GITHUB_ACTION_PATH/worker.sh" 120 migrate
         "$GITHUB_ACTION_PATH/worker.sh" 60 seed
+        "$GITHUB_ACTION_PATH/worker.sh" 120 adopt
 
     - id: crawl
       if: ${{ !cancelled() && steps.prepare.outcome == 'success' }}

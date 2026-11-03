@@ -141,6 +141,19 @@ test.describe("as the owner", () => {
     await expect(comeet).toHaveAttribute("rel", /noopener/);
   });
 
+  test("follows a company from a pasted job link, and refuses other sites", async ({ page }) => {
+    await page.goto("/search");
+    const form = page.getByRole("form", { name: "Follow a company" });
+    await form.getByLabel("Job or careers link").fill("https://www.linkedin.com/jobs/view/123");
+    await form.getByRole("button", { name: "Follow" }).click();
+    await expect(page.locator("p[role=alert]")).toContainText("Only Greenhouse, Lever and Ashby");
+    await form.getByLabel("Job or careers link").fill("https://jobs.lever.co/e2e-acme/abc");
+    await form.getByLabel("Company name (optional)").fill("E2E Acme");
+    await form.getByRole("button", { name: "Follow" }).click();
+    await expect(page.locator("p[role=status]")).toContainText("Requested");
+    await expect(page.getByText("E2E Acme (Lever): Pending")).toBeVisible();
+  });
+
   test("shows hostile posting text as text and runs none of it", async ({ page }) => {
     await page.goto("/");
     await page.getByRole("link", { name: TITLES.hostile }).click();
