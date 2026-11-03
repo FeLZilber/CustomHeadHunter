@@ -1,8 +1,9 @@
 import { foldText, type Place, type RemoteScope } from "../normalize/location";
 import type { EmploymentType, ExperienceRequirement, Seniority, TechnologyMention } from "../normalize/extract";
 import type { MatchingProfile } from "../profile/schema";
+import { scoreExperience, scoreLocation, scoreSeniority, scoreSkills } from "../match/facts";
 
-export const FILTER_VERSION = "filter-v3";
+export const FILTER_VERSION = "filter-v4";
 
 export interface FilterJob {
   title: string;
@@ -55,6 +56,22 @@ const INDUSTRIAL_SIGNAL = word(
   "plc|plcs|scada|hmi|siemens|allen bradley|robotic cell|robotic cells|factory floor|production line|production lines|" +
     "mechatronics|בקרים|מכטרוניקה|קו ייצור",
 );
+
+/** One title tier outranks any amount of fact fit: facts add at most 60 points. */
+const TIER = 100;
+
+/**
+ * Orders jobs inside a title tier by how well their stated facts fit the profile, so the
+ * limited model budget goes to the likeliest jobs. Unknown facts score neutral, never zero.
+ */
+function factFit(job: FilterJob, profile: MatchingProfile): number {
+  return (
+    scoreSkills(profile, job.technologies) +
+    scoreExperience(profile, job.experience) +
+    scoreSeniority(profile, job.seniority) +
+    scoreLocation(profile, job.locations, job.remoteScope)
+  );
+}
 
 /** A posting this short says too little to reject on content. */
 const MIN_DESCRIBED_CHARS = 200;
@@ -119,5 +136,5 @@ export function applyFilter(job: FilterJob, profile: MatchingProfile): FilterRes
   const reasons = [classified.reason];
   if (job.experience === null) reasons.push("experience_unknown");
   if (job.technologies.length === 0) reasons.push("technologies_unknown");
-  return { decision: "eligible", reasons, priority: classified.priority };
+  return { decision: "eligible", reasons, priority: classified.priority * TIER + factFit(job, profile) };
 }
