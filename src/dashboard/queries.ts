@@ -53,6 +53,9 @@ export async function loadContext(pool: Pool): Promise<ViewContext> {
 }
 
 /** Why the owner marked a job "not relevant". The database enforces the same list. */
+/** Below this a result is a clear no; between it and the alert threshold a human may still disagree. */
+export const NEAR_MISS_FLOOR = 50;
+
 export const DISMISS_REASONS = ["wrong_role", "wrong_seniority", "wrong_location", "wrong_company", "other"] as const;
 export type DismissReason = (typeof DISMISS_REASONS)[number];
 
@@ -150,7 +153,7 @@ export interface JobPage {
   hasMore: boolean;
 }
 
-export async function searchJobs(db: Queryable, context: ViewContext, filters: JobFilters, only?: "saved" | "applied" | "dismissed" | "filtered" | "flagged"): Promise<JobPage> {
+export async function searchJobs(db: Queryable, context: ViewContext, filters: JobFilters, only?: "saved" | "applied" | "dismissed" | "filtered" | "flagged" | "near"): Promise<JobPage> {
   const params: unknown[] = contextParams(context);
   const bind = (value: unknown) => `$${params.push(value)}`;
   const contains = (value: string) => bind(`%${escapeLike(value)}%`);
@@ -173,6 +176,10 @@ export async function searchJobs(db: Queryable, context: ViewContext, filters: J
   // The rejection audit: jobs the rule filter removed, optionally for one reason, or those flagged as missed.
   if (only === "filtered") where.push(`match_state = 'filtered' AND dismissed_reason IS NULL`);
   if (only === "flagged") where.push(`missed_at IS NOT NULL`);
+  // Near misses: scored above the floor but under the alert threshold, so they never reached Telegram.
+  if (only === "near") {
+    where.push(`match_state = 'current' AND dismissed_reason IS NULL AND score >= ${bind(NEAR_MISS_FLOOR)} AND score < ${bind(context.profile.preferences.notificationThreshold)}`);
+  }
   if (filters.reason) where.push(`${bind(filters.reason)} = ANY(reason_codes) AND match_state = 'filtered'`);
 
   const orders = {
