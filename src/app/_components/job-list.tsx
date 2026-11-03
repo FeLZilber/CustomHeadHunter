@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { JobSummary } from "../../dashboard/queries";
 import { formatDate } from "./format";
+import { DismissButton } from "./dismiss-button";
 import { MatchBadge } from "./match-badge";
 import { SaveButton } from "./save-button";
 
@@ -29,6 +30,7 @@ export function JobList({ jobs, empty }: { jobs: JobSummary[]; empty: string }) 
           <div className="job-side">
             <MatchBadge job={job} />
             <SaveButton jobId={job.id} saved={job.saved} />
+            <DismissButton jobId={job.id} reason={job.dismissedReason} />
           </div>
         </li>
       ))}

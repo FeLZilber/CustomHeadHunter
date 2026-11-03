@@ -4,6 +4,7 @@ import { dashboardPool } from "../../../dashboard/db";
 import { getJob, loadContext } from "../../../dashboard/queries";
 import { formatDate, formatDateTime, humanize, safeHref } from "../../_components/format";
 import { ApplyButton } from "../../_components/apply-button";
+import { DismissButton } from "../../_components/dismiss-button";
 import { MatchBadge } from "../../_components/match-badge";
 import { SaveButton } from "../../_components/save-button";
 
@@ -50,6 +51,7 @@ export default async function JobPage({ params }: { params: Promise<{ id: string
         <MatchBadge job={job} />
         <SaveButton jobId={job.id} saved={job.saved} />
         <ApplyButton jobId={job.id} appliedAt={job.appliedAt} />
+        <DismissButton jobId={job.id} reason={job.dismissedReason} />
         {href ? (
           <a className="button" href={href} target="_blank" rel="noopener noreferrer nofollow">
             Open original posting

@@ -2,7 +2,7 @@ import { expect, test, type APIRequestContext, type BrowserContext, type Page } 
 import { encode } from "next-auth/jwt";
 import { BASE_URL, NEXTAUTH_SECRET, OWNER_ID, STRANGER_ID, TITLES } from "./constants";
 
-const PRIVATE_PATHS = ["/", "/saved", "/applied", "/search", "/profile", "/status", "/jobs/1"];
+const PRIVATE_PATHS = ["/", "/saved", "/applied", "/dismissed", "/search", "/profile", "/status", "/jobs/1"];
 
 const sessionCookie = async (githubId: string, secret = NEXTAUTH_SECRET) => ({
   name: "next-auth.session-token",
@@ -21,7 +21,7 @@ const jobRow = (page: Page, title: string) => page.locator(".job").filter({ hasT
 
 /** Reads the form React renders for a server action, so a raw POST can be replayed with any cookie. */
 async function saveActionFields(page: Page, title: string) {
-  const inputs = jobRow(page, title).locator("form input[type=hidden]");
+  const inputs = jobRow(page, title).locator("form").first().locator("input[type=hidden]");
   const fields: Record<string, string> = {};
   for (const input of await inputs.all()) {
     fields[(await input.getAttribute("name"))!] = (await input.getAttribute("value")) ?? "";
@@ -182,6 +182,25 @@ test.describe("as the owner", () => {
     await expect(jobRow(page, TITLES.hebrew)).toBeVisible();
     await jobRow(page, TITLES.hebrew).getByRole("button", { name: "Remove from saved" }).click();
     await expect(page.getByText("Nothing saved yet.")).toBeVisible();
+  });
+
+  test("dismisses a job with a reason, moves it to the dismissed list, and restores it", async ({ page }) => {
+    await page.goto("/dismissed");
+    await expect(page.getByText("Nothing dismissed yet.")).toBeVisible();
+
+    await page.goto("/");
+    await jobRow(page, TITLES.hebrew).getByLabel("Why is this not relevant?").selectOption("wrong_seniority");
+    await jobRow(page, TITLES.hebrew).getByRole("button", { name: "Not relevant" }).click();
+    await expect(jobRow(page, TITLES.hebrew)).toHaveCount(0);
+
+    await page.goto("/dismissed");
+    await expect(jobRow(page, TITLES.hebrew)).toBeVisible();
+    await expect(page.getByText("Wrong seniority: 1")).toBeVisible();
+    await jobRow(page, TITLES.hebrew).getByRole("button", { name: /restore/ }).click();
+    await expect(page.getByText("Nothing dismissed yet.")).toBeVisible();
+
+    await page.goto("/");
+    await expect(jobRow(page, TITLES.hebrew)).toBeVisible();
   });
 
   test("marks a job as applied from its page, lists it, and undoes it", async ({ page }) => {

@@ -15,7 +15,7 @@ It needs no always-on computer, paid AI API or self-hosted runner. Scheduled wor
 - Shows jobs, evidence, saved and applied jobs, profile editing and system health to the configured GitHub account only.
 - Lists ready-made searches for sites it does not crawl, such as LinkedIn and Comeet, for the owner to open by hand.
 
-You can mark a job as applied for on its page. The Applied page lists those jobs. Tracking goes no further than that: interview stages and notes, like further ATS connectors, are roadmap items and are not part of this MVP.
+You can mark a job "not relevant" with a reason, from the list or the job page. It leaves the main lists and appears on the Dismissed page, which counts reasons and repeated companies. You can mark a job as applied for on its page. The Applied page lists those jobs. Tracking goes no further than that: interview stages and notes, like further ATS connectors, are roadmap items and are not part of this MVP.
 
 ## Quick start
 
