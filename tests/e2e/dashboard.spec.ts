@@ -2,7 +2,7 @@ import { expect, test, type APIRequestContext, type BrowserContext, type Page } 
 import { encode } from "next-auth/jwt";
 import { BASE_URL, NEXTAUTH_SECRET, OWNER_ID, STRANGER_ID, TITLES } from "./constants";
 
-const PRIVATE_PATHS = ["/", "/saved", "/applied", "/dismissed", "/search", "/profile", "/status", "/jobs/1"];
+const PRIVATE_PATHS = ["/", "/saved", "/applied", "/dismissed", "/filtered", "/search", "/profile", "/status", "/jobs/1"];
 
 const sessionCookie = async (githubId: string, secret = NEXTAUTH_SECRET) => ({
   name: "next-auth.session-token",
@@ -201,6 +201,19 @@ test.describe("as the owner", () => {
 
     await page.goto("/");
     await expect(jobRow(page, TITLES.hebrew)).toBeVisible();
+  });
+
+  test("audits filtered jobs by reason and flags one as missed", async ({ page }) => {
+    await page.goto("/filtered");
+    await expect(jobRow(page, TITLES.filtered)).toBeVisible();
+    await expect(jobRow(page, TITLES.hostile)).toHaveCount(0);
+    await expect(page.getByRole("link", { name: /^Flagged as missed \(0\)/ })).toBeVisible();
+
+    await jobRow(page, TITLES.filtered).getByRole("button", { name: "Should have matched" }).click();
+    await expect(page.getByRole("link", { name: /^Flagged as missed \(1\)/ })).toBeVisible();
+    await page.getByRole("link", { name: /^Flagged as missed/ }).click();
+    await jobRow(page, TITLES.filtered).getByRole("button", { name: /undo/ }).click();
+    await expect(page.getByText("Nothing flagged yet.")).toBeVisible();
   });
 
   test("marks a job as applied from its page, lists it, and undoes it", async ({ page }) => {
