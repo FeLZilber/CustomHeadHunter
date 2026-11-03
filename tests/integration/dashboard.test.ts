@@ -1,5 +1,5 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
-import { loadContext, getJob, parseFilters, PAGE_SIZE, readStatus, searchJobs, setApplied, setSaved, type ViewContext } from "../../src/dashboard/queries";
+import { loadContext, getJob, parseFilters, PAGE_SIZE, readStatus, readDismissals, searchJobs, setApplied, setDismissed, setSaved, type ViewContext } from "../../src/dashboard/queries";
 import { migrate } from "../../src/db/migrate";
 import type { Pool } from "../../src/db/pool";
 import { createLogger } from "../../src/logger";
@@ -65,7 +65,7 @@ describe("dashboard queries", () => {
   }
 
   const context = async (): Promise<ViewContext> => ({ profile: await ensureProfile(pool), configHash: hashMatchConfig(config) });
-  const search = async (params: Record<string, string> = {}, only?: "saved" | "applied") =>
+  const search = async (params: Record<string, string> = {}, only?: "saved" | "applied" | "dismissed") =>
     searchJobs(pool, await context(), parseFilters(params), only);
   const titles = async (params: Record<string, string> = {}) => (await search(params)).jobs.map((job) => job.title);
   const onlyJob = async () => (await search({ status: "all" })).jobs[0]!;
@@ -296,6 +296,64 @@ describe("dashboard queries", () => {
       await setSaved(pool, profileId, id, true);
       await setApplied(pool, profileId, id, false);
       expect((await search({ status: "all" }, "saved")).jobs.map((job) => job.saved)).toEqual([true]);
+    });
+  });
+
+  describe("dismissed jobs", () => {
+    it("hides a dismissed job from the main list, keeps it in its own, and restores it", async () => {
+      await crawlListings(rawListing("a"), rawListing("b"));
+      const { rows } = await pool.query(`SELECT id FROM canonical_jobs ORDER BY id`);
+      const [first, second] = rows.map((row) => row.id as string) as [string, string];
+      const { profileId } = await ensureProfile(pool);
+
+      await setDismissed(pool, profileId, first, "wrong_role");
+      expect((await search({ status: "all" })).jobs.map((job) => job.id)).toEqual([second]);
+      const dismissed = (await search({ status: "all" }, "dismissed")).jobs;
+      expect(dismissed.map((job) => [job.id, job.dismissedReason])).toEqual([[first, "wrong_role"]]);
+
+      await setDismissed(pool, profileId, first, null);
+      await setDismissed(pool, profileId, first, null);
+      expect((await search({ status: "all" }, "dismissed")).jobs).toEqual([]);
+      expect((await search({ status: "all" })).jobs).toHaveLength(2);
+    });
+
+    it("changes the reason without moving the date, and does not hide a saved job from the saved list", async () => {
+      await crawlListings(rawListing("a"));
+      const { id } = await onlyJob();
+      const { profileId } = await ensureProfile(pool);
+
+      await setDismissed(pool, profileId, id, "wrong_role");
+      const { rows: before } = await pool.query(`SELECT dismissed_at FROM dismissed_jobs`);
+      await setDismissed(pool, profileId, id, "wrong_location");
+      const { rows: after } = await pool.query(`SELECT dismissed_at, reason FROM dismissed_jobs`);
+      expect(after).toEqual([{ dismissed_at: before[0]?.dismissed_at, reason: "wrong_location" }]);
+
+      await setSaved(pool, profileId, id, true);
+      expect((await search({ status: "all" }, "saved")).jobs.map((job) => job.id)).toEqual([id]);
+      expect((await getJob(pool, await context(), id))?.dismissedReason).toBe("wrong_location");
+    });
+
+    it("rejects a reason the list does not know", async () => {
+      await crawlListings(rawListing("a"));
+      const { id } = await onlyJob();
+      const { profileId } = await ensureProfile(pool);
+      await expect(setDismissed(pool, profileId, id, "boring" as never)).rejects.toThrow();
+    });
+
+    it("tallies reasons and companies dismissed more than once", async () => {
+      await crawlListings(rawListing("a"), rawListing("b"), rawListing("c"));
+      const { rows } = await pool.query(`SELECT id FROM canonical_jobs ORDER BY id`);
+      const ids = rows.map((row) => row.id as string);
+      const { profileId } = await ensureProfile(pool);
+      await setDismissed(pool, profileId, ids[0]!, "wrong_role");
+      await setDismissed(pool, profileId, ids[1]!, "wrong_role");
+      await setDismissed(pool, profileId, ids[2]!, "wrong_seniority");
+
+      const summary = await readDismissals(pool, profileId);
+      expect(summary.total).toBe(3);
+      expect(summary.byReason).toEqual([{ reason: "wrong_role", count: 2 }, { reason: "wrong_seniority", count: 1 }]);
+      expect(summary.repeatCompanies).toHaveLength(1);
+      expect(summary.repeatCompanies[0]?.count).toBe(3);
     });
   });
 

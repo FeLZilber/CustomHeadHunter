@@ -157,6 +157,7 @@ textarea {
 
 .job-side {
   display: flex;
+  flex-wrap: wrap;
   flex-direction: column;
   gap: 0.4rem;
   align-items: end;
@@ -296,4 +297,17 @@ textarea {
     flex-direction: row;
     align-items: center;
   }
+}
+
+.dismiss {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  align-items: center;
+}
+
+.dismiss select {
+  width: auto;
+  min-width: 0;
+  max-width: 100%;
 }
