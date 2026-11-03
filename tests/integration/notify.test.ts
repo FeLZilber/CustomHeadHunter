@@ -21,6 +21,7 @@ import { runNotify, type NotifyOptions } from "../../src/notify/sender";
 import type { MessageSender, SendOutcome } from "../../src/notify/telegram";
 import { ensureProfile, saveProfile } from "../../src/profile/store";
 import { cleanup, readHealth, renderHealth } from "../../src/worker/maintenance";
+import { scriptedFacts } from "../scripted-facts";
 import { addSource, openPool, rawListing, resetDatabase, runCrawl, scriptedConnector, snapshot, type Script } from "./helpers";
 
 const config = buildMatchConfig({ OLLAMA_NUM_CTX: 3072, MAX_OUTPUT_TOKENS: 800, MAX_JOB_INPUT_TOKENS: 1600 });
@@ -42,6 +43,8 @@ const modelReply = (skills = 25) =>
 const HIGH = 25; // Adds up to 80.
 const LOW = 5; // Adds up to 60.
 
+const facts = scriptedFacts();
+
 function fakeModel(replies: string[] | (() => string)): MatchDeps["model"] {
   return {
     async modelDigest() {
@@ -50,6 +53,7 @@ function fakeModel(replies: string[] | (() => string)): MatchDeps["model"] {
     async chat(): Promise<ChatResult> {
       const content = typeof replies === "function" ? replies() : replies.shift();
       if (content === undefined) throw new Error("Model script exhausted");
+      facts.observe(content);
       return { content, doneReason: "stop", totalMs: 1, loadMs: 0, promptTokens: 1, promptMs: 0, outputTokens: 1, outputMs: 0 };
     },
   };
@@ -118,7 +122,7 @@ describe("notifications", () => {
   async function match(replies: string[] | (() => string) = () => modelReply(HIGH), maxJobs = 50) {
     await evaluate();
     return runMatch(
-      { pool, model: fakeModel(replies), log },
+      { pool, model: fakeModel(replies), log, scoreFacts: facts.scoreFacts },
       { trigger: "test", config, maxJobs, timeBudgetSeconds: 600, inferenceTimeoutSeconds: 180, maxAttempts: 3, retryBaseSeconds: 0 },
     );
   }

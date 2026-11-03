@@ -7,6 +7,7 @@ import { OllamaError, type ChatRequest, type ChatResult } from "../../src/match/
 import { claimTask, countAffordable, evaluateJobs, forceRematch, readBacklog, recoverAbandoned, retryFailedTasks } from "../../src/match/queue";
 import { runMatch, type MatchDeps, type MatchOptions } from "../../src/match/runner";
 import { ensureProfile, saveProfile } from "../../src/profile/store";
+import { scriptedFacts } from "../scripted-facts";
 import { addSource, openPool, rawListing, resetDatabase, runCrawl, scriptedConnector, snapshot, type Script } from "./helpers";
 
 const config = buildMatchConfig({ OLLAMA_NUM_CTX: 3072, MAX_OUTPUT_TOKENS: 800, MAX_JOB_INPUT_TOKENS: 1600 });
@@ -21,6 +22,8 @@ const output = (overrides: Record<string, unknown> = {}) => JSON.stringify({
   points: { role: 40, skills: 25, experience: 8, location: 5, industry: 2 },
   ...overrides,
 });
+
+const facts = scriptedFacts();
 
 type Reply = string | Error | ((request: ChatRequest) => Promise<string> | string);
 
@@ -37,6 +40,7 @@ function fakeModel(replies: Reply[], digest: string | null | Error = config.mode
       if (reply === undefined) throw new Error("Model script exhausted");
       if (reply instanceof Error) throw reply;
       const content = typeof reply === "function" ? await reply(request) : reply;
+      facts.observe(content);
       return { content, doneReason: "stop", totalMs: 1, loadMs: 0, promptTokens: 1, promptMs: 0, outputTokens: 1, outputMs: 0 };
     },
   };
@@ -57,7 +61,7 @@ const options = (overrides: Partial<MatchOptions> = {}): MatchOptions => ({
 describe("matching", () => {
   let pool: Pool;
   const log = createLogger("error", () => {});
-  const deps = (model: MatchDeps["model"], extra: Partial<MatchDeps> = {}): MatchDeps => ({ pool, model, log, ...extra });
+  const deps = (model: MatchDeps["model"], extra: Partial<MatchDeps> = {}): MatchDeps => ({ pool, model, log, scoreFacts: facts.scoreFacts, ...extra });
 
   beforeAll(async () => {
     pool = openPool();
@@ -440,12 +444,12 @@ describe("matching", () => {
       await prepare();
       await runMatch(deps(fakeModel([output()]).model), options());
       expect(await forceRematch(pool)).toBe(1);
-      const { model, calls } = fakeModel([output({ points: { role: 15, skills: 5, experience: 8, location: 5, industry: 2 } })]);
+      const { model, calls } = fakeModel([output({ role_category: "manual_qa", points: { skills: 5 } })]);
       await runMatch(deps(model), options());
       expect(calls).toHaveLength(1);
       const results = await resultRows();
       expect(results).toHaveLength(1);
-      expect(results[0].score).toBe(35);
+      expect(results[0].score).toBe(37); // manual QA 12, pinned skills 5, other pinned facts 20
     });
 
     it("does not run tasks built for another configuration", async () => {

@@ -4,6 +4,7 @@ import { redact } from "../logger";
 import type { MatchingProfile, Profile } from "../profile/schema";
 import { OWNER_KEY } from "../profile/store";
 import { buildInputKey, hashMatchConfig, type MatchConfig } from "./config";
+import type { JobFacts } from "./facts";
 import type { EvidenceCheck, JobInput } from "./prompt";
 import type { MatchResponse } from "./schema";
 
@@ -150,6 +151,7 @@ export interface MatchTask {
   attempts: number;
   matching: MatchingProfile;
   job: { title: string; company: string; location: string | null; description: string };
+  facts: JobFacts;
 }
 
 /** Claims first and reads the job afterwards, so a skipped row costs no description transfer. */
@@ -170,7 +172,8 @@ export async function claimTask(pool: Pool, config: MatchConfig, owner: string, 
   const { rows: details } = await retryTransient(() =>
     pool.query(
       `SELECT t.id, t.canonical_job_id, t.input_key, t.content_hash, t.profile_revision_id, t.attempts, r.matching,
-              l.title, l.description_text, l.original_location, co.name AS company
+              l.title, l.description_text, l.original_location, co.name AS company, co.industry,
+              l.seniority, l.technologies, l.experience, l.normalized_locations, l.remote_scope
          FROM match_tasks t
          JOIN profile_revisions r ON r.id = t.profile_revision_id
          JOIN source_listings l ON l.id = t.source_listing_id
@@ -190,6 +193,14 @@ export async function claimTask(pool: Pool, config: MatchConfig, owner: string, 
     attempts: row.attempts,
     matching: row.matching,
     job: { title: row.title, company: row.company, location: row.original_location, description: row.description_text },
+    facts: {
+      seniority: row.seniority,
+      experience: row.experience,
+      technologies: row.technologies ?? [],
+      locations: row.normalized_locations ?? [],
+      remoteScope: row.remote_scope,
+      industry: row.industry,
+    },
   };
 }
 
