@@ -23,6 +23,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <Link href="/saved">Saved</Link>
             <Link href="/applied">Applied</Link>
             <Link href="/dismissed">Dismissed</Link>
+            <Link href="/filtered">Filtered out</Link>
             <Link href="/search">Search</Link>
             <Link href="/profile">Profile</Link>
             <Link href="/status">Status</Link>
