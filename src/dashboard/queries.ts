@@ -23,6 +23,8 @@ export const JobFiltersSchema = z.object({
   posted: z.enum(["any", "14", "30", "90"]).catch("any"),
   sort: z.enum(["best", "latest", "posted"]).catch("best"),
   page: z.coerce.number().int().min(1).max(10_000).catch(1),
+  /** A filter reason code, used by the rejection audit. */
+  reason: z.preprocess(blankToUndefined, z.string().regex(/^[a-z_]{1,60}$/).optional()).catch(undefined),
 });
 
 export type JobFilters = z.infer<typeof JobFiltersSchema>;
@@ -68,7 +70,8 @@ const JOB_ROWS = `
   LEFT JOIN match_tasks t ON t.canonical_job_id = c.id AND t.input_key = e.input_key
   LEFT JOIN saved_jobs s ON s.canonical_job_id = c.id AND s.profile_id = $1
   LEFT JOIN job_applications ja ON ja.canonical_job_id = c.id AND ja.profile_id = $1
-  LEFT JOIN dismissed_jobs dj ON dj.canonical_job_id = c.id AND dj.profile_id = $1`;
+  LEFT JOIN dismissed_jobs dj ON dj.canonical_job_id = c.id AND dj.profile_id = $1
+  LEFT JOIN missed_jobs mj ON mj.canonical_job_id = c.id AND mj.profile_id = $1`;
 
 const MATCH_STATE = `
   CASE
@@ -84,7 +87,7 @@ const JOB_COLUMNS = `
   c.id, c.title, co.name AS company, c.status, c.first_discovered_at, c.last_seen_at,
   l.original_location, l.work_arrangement, l.technologies, l.application_url, l.published_at,
   COALESCE(l.published_at, c.first_discovered_at) AS posted_or_found_at,
-  r.score, r.recommendation, s.saved_at, ja.applied_at, dj.reason AS dismissed_reason, e.reason_codes, ${MATCH_STATE} AS match_state`;
+  r.score, r.recommendation, s.saved_at, ja.applied_at, dj.reason AS dismissed_reason, mj.flagged_at AS missed_at, e.reason_codes, ${MATCH_STATE} AS match_state`;
 
 const contextParams = ({ profile, configHash }: ViewContext) => [profile.profileId, profile.matchingHash, configHash, FILTER_VERSION];
 
@@ -111,6 +114,8 @@ export interface JobSummary {
   appliedAt: Date | null;
   /** Set when the owner marked the job "not relevant". Dismissed jobs leave the main lists. */
   dismissedReason: DismissReason | null;
+  /** The owner said the filter was wrong to reject this job. */
+  flaggedMissed: boolean;
 }
 
 function toSummary(row: Record<string, any>): JobSummary {
@@ -134,6 +139,7 @@ function toSummary(row: Record<string, any>): JobSummary {
     saved: row.saved_at !== null,
     appliedAt: row.applied_at,
     dismissedReason: row.dismissed_reason ?? null,
+    flaggedMissed: row.missed_at != null,
   };
 }
 
@@ -144,7 +150,7 @@ export interface JobPage {
   hasMore: boolean;
 }
 
-export async function searchJobs(db: Queryable, context: ViewContext, filters: JobFilters, only?: "saved" | "applied" | "dismissed"): Promise<JobPage> {
+export async function searchJobs(db: Queryable, context: ViewContext, filters: JobFilters, only?: "saved" | "applied" | "dismissed" | "filtered" | "flagged"): Promise<JobPage> {
   const params: unknown[] = contextParams(context);
   const bind = (value: unknown) => `$${params.push(value)}`;
   const contains = (value: string) => bind(`%${escapeLike(value)}%`);
@@ -164,6 +170,10 @@ export async function searchJobs(db: Queryable, context: ViewContext, filters: J
   // Saved and applied views keep showing a job even if it was dismissed; the main lists do not.
   if (only === "dismissed") where.push(`dismissed_reason IS NOT NULL`);
   if (only === undefined) where.push(`dismissed_reason IS NULL`);
+  // The rejection audit: jobs the rule filter removed, optionally for one reason, or those flagged as missed.
+  if (only === "filtered") where.push(`match_state = 'filtered' AND dismissed_reason IS NULL`);
+  if (only === "flagged") where.push(`missed_at IS NOT NULL`);
+  if (filters.reason) where.push(`${bind(filters.reason)} = ANY(reason_codes) AND match_state = 'filtered'`);
 
   const orders = {
     best: `CASE WHEN match_state = 'current' THEN score END DESC NULLS LAST, first_discovered_at DESC, id DESC`,
@@ -257,6 +267,51 @@ export async function setDismissed(db: Queryable, profileId: string, jobId: stri
   } else {
     await db.query(`DELETE FROM dismissed_jobs WHERE profile_id = $1 AND canonical_job_id = $2`, [profileId, jobId]);
   }
+}
+
+/** Idempotent in both directions, like saving. */
+export async function setMissed(db: Queryable, profileId: string, jobId: string, flagged: boolean): Promise<void> {
+  if (flagged) {
+    await db.query(`INSERT INTO missed_jobs (profile_id, canonical_job_id) VALUES ($1, $2) ON CONFLICT DO NOTHING`, [profileId, jobId]);
+  } else {
+    await db.query(`DELETE FROM missed_jobs WHERE profile_id = $1 AND canonical_job_id = $2`, [profileId, jobId]);
+  }
+}
+
+export interface RejectionSummary {
+  total: number;
+  flagged: number;
+  byReason: Array<{ reason: string; count: number }>;
+}
+
+/**
+ * Why active jobs are filtered out under the current profile and filter. A job with several
+ * reasons counts once for each, so the reason counts can add up to more than the total.
+ */
+export async function readRejections(db: Queryable, context: ViewContext): Promise<RejectionSummary> {
+  const params = contextParams(context);
+  const current = `${JOB_ROWS}`;
+  const { rows } = await db.query(
+    `SELECT reason, count(*)::int AS count
+       FROM (SELECT unnest(job.reason_codes) AS reason
+               FROM (SELECT e.reason_codes, ${MATCH_STATE} AS match_state, c.status, dj.reason AS dismissed_reason
+                       FROM ${current}) job
+              WHERE job.match_state = 'filtered' AND job.status = 'active' AND job.dismissed_reason IS NULL) reasons
+      GROUP BY reason ORDER BY count DESC, reason`,
+    params,
+  );
+  const { rows: totals } = await db.query(
+    `SELECT count(*)::int AS total, count(*) FILTER (WHERE job.missed_at IS NOT NULL)::int AS flagged
+       FROM (SELECT ${MATCH_STATE} AS match_state, c.status, dj.reason AS dismissed_reason, mj.flagged_at AS missed_at
+               FROM ${current}) job
+      WHERE job.match_state = 'filtered' AND job.status = 'active' AND job.dismissed_reason IS NULL`,
+    params,
+  );
+  return {
+    total: totals[0]?.total ?? 0,
+    flagged: totals[0]?.flagged ?? 0,
+    byReason: rows.map((row) => ({ reason: row.reason, count: row.count })),
+  };
 }
 
 export interface DismissalSummary {

@@ -1,5 +1,5 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
-import { loadContext, getJob, parseFilters, PAGE_SIZE, readStatus, readDismissals, searchJobs, setApplied, setDismissed, setSaved, type ViewContext } from "../../src/dashboard/queries";
+import { loadContext, getJob, parseFilters, PAGE_SIZE, readStatus, readDismissals, readRejections, setMissed, searchJobs, setApplied, setDismissed, setSaved, type ViewContext } from "../../src/dashboard/queries";
 import { migrate } from "../../src/db/migrate";
 import type { Pool } from "../../src/db/pool";
 import { createLogger } from "../../src/logger";
@@ -65,7 +65,7 @@ describe("dashboard queries", () => {
   }
 
   const context = async (): Promise<ViewContext> => ({ profile: await ensureProfile(pool), configHash: hashMatchConfig(config) });
-  const search = async (params: Record<string, string> = {}, only?: "saved" | "applied" | "dismissed") =>
+  const search = async (params: Record<string, string> = {}, only?: "saved" | "applied" | "dismissed" | "filtered" | "flagged") =>
     searchJobs(pool, await context(), parseFilters(params), only);
   const titles = async (params: Record<string, string> = {}) => (await search(params)).jobs.map((job) => job.title);
   const onlyJob = async () => (await search({ status: "all" })).jobs[0]!;
@@ -354,6 +354,41 @@ describe("dashboard queries", () => {
       expect(summary.byReason).toEqual([{ reason: "wrong_role", count: 2 }, { reason: "wrong_seniority", count: 1 }]);
       expect(summary.repeatCompanies).toHaveLength(1);
       expect(summary.repeatCompanies[0]?.count).toBe(3);
+    });
+  });
+
+  describe("rejection audit", () => {
+    it("tallies filter reasons for active filtered jobs, and lists them by reason", async () => {
+      await crawlListings(rawListing("office", { title: "Office Manager" }), rawListing("hr", { title: "HR Manager" }), rawListing("qa"));
+      await match();
+      const summary = await readRejections(pool, await context());
+      expect(summary.total).toBe(2);
+      expect(summary.byReason.map((row) => row.reason)).toEqual(["title_other_discipline"]);
+      expect(summary.byReason[0]?.count).toBe(2);
+
+      const filtered = (await search({ status: "all" }, "filtered")).jobs;
+      expect(filtered.map((job) => job.title).sort()).toEqual(["HR Manager", "Office Manager"]);
+      expect((await search({ status: "all", reason: "title_other_discipline" }, "filtered")).jobs).toHaveLength(2);
+      expect((await search({ status: "all", reason: "no_qa_signal" }, "filtered")).jobs).toHaveLength(0);
+    });
+
+    it("flags and unflags a wrongly filtered job idempotently, and leaves dismissed jobs out", async () => {
+      await crawlListings(rawListing("office", { title: "Office Manager" }), rawListing("hr", { title: "HR Manager" }));
+      await match();
+      const { profileId } = await ensureProfile(pool);
+      const [office, hr] = (await search({ status: "all" }, "filtered")).jobs;
+
+      await setMissed(pool, profileId, office!.id, true);
+      await setMissed(pool, profileId, office!.id, true);
+      expect((await search({ status: "all" }, "flagged")).jobs.map((job) => job.id)).toEqual([office!.id]);
+      expect((await readRejections(pool, await context())).flagged).toBe(1);
+
+      await setMissed(pool, profileId, office!.id, false);
+      await setMissed(pool, profileId, office!.id, false);
+      expect((await search({ status: "all" }, "flagged")).jobs).toEqual([]);
+
+      await setDismissed(pool, profileId, hr!.id, "other");
+      expect((await readRejections(pool, await context())).total).toBe(1);
     });
   });
 
