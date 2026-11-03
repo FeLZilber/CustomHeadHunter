@@ -72,6 +72,15 @@ Ollama listens on the Compose network only and is not published to the host. The
 
 Skip `match`. Tasks stay pending, and the dashboard labels those jobs as pending, so nothing invented is shown. For scored data, `tests/e2e/seed.ts` runs the real pipeline with a scripted model against a test database. Keep that data out of production.
 
+## Adding companies
+
+```sh
+npm run catalog:add -- "Company Name" --industry fintech --dry-run
+npm run catalog:add -- --file candidates.txt --industry technology
+```
+
+The script guesses the company's board slug on Greenhouse, Lever and Ashby, and adds it to [catalog/sources.json](catalog/sources.json) only if the board answers and lists at least one Israeli job. Use `--provider` and `--key` when you know the slug. Candidate names can come from any public directory, such as Dealroom's Israel startup list. Companies that use Comeet or other boards report `no public board found`.
+
 ## Documentation
 
 | File | Covers |
