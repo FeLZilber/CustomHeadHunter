@@ -21,7 +21,7 @@ const CatalogSchema = z.object({
 
 export const CATALOG_PATH = path.resolve(import.meta.dirname, "../../catalog/sources.json");
 
-/** The catalog file is authoritative: a source removed from it is disabled, not deleted. */
+/** The catalog file is authoritative for catalog sources: one removed from it is disabled, not deleted. Requested sources are left alone. */
 export async function seedCatalog(pool: Pool, file = CATALOG_PATH): Promise<{ sources: number; disabled: number }> {
   const { sources } = CatalogSchema.parse(JSON.parse(await readFile(file, "utf8")));
   return withTransaction(pool, async (client) => {
@@ -54,7 +54,7 @@ export async function seedCatalog(pool: Pool, file = CATALOG_PATH): Promise<{ so
     }
     const keys = sources.map((source) => `${source.provider}:${source.providerKey}`);
     const { rowCount } = await client.query(
-      `UPDATE job_sources SET enabled = false WHERE enabled AND NOT (provider || ':' || provider_key = ANY($1))`,
+      `UPDATE job_sources SET enabled = false WHERE enabled AND origin = 'catalog' AND NOT (provider || ':' || provider_key = ANY($1))`,
       [keys],
     );
     return { sources: sources.length, disabled: rowCount ?? 0 };

@@ -10,7 +10,7 @@ export const openPool = (): Pool => createPool(inject("databaseUrl"), 8);
 export async function resetDatabase(pool: Pool) {
   await pool.query(
     `TRUNCATE saved_jobs, notifications, notification_epochs, notify_runs, match_results, match_tasks, match_runs, job_evaluations, profiles, profile_revisions,
-              job_events, source_listings, source_snapshots, crawl_runs, canonical_jobs, job_sources, companies
+              job_events, source_listings, source_snapshots, crawl_runs, canonical_jobs, job_sources, companies, requested_sources
      RESTART IDENTITY CASCADE`,
   );
 }

@@ -427,3 +427,38 @@ export async function readStatus(pool: Pool, context: ViewContext, staleHours: n
       : null,
   };
 }
+
+export interface SourceRequest {
+  provider: string;
+  providerKey: string;
+  companyName: string;
+  status: "pending" | "added" | "rejected";
+  detail: string | null;
+  requestedAt: string;
+}
+
+/** Idempotent per board. A rejected request can be asked for again, because boards gain jobs. */
+export async function requestSource(db: Queryable, ref: { provider: string; providerKey: string }, companyName: string): Promise<void> {
+  await db.query(
+    `INSERT INTO requested_sources (provider, provider_key, company_name) VALUES ($1, $2, $3)
+     ON CONFLICT (provider, provider_key) DO UPDATE
+       SET status = 'pending', detail = NULL, decided_at = NULL, requested_at = now()
+     WHERE requested_sources.status = 'rejected'`,
+    [ref.provider, ref.providerKey, companyName],
+  );
+}
+
+export async function readSourceRequests(db: Queryable): Promise<SourceRequest[]> {
+  const { rows } = await db.query(
+    `SELECT provider, provider_key, company_name, status, detail, requested_at
+       FROM requested_sources ORDER BY requested_at DESC LIMIT 20`,
+  );
+  return rows.map((row) => ({
+    provider: row.provider,
+    providerKey: row.provider_key,
+    companyName: row.company_name,
+    status: row.status,
+    detail: row.detail,
+    requestedAt: new Date(row.requested_at).toISOString(),
+  }));
+}
