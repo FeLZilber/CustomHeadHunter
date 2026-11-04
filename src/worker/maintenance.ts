@@ -106,3 +106,31 @@ export function renderHealth(health: Health): string {
     `| Latest delivery | ${health.lastNotify?.status ?? "none"} |`,
   ].join("\n");
 }
+
+/** Share of the monthly AI allowance at which the owner is warned. */
+export const BUDGET_WARN_RATIO = 0.9;
+
+/**
+ * Conditions that need the owner, in plain words. Free of job and profile text
+ * because the result is sent to a chat. Empty means nothing to report.
+ */
+export function healthAlerts(health: Health, aiMinutesPerMonth: number): string[] {
+  const alerts: string[] = [];
+  if (health.discoveryStale) alerts.push(`Discovery is stale. Last successful crawl: ${when(health.lastSuccessfulCrawl)}.`);
+  if (health.lastCrawl?.status === "failed") alerts.push("The latest crawl failed.");
+  if (aiMinutesPerMonth > 0 && health.aiMinutesThisMonth >= aiMinutesPerMonth * BUDGET_WARN_RATIO) {
+    const spent = health.aiMinutesThisMonth >= aiMinutesPerMonth;
+    alerts.push(
+      `${spent ? "Monthly AI budget is spent" : "Monthly AI budget is nearly spent"}: ${health.aiMinutesThisMonth} of ${aiMinutesPerMonth} min.` +
+        (spent ? " Matching waits for next month." : ""),
+    );
+  }
+  const { ambiguous = 0, failed = 0 } = health.outbox;
+  if (ambiguous > 0) alerts.push(`${ambiguous} alert(s) have unconfirmed delivery. Check the chat, then run notify --retry-ambiguous if missing.`);
+  if (failed > 0) alerts.push(`${failed} alert(s) failed. Run notify --retry-failed once the cause is fixed.`);
+  return alerts;
+}
+
+export function renderAlerts(alerts: string[]): string {
+  return ["<b>Job hunter needs attention</b>", ...alerts.map((a) => `• ${a.replace(/&/g, "&amp;").replace(/</g, "&lt;")}`)].join("\n");
+}

@@ -91,7 +91,7 @@ const JOB_COLUMNS = `
   c.id, c.title, co.name AS company, c.status, c.first_discovered_at, c.last_seen_at,
   l.original_location, l.work_arrangement, l.technologies, l.application_url, l.published_at,
   COALESCE(l.published_at, c.first_discovered_at) AS posted_or_found_at,
-  r.score, r.recommendation, s.saved_at, ja.applied_at, dj.reason AS dismissed_reason, mj.flagged_at AS missed_at, e.reason_codes, ${MATCH_STATE} AS match_state`;
+  r.score, r.recommendation, r.evidence_total, r.evidence_literal, s.saved_at, ja.applied_at, dj.reason AS dismissed_reason, mj.flagged_at AS missed_at, e.reason_codes, ${MATCH_STATE} AS match_state`;
 
 const contextParams = ({ profile, configHash }: ViewContext) => [profile.profileId, profile.matchingHash, configHash, FILTER_VERSION];
 
@@ -112,6 +112,9 @@ export interface JobSummary {
   /** Present for current and stale results only. A filtered job's old score says nothing. */
   score: number | null;
   recommendation: string | null;
+  /** Quotes the model cited, and how many appear word for word in the posting. Null without a result. */
+  evidenceTotal: number | null;
+  evidenceLiteral: number | null;
   reasonCodes: string[];
   saved: boolean;
   /** When the owner marked the job as applied for. Independent of the posting's lifecycle. */
@@ -139,6 +142,8 @@ function toSummary(row: Record<string, any>): JobSummary {
     matchState: row.match_state,
     score: scored ? row.score : null,
     recommendation: scored ? row.recommendation : null,
+    evidenceTotal: scored ? row.evidence_total : null,
+    evidenceLiteral: scored ? row.evidence_literal : null,
     reasonCodes: row.reason_codes ?? [],
     saved: row.saved_at !== null,
     appliedAt: row.applied_at,
@@ -290,6 +295,8 @@ export interface RejectionSummary {
   total: number;
   flagged: number;
   byReason: Array<{ reason: string; count: number }>;
+  /** Filter reasons on the jobs the owner flagged as wrongly rejected: the rules most likely to need a fix. */
+  flaggedByReason: Array<{ reason: string; count: number }>;
 }
 
 /**
@@ -308,6 +315,16 @@ export async function readRejections(db: Queryable, context: ViewContext): Promi
       GROUP BY reason ORDER BY count DESC, reason`,
     params,
   );
+  const { rows: flaggedReasons } = await db.query(
+    `SELECT reason, count(*)::int AS count
+       FROM (SELECT unnest(job.reason_codes) AS reason
+               FROM (SELECT e.reason_codes, ${MATCH_STATE} AS match_state, c.status, dj.reason AS dismissed_reason, mj.flagged_at AS missed_at
+                       FROM ${current}) job
+              WHERE job.match_state = 'filtered' AND job.status = 'active' AND job.dismissed_reason IS NULL
+                AND job.missed_at IS NOT NULL) reasons
+      GROUP BY reason ORDER BY count DESC, reason`,
+    params,
+  );
   const { rows: totals } = await db.query(
     `SELECT count(*)::int AS total, count(*) FILTER (WHERE job.missed_at IS NOT NULL)::int AS flagged
        FROM (SELECT ${MATCH_STATE} AS match_state, c.status, dj.reason AS dismissed_reason, mj.flagged_at AS missed_at
@@ -319,6 +336,7 @@ export async function readRejections(db: Queryable, context: ViewContext): Promi
     total: totals[0]?.total ?? 0,
     flagged: totals[0]?.flagged ?? 0,
     byReason: rows.map((row) => ({ reason: row.reason, count: row.count })),
+    flaggedByReason: flaggedReasons.map((row) => ({ reason: row.reason, count: row.count })),
   };
 }
 

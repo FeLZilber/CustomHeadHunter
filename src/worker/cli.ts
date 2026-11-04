@@ -11,7 +11,7 @@
  *   npm run worker -- match [--trigger manual]
  *   npm run worker -- notify [--trigger manual] [--dry-run] [--rematch-digest] [--retry-ambiguous] [--retry-failed]
  *   npm run worker -- cleanup
- *   npm run worker -- health [--fail-on-stale]
+ *   npm run worker -- health [--fail-on-stale] [--alert]
  */
 import { appendFile } from "node:fs/promises";
 import { parseArgs } from "node:util";
@@ -32,7 +32,7 @@ import { buildRelevance, startEpoch } from "../notify/outbox";
 import { runNotify } from "../notify/sender";
 import { TelegramClient } from "../notify/telegram";
 import { ensureProfile } from "../profile/store";
-import { cleanup, readHealth, renderHealth } from "./maintenance";
+import { cleanup, healthAlerts, readHealth, renderAlerts, renderHealth } from "./maintenance";
 
 const ArgsSchema = z.object({
   trigger: z.string().min(1).default("manual"),
@@ -45,6 +45,7 @@ const ArgsSchema = z.object({
   "rematch-digest": z.boolean().default(false),
   "retry-ambiguous": z.boolean().default(false),
   "fail-on-stale": z.boolean().default(false),
+  alert: z.boolean().default(false),
 });
 
 async function main(): Promise<number> {
@@ -61,6 +62,7 @@ async function main(): Promise<number> {
       "rematch-digest": { type: "boolean" },
       "retry-ambiguous": { type: "boolean" },
       "fail-on-stale": { type: "boolean" },
+      alert: { type: "boolean" },
     },
   });
   const args = ArgsSchema.parse(values);
@@ -177,6 +179,15 @@ async function main(): Promise<number> {
         const report = renderHealth(health);
         console.log(report);
         if (process.env.GITHUB_STEP_SUMMARY) await appendFile(process.env.GITHUB_STEP_SUMMARY, `${report}\n`);
+        const alerts = healthAlerts(health, env.AI_MINUTES_PER_MONTH);
+        if (args.alert && alerts.length > 0) {
+          // Best effort: a failed warning must not hide the health result.
+          if (!env.TELEGRAM_BOT_TOKEN || !env.TELEGRAM_CHAT_ID) log.warn("Health alerts not sent: Telegram is not configured", { alerts: alerts.length });
+          else {
+            const outcome = await new TelegramClient(env.TELEGRAM_BOT_TOKEN, env.TELEGRAM_CHAT_ID).send(renderAlerts(alerts));
+            log.info("Health alerts sent", { alerts: alerts.length, outcome: outcome.kind });
+          }
+        }
         return args["fail-on-stale"] && health.discoveryStale ? 1 : 0;
       }
       default:

@@ -135,5 +135,5 @@ runs:
         MAINTENANCE: ${{ inputs.maintenance }}
       run: |
         args=()
-        if [[ "$MAINTENANCE" == "true" ]]; then args+=(--fail-on-stale); fi
+        if [[ "$MAINTENANCE" == "true" ]]; then args+=(--fail-on-stale --alert); fi
         "$GITHUB_ACTION_PATH/worker.sh" 60 health "${args[@]}"

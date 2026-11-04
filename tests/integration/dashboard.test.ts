@@ -398,7 +398,9 @@ describe("dashboard queries", () => {
       await setMissed(pool, profileId, office!.id, true);
       await setMissed(pool, profileId, office!.id, true);
       expect((await search({ status: "all" }, "flagged")).jobs.map((job) => job.id)).toEqual([office!.id]);
-      expect((await readRejections(pool, await context())).flagged).toBe(1);
+      const flaggedSummary = await readRejections(pool, await context());
+      expect(flaggedSummary.flagged).toBe(1);
+      expect(flaggedSummary.flaggedByReason).toEqual([{ reason: "title_other_discipline", count: 1 }]);
 
       await setMissed(pool, profileId, office!.id, false);
       await setMissed(pool, profileId, office!.id, false);
