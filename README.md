@@ -1,4 +1,4 @@
-# headHunter
+# CustomHeadHunter
 
 A private job discovery system for one person in Israel. It watches Greenhouse, Lever and Ashby boards, scores shortlisted postings against a profile with a small local model, sends Telegram alerts, and shows everything on an owner-only dashboard.
 

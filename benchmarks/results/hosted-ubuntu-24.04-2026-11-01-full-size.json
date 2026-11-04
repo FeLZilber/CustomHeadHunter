@@ -1,5 +1,5 @@
 {
- "workflow_run": "https://github.com/FeLZilber/headHunter/actions/runs/41316782301",
+ "workflow_run_id": "41316782301",
  "note": "Model outputs removed. Commit 60efd52, prompt v2, num_predict 800, 8 short synthetic postings plus two at the input limit. The benchmark timeout was raised to 420 s so slow calls could be measured instead of cut off.",
  "cache-miss": {
   "label": "hosted-ubuntu-24.04-cache-miss",
