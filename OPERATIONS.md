@@ -35,7 +35,7 @@ Before raising a time budget, check it against the job's `timeout-minutes`. `AI_
 
 ## Daily check
 
-The dashboard's status page shows everything below. `worker health` prints the same to the run summary.
+The dashboard's status page shows everything below. `worker health` prints the same to the run summary. The daily maintenance run adds `--alert`, which sends one Telegram message when discovery is stale, the latest crawl failed, 90% of the monthly AI allowance is used, or deliveries are `ambiguous` or `failed`. It sends nothing when all is well, and a failed send does not change the exit code.
 
 | Signal | Healthy | If not |
 | --- | --- | --- |

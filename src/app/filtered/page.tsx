@@ -37,6 +37,16 @@ export default async function FilteredPage({ searchParams }: { searchParams: Par
         ))}
         <Link href="/filtered?view=flagged">Flagged as missed ({summary.flagged})</Link>
       </p>
+      {summary.flaggedByReason.length ? (
+        <p className="meta">
+          <span>Rules behind the jobs you flagged:</span>
+          {summary.flaggedByReason.map(({ reason, count }) => (
+            <span key={reason}>
+              {humanize(reason)} ({count})
+            </span>
+          ))}
+        </p>
+      ) : null}
       <JobList jobs={jobs} empty={flaggedView ? "Nothing flagged yet." : "No filtered jobs for this view."} />
       <nav className="pager" aria-label="Pages">
         {filters.page > 1 ? <Link href={paged(filters.page - 1)}>Previous</Link> : null}

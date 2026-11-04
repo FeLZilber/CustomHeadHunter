@@ -10,14 +10,22 @@ const LABELS: Record<MatchState, string> = {
 };
 
 /** The label travels with the score, so an old or missing result is never read as a current verdict. */
-export function MatchBadge({ job }: { job: Pick<JobSummary, "matchState" | "score" | "recommendation"> }) {
+export function MatchBadge({ job }: { job: Pick<JobSummary, "matchState" | "score" | "recommendation" | "evidenceTotal" | "evidenceLiteral"> }) {
   const current = job.matchState === "current";
   // Colour carries the verdict only for a current result; everything else keeps its state colour.
   const tier = current ? ` badge-${job.recommendation === "strong_match" ? "strong" : "fair"}` : "";
+  const unchecked = current && job.evidenceTotal !== null && job.evidenceLiteral !== null ? job.evidenceTotal - job.evidenceLiteral : 0;
   return (
-    <span className={`badge badge-${job.matchState}${tier}`}>
-      {current && job.score !== null ? `${job.score}/100` : LABELS[job.matchState]}
-      {!current && job.score !== null ? ` · was ${job.score}` : ""}
-    </span>
+    <>
+      <span className={`badge badge-${job.matchState}${tier}`}>
+        {current && job.score !== null ? `${job.score}/100` : LABELS[job.matchState]}
+        {!current && job.score !== null ? ` · was ${job.score}` : ""}
+      </span>
+      {unchecked > 0 ? (
+        <span className="unverified" title="Some quotes the model cited were not found in the posting. Open the job to see which.">
+          {unchecked} of {job.evidenceTotal} quotes unchecked
+        </span>
+      ) : null}
+    </>
   );
 }
