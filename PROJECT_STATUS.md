@@ -4,7 +4,7 @@ Resume document. Update after every milestone and any decision a new session cou
 
 - **Plan:** `Personal_Job_Hunter_Claude_Prompt.txt` in the repo root (gitignored, operator's local brief). Sections 18 (tests) and 21 (final report) define done.
 - **Branch:** `master`, the default branch. `search-recall` merged 2026-11-02. Scheduled and dispatch workflows only operate once they reach `master`.
-- **State:** Deployed 2026-11-02. The dashboard is live at `headhunter-lovat.vercel.app` and the owner signed in. A manual dry-run discovery on `master` passed against Neon (run 41432026270). `PRODUCTION_ENABLED` is `true`, so the daily schedule is active (discovery 06:17 UTC, about 09:00 in Israel; maintenance 07:17 UTC). **Not yet verified:** a real Telegram delivery, a scheduled run, and refusal of a second GitHub account.
+- **State:** Deployed 2026-11-02. The dashboard is live at the Vercel deployment and the owner signed in. A manual dry-run discovery on `master` passed against Neon (run 41432026270). `PRODUCTION_ENABLED` is `true`, so the daily schedule is active (discovery 06:17 UTC, about 09:00 in Israel; maintenance 07:17 UTC). **Not yet verified:** a real Telegram delivery, a scheduled run, and refusal of a second GitHub account.
 - **Last updated:** 2026-11-02
 
 ## Milestones
@@ -33,7 +33,7 @@ Plan section 21. "Blocked" means it needs an operator account or action. A mocke
 | 7 | Matching-relevant changes invalidate stale results | Yes | Yes | No | Blocked |
 | 8 | Telegram delivery, outbox retry and ambiguity | Yes | Yes | **Blocked: no bot** | Blocked |
 | 9 | Scheduled and manual workflows, bounded maintenance | Yes | Yes | Shared pipeline passed in smoke. Schedules **blocked: need `master` and secrets** | Blocked |
-| 10 | Owner-only dashboard | Yes | Yes, E2E with signed test sessions Owner sign-in worked on `headhunter-lovat.vercel.app` (2026-11-02). Stranger refusal not tested live | Yes, dashboard only. Workers not active |
+| 10 | Owner-only dashboard | Yes | Yes, E2E with signed test sessions Owner sign-in worked on the Vercel deployment (2026-11-02). Stranger refusal not tested live | Yes, dashboard only. Workers not active |
 | 11 | Automated tests pass, setup reproducible | Yes | 407 + 33 pass | CI green. Compose built on a runner, and run locally with Ollama from a fresh clone | n/a |
 | 12 | No always-on PC, self-hosted runner, VPS or paid AI API | Yes | n/a | Holds by construction | Blocked |
 
@@ -55,8 +55,8 @@ Everything left needs the operator's accounts. Tick these off here as they happe
 
 - [x] Create a Neon project: `headhunter` (`proud-glade-09445629`), org `org-raspy-cake-67592538`, `aws-eu-central-1`, Postgres 18, created 2026-11-02. The org is on the Free plan. Fetch the direct and pooled connection strings from the Neon console or `neon connection-string`, and keep them out of the repo. Schema not migrated yet.
 - [x] Create a Telegram bot with @BotFather and find the chat id. Bot and chat exist (private chat, id `9228977584`). A real message has not been sent by the app yet.
-- [x] Create a GitHub OAuth app and look up the owner's numeric GitHub id (`FeLZilber`, 121975106). Done 2026-11-02.
-- [x] Create a Vercel Hobby project (`headhunter-lovat.vercel.app`, production branch `master`) and set the dashboard variables. Done 2026-11-02. `vercel.json` pins the framework (PR #2, merged 2026-11-02).
+- [x] Create a GitHub OAuth app and look up the owner's numeric GitHub id (from the GitHub profile API). Done 2026-11-02.
+- [x] Create a Vercel Hobby project (the Vercel deployment, production branch `master`) and set the dashboard variables. Done 2026-11-02. `vercel.json` pins the framework (PR #2, merged 2026-11-02).
 - [ ] Add the repository secrets. `DATABASE_URL` (pooled) and `TELEGRAM_CHAT_ID` are set, 2026-11-02. `TELEGRAM_BOT_TOKEN` was set by the owner the same day. All three exist, and none has been used by a real run yet.
 - [x] Run `migrate` once against Neon through the direct connection string. Done 2026-11-02: migrations 0001 to 0005 applied, 21 sources seeded. The pooler is still untested.
 - [x] Merge `search-recall` into `master`. Done 2026-11-02.
@@ -129,16 +129,15 @@ Everything left needs the operator's accounts. Tick these off here as they happe
 
 Everything except the items below is in GitHub (code, docs, history), Neon (data), and GitHub or Vercel (secrets, variables).
 
-1. Clone `FeLZilber/headHunter`, check out `mvp`, run `nvm use` (Node 24) and `npm ci`.
+1. Clone the repository, check out `mvp`, run `nvm use` (Node 24) and `npm ci`.
 2. Copy back `Personal_Job_Hunter_Claude_Prompt.txt` (gitignored, the original plan) from your own backup into the repo root.
-3. Log in again: `gh auth login` (as `FeLZilber`), `neon login`, `npx vercel login` then `npx vercel link --project headhunter`.
+3. Log in again: `gh auth login` , `neon login`, `npx vercel login` then `npx vercel link`.
 4. Set `git config user.email` to the GitHub no-reply address. Do not use the work address.
 5. Optional, to rebuild the Neon skill and MCP: `neon skills -s neon --agent claude-code -y` and `neon mcp --oauth --project --agent claude-code -y`. They are not committed.
 6. Not recoverable from GitHub or Vercel, because secrets cannot be read back: the Telegram bot token (BotFather `/mybots` shows it again) and the GitHub OAuth client secret (generate a new one and update `GITHUB_SECRET` in Vercel).
 
 ## Things not to forget
 
-- Two `gh` accounts are logged in; `FeLZilber` is active.
 - `NEXTAUTH_URL` must match the deployment URL.
 - A hosted benchmark costs about 36 runner minutes and leaves a `-spike-` cache to delete.
 - Neon, the Telegram bot, the OAuth app, the Vercel project and the three Actions secrets now exist. No scheduled or manual worker run has used them yet, `PRODUCTION_ENABLED` is not set, and no real Telegram message has been sent. Do not claim otherwise.

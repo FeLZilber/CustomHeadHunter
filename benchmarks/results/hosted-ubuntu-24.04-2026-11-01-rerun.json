@@ -1,5 +1,5 @@
 {
- "workflow_run": "https://github.com/FeLZilber/headHunter/actions/runs/41311909404",
+ "workflow_run_id": "41311909404",
  "note": "Model outputs removed. Commit e9dec16, prompt v2, num_predict 800, 8 short synthetic postings.",
  "cache-miss": {
   "label": "hosted-ubuntu-24.04-cache-miss",

@@ -1,5 +1,5 @@
 {
- "workflow_run": "https://github.com/FeLZilber/headHunter/actions/runs/41307706600",
+ "workflow_run_id": "41307706600",
  "note": "Model outputs removed. Measured with the v1 prompt and num_predict 500, before the limits were changed.",
  "runner": "ubuntu-24.04 image 20261026.354.1, 2 vCPU AMD EPYC 7763, 7.9 GB RAM, CPU inference",
  "cache-miss": {
