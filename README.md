@@ -89,6 +89,8 @@ npm run catalog:discover -- --file catalog/candidates.txt --extra-slugs    # als
 npm run catalog:discover -- --file catalog/candidates.txt --write          # add verified boards
 ```
 
+Workable is left out of bulk discovery unless named with `--providers workable`: it answers 429 to bulk lookups and then asks for waits over a minute.
+
 [catalog/candidates.txt](catalog/candidates.txt) holds 781 names with where each came from. On 2026-11-08 it yielded 30 new sources; most Israeli employers in it use Comeet or a board this project does not read.
 
 ## Documentation
