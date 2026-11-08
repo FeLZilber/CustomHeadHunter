@@ -42,7 +42,12 @@ describe("probeBoard", () => {
         ],
       }),
     );
-    expect(await probeBoard(client, "greenhouse", "acme")).toMatchObject({ status: "found", total: 3, israeli: 2, qaTitles: 1 });
+    expect(await probeBoard(client, "greenhouse", "acme")).toMatchObject({ status: "found", total: 3, israeli: 2, israeliNamed: 2, qaTitles: 1 });
+  });
+
+  it("counts a remote job open to Israel as in scope but not as a named Israeli location", async () => {
+    const { client } = http(() => json({ jobs: [job(1, "Account Executive", "Remote"), job(2, "Engineer", "Berlin, Germany")] }));
+    expect(await probeBoard(client, "greenhouse", "acme")).toMatchObject({ israeli: 1, israeliNamed: 0 });
   });
 
   it("reports an unknown board as missing, not as an error", async () => {
@@ -73,5 +78,6 @@ describe("verificationUrl", () => {
     expect(verificationUrl("greenhouse", "acme")).toBe("https://boards-api.greenhouse.io/v1/boards/acme/jobs");
     expect(verificationUrl("lever", "acme")).toBe("https://api.lever.co/v0/postings/acme");
     expect(verificationUrl("ashby", "acme")).toBe("https://api.ashbyhq.com/posting-api/job-board/acme");
+    expect(verificationUrl("workable", "acme")).toBe("https://apply.workable.com/api/v1/widget/accounts/acme?details=true");
   });
 });

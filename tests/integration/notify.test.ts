@@ -740,5 +740,23 @@ describe("notifications", () => {
       expect(stale).toMatchObject({ discoveryStale: true, staleSources: 1 });
       expect(renderHealth(stale)).toContain("STALE");
     });
+
+    it("does not count a failed or unfinished crawl as discovery having run", async () => {
+      await establishBaseline();
+      await pool.query(`UPDATE crawl_runs SET finished_at = now() - interval '40 hours'`);
+      await pool.query(
+        `INSERT INTO crawl_runs (trigger, mode, status, started_at, finished_at)
+         VALUES ('schedule', 'incremental', 'failed', now() - interval '1 hour', now()),
+                ('schedule', 'incremental', 'running', now() - interval '5 minutes', NULL)`,
+      );
+      const afterFailure = await readHealth(pool, hashMatchConfig(config), 30);
+      expect(afterFailure).toMatchObject({ discoveryStale: true, lastCrawl: { status: "running" } });
+
+      await pool.query(
+        `INSERT INTO crawl_runs (trigger, mode, status, started_at, finished_at)
+         VALUES ('schedule', 'incremental', 'partial', now() - interval '2 minutes', now())`,
+      );
+      expect((await readHealth(pool, hashMatchConfig(config), 30)).discoveryStale).toBe(false);
+    });
   });
 });

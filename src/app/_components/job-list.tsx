@@ -42,7 +42,10 @@ export function JobList({ jobs, empty, children }: { jobs: JobSummary[]; empty: 
               {job.status === "expired" ? <span className="badge badge-expired">Expired</span> : null}
             </p>
             {job.matchState === "filtered" && job.reasonCodes.length ? (
-              <p className="meta">Filtered: {job.reasonCodes.map(humanize).join(", ")}</p>
+              <p className="meta">
+                {job.tier === "adjacent" ? <span className="badge badge-adjacent">Adjacent</span> : null}
+                <span>Filtered: {job.reasonCodes.map(humanize).join(", ")}</span>
+              </p>
             ) : null}
             {job.technologies.length ? <p className="tags">{job.technologies.slice(0, 8).join(" · ")}</p> : null}
           </div>

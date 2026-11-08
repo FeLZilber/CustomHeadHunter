@@ -2,10 +2,20 @@ name: maintenance
 
 # Reconciles freshness through the cheap ETag path, retries a smaller AI batch,
 # removes expired history and fails visibly when discovery has gone stale.
+#
+# Two offset crons, because GitHub can drop a scheduled run. The second pass is
+# cheap and the concurrency group keeps it from overlapping discovery.
+# tests/unit/workflows.test.ts requires both triggers.
 on:
   schedule:
     - cron: "17 7 * * *"
+    - cron: "43 13 * * *"
   workflow_dispatch:
+    inputs:
+      drill:
+        description: Staleness drill. Runs the stale check against an empty throwaway database, never production, and must fail.
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -16,11 +26,12 @@ concurrency:
 
 jobs:
   maintain:
-    if: ${{ vars.PRODUCTION_ENABLED == 'true' }}
+    if: ${{ vars.PRODUCTION_ENABLED == 'true' && !inputs.drill }}
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     env:
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      CRAWLER_CONTACT: ${{ vars.CRAWLER_CONTACT || format('{0}/{1}', github.server_url, github.repository) }}
       TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
       TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
       CRAWL_TIME_BUDGET_SECONDS: ${{ vars.CRAWL_TIME_BUDGET_SECONDS }}
@@ -41,3 +52,36 @@ jobs:
           ai-jobs: "2"
           ai-seconds: "600"
           maintenance: "true"
+
+  # Proves the stale check turns a run red, without production data or secrets:
+  # a fresh database has never crawled, so `health --fail-on-stale` must exit 1.
+  staleness-drill:
+    if: ${{ inputs.drill }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:18-alpine@sha256:10a5c69a83035ab5239f5620d708520e8b28f5aa1f2b20143e6024532edadfb5
+        env:
+          POSTGRES_PASSWORD: drill
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgres://postgres:drill@localhost:5432/postgres
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: ./.github/actions/pipeline/worker.sh 120 migrate
+      - name: Stale check (expected to fail)
+        run: ./.github/actions/pipeline/worker.sh 60 health --fail-on-stale

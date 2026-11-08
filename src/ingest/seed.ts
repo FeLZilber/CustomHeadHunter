@@ -8,7 +8,7 @@ const CatalogSchema = z.object({
     z.object({
       company: z.string().min(1),
       industry: z.string().min(1),
-      provider: z.enum(["greenhouse", "lever", "ashby"]),
+      provider: z.enum(["greenhouse", "lever", "ashby", "workable", "jsonld"]),
       providerKey: z.string().min(1),
       careerUrl: z.string().url(),
       countryCoverage: z.array(z.string().min(2)).min(1),

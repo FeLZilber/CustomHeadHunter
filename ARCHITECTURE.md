@@ -5,7 +5,7 @@ A single TypeScript package. The CLI worker runs on GitHub Actions and the Next.
 ## Data flow
 
 ```
-Greenhouse, Lever, Ashby
+Greenhouse, Lever, Ashby, Workable
       │  crawl: conditional requests, SSRF-safe client
       ▼
 source_snapshots ─► source_listings ─► canonical_jobs ─► job_events
@@ -31,7 +31,7 @@ Each stage commits before the next starts, so jobs are never lost to a later fai
 
 | Directory | Holds |
 | --- | --- |
-| `src/connectors` | Greenhouse, Lever and Ashby clients |
+| `src/connectors` | Greenhouse, Lever, Ashby and Workable clients, plus an opt-in generic `jsonld` reader |
 | `src/http` | Crawler HTTP client with DNS-aware SSRF protection |
 | `src/normalize` | Location, technology, seniority and text normalization |
 | `src/ingest` | Crawl, identity, lifecycle and events |
@@ -41,7 +41,7 @@ Each stage commits before the next starts, so jobs are never lost to a later fai
 | `src/notify` | Outbox, message rendering and Telegram client |
 | `src/worker` | CLI and maintenance |
 | `src/dashboard`, `src/app` | Server-side queries and auth, and Next.js pages |
-| `catalog/sources.json` | Verified sources. 37 entries: 30 Greenhouse, 3 Lever, 4 Ashby. Grown with `npm run catalog:add` |
+| `catalog/sources.json` | Verified sources. 67 entries: 47 Greenhouse, 4 Lever, 16 Ashby. Grown with `npm run catalog:add` and `npm run catalog:discover`; `jsonld` entries (key is an https URL) are added by hand |
 | `ollama/model-lock.json` | Pinned image, model and digest |
 
 ## Identity and lifecycle
@@ -64,6 +64,8 @@ A job moves between `active` and `expired`:
 - A filter version is left out of the key on purpose: a filter release re-evaluates and reuses existing answers.
 - A job can pass on its description alone when the title does not rule it out. Other engineering disciplines (DevOps, backend, data and similar) are rejected on the title, because they mention test tools as part of their own stack. A plain "Software Engineer" is not, because it can hide an SDET role.
 
+**Two tiers: strict and adjacent.** The filter's own verdict is the strict tier, and it alone is queued for the model and alerted. The adjacent tier is roles near the target (DevOps, SRE, support and solutions engineering, release and build engineering) that the filter rejects only for being a different role. It is shown on the Filtered out page and nowhere else: never queued, never scored, never alerted. `src/filter/tiers.ts` computes the tier at display time from the stored decision. A job is adjacent when every rejection reason is role-only (`no_qa_signal`, `title_other_discipline`, `title_other_engineering`, `industrial_automation`), so a hard rule such as location, seniority or an excluded term still excludes it, and its title contains one of the owner's `adjacentTitles` as a whole word or phrase. The terms live in preferences, not the matching profile, because the matching hash is part of every task's input key: changing the terms re-queues nothing and starts no notification epoch. The tier is not stored, so editing the terms takes effect immediately and `applyFilter`, `FILTER_VERSION` and the queue are untouched, which keeps the alert set unchanged by construction. The integration test runs the pipeline with no terms and with the defaults and compares evaluations, tasks and notifications.
+
 **The model judges language and the code scores the facts.** The plan's contract has the model return `score` and `recommendation`. Here the model returns only a role category, the requirements it found, evidence quotes and an explanation. Code computes every point under `rubric-v2` (`src/match/facts.ts`): role 35 from the model's category, then skills 25, experience 15, seniority 10, location 10 and industry 5 from the structured facts the pipeline already extracted. Missing facts score neutral, not zero. A small CPU model counts and compares unreliably (the same input scored 85 on one runner and 78 on another), and a posting cannot talk code into a higher score. It also shortens the model's output. This is a deliberate deviation.
 
 **The alert threshold is a profile preference.** The plan names a `MIN_MATCH_SCORE` environment variable. It is deliberately not implemented, because the owner edits the threshold on the dashboard (default 75), and a change there starts a new epoch like any other relevance change. A second setting in the environment could only disagree with it.
@@ -81,11 +83,17 @@ The outbox is derived from committed match results and identified by a unique `e
 - **Relevance changes start an epoch.** Events from before it get no alert, which stops a profile edit from flooding the chat. Those jobs appear on the dashboard, and `--rematch-digest` sends one capped digest per epoch.
 - **Ambiguous delivery is held, not resent.** `send_started_at` commits before the request. Telegram has no idempotency key, so a lost acknowledgement stays `ambiguous` until the operator checks the chat. A missed alert is preferred to an unbounded duplicate.
 
+## JSON-LD connector
+
+`provider: "jsonld"` reads `schema.org/JobPosting` JSON-LD from a company's own careers page or job sitemap. It is opt-in: a catalog entry sets `providerKey` to the https URL, and `catalog:add` never guesses one. A URL ending in `.xml` is a sitemap: the connector takes same-host https `<loc>` entries (at most 150, beyond that the crawl is `partial`) and fetches each page, committing page by page. Any other URL is read as a single page. Everything goes through `HttpClient`, so the SSRF guard, pacing and (once merged) robots.txt apply.
+
+A page with zero JobPostings is a `failed` crawl, never a `complete` empty one, because a redesign that drops the markup must not expire every job. A malformed block, an unusable posting or a failed detail page makes the crawl `partial`. No ETag is stored and `not_modified` is never returned: these pages change on every request, so a 304 would not prove the board is unchanged, and an unconditional 304 is treated as a failure. Postings with a past `validThrough` are skipped as closed. A posting with no `identifier` or URL gets the page URL plus its title as id, which is weaker: a retitled posting looks like a new job.
+
 ## Dashboard
 
 Every page starts with `await requireOwner()` and so does every server action. A static test fails if one does not. Access requires the numeric GitHub id in `OWNER_GITHUB_ID`, which unlike a username cannot be reassigned. Signing in with any other account is refused at the callback and again on each request.
 
-Source text renders as plain text, so no posting HTML reaches the browser. The dashboard reads and writes through server-only modules, and the CSP blocks third-party scripts, images and framing. Saved jobs, applications and dismissals are separate tables (`saved_jobs`, `job_applications`, `dismissed_jobs`) from job lifecycle status, so an expired or reopened posting never changes what the owner marked. Applying is a single mark with a date, set from the job page and undone the same way. It does not stop alerts for that job. "Not relevant" takes a reason (wrong role, seniority, location or company), hides the job from the main lists, and lists it on the Dismissed page with a tally. Dismissing does not yet change scoring or alerts. The Filtered out page is a rejection audit: it counts the filter's reasons for active jobs, lists the rejected jobs, and lets the owner flag one as "should have matched" (`missed_jobs`). Flags do not change scoring; they are evidence for filter fixes, and the page tallies the filter reasons behind the flagged jobs to show which rule to fix. Job lists mark a current score whose cited quotes were not all found in the posting. Interview stages and notes are roadmap work and are not built.
+Source text renders as plain text, so no posting HTML reaches the browser. The dashboard reads and writes through server-only modules, and the CSP blocks third-party scripts, images and framing. Saved jobs, applications and dismissals are separate tables (`saved_jobs`, `job_applications`, `dismissed_jobs`) from job lifecycle status, so an expired or reopened posting never changes what the owner marked. Applying is a single mark with a date, set from the job page and undone the same way. It does not stop alerts for that job. "Not relevant" takes a reason (wrong role, seniority, location or company), hides the job from the main lists, and lists it on the Dismissed page with a tally. Dismissing does not yet change scoring or alerts. The Filtered out page is a rejection audit: it counts the filter's reasons for active jobs, lists the rejected jobs, and lets the owner flag one as "should have matched" (`missed_jobs`). The page also marks adjacent roles (see Matching), counts them, and can list only those (`?tier=adjacent`); the terms are edited on the Profile page. Flags do not change scoring; they are evidence for filter fixes, and the page tallies the filter reasons behind the flagged jobs to show which rule to fix. Job lists mark a current score whose cited quotes were not all found in the posting. Interview stages and notes are roadmap work and are not built.
 
 The job list can filter and sort by posting date, using the discovery date when a provider gives none. The default shows every open job, so an old posting that is still open is never hidden silently. `/search` builds links for the owner to open by hand, one for each site the worker does not crawl. Nothing there is fetched by the worker, and the jobs it finds are not tracked.
 
@@ -108,7 +116,7 @@ Workflows share the `job-hunter-worker` concurrency group, and migrate, evaluate
 
 ## Trade-offs
 
-- **Recall depends on the catalog.** The owner can add a company from `/search` by pasting a Greenhouse, Lever or Ashby link; the `adopt` step probes it and keeps it only if it lists Israeli jobs. These boards list few Israeli QA jobs. Comeet is left out on purpose, see `PROJECT_STATUS.md`. Other ATS connectors are roadmap work.
+- **Recall depends on the catalog.** The owner can add a company from `/search` by pasting a Greenhouse, Lever, Ashby or Workable link; the `adopt` step probes it and keeps it only if it lists Israeli jobs. These boards list few Israeli QA jobs. Comeet is left out on purpose, see `PROJECT_STATUS.md`. Other ATS connectors are roadmap work.
 - **Daily discovery is not real time.** GitHub can delay or drop scheduled runs, so a job can wait a day or more before it is seen.
 - **Scores vary across runners.** The same seed gave `mixed-sdet` 63 on one runner and 78 and 85 on others. Treat a score as a band, not a measurement.
 - **Single owner, single profile.** Multi-user support is out of scope.

@@ -20,16 +20,19 @@ export default async function FilteredPage({ searchParams }: { searchParams: Par
     readRejections(pool, context),
   ]);
   const base = `?page=`;
-  const paged = (page: number) => `${base}${page}${filters.reason ? `&reason=${filters.reason}` : ""}${flaggedView ? "&view=flagged" : ""}`;
+  const paged = (page: number) =>
+    `${base}${page}${filters.reason ? `&reason=${filters.reason}` : ""}${filters.tier ? `&tier=${filters.tier}` : ""}${flaggedView ? "&view=flagged" : ""}`;
   return (
     <>
       <h1>Filtered out</h1>
       <p className="meta">
         <span>{summary.total} active jobs were removed by the filter before any model ran.</span>
+        <span>{summary.adjacent} of them are adjacent roles: shown here, never scored or alerted.</span>
         <span>Open one that looks wrong and press &ldquo;Should have matched&rdquo;.</span>
       </p>
       <p className="meta">
         <Link href="/filtered">All ({summary.total})</Link>
+        <Link href="/filtered?tier=adjacent">Adjacent ({summary.adjacent})</Link>
         {summary.byReason.map(({ reason, count }) => (
           <Link key={reason} href={`/filtered?reason=${reason}`}>
             {humanize(reason)} ({count})

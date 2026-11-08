@@ -29,9 +29,25 @@ export const MatchingProfileSchema = z.object({
 
 export type MatchingProfile = z.infer<typeof MatchingProfileSchema>;
 
-/** Delivery choices. Changing these must never cost an inference. */
+/** Title terms for roles near the target. Such jobs are shown on the dashboard, never queued for the model or alerted. */
+export const DEFAULT_ADJACENT_TITLES = [
+  "DevOps",
+  "Site Reliability",
+  "SRE",
+  "Support Engineer",
+  "Technical Support",
+  "Solutions Engineer",
+  "Implementation Engineer",
+  "Integration Engineer",
+  "Release Engineer",
+  "Build Engineer",
+  "Production Engineer",
+];
+
+/** Delivery and display choices. Changing these must never cost an inference. */
 export const PreferencesSchema = z.object({
   notificationThreshold: z.number().int().min(0).max(100).default(75),
+  adjacentTitles: z.array(z.string().trim().min(1)).default(() => [...DEFAULT_ADJACENT_TITLES]),
 });
 
 export type Preferences = z.infer<typeof PreferencesSchema>;

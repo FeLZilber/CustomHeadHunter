@@ -484,6 +484,396 @@
       "enabled": true,
       "verifiedAt": "2026-11-03T16:39:52Z",
       "verificationSourceUrl": "https://boards-api.greenhouse.io/v1/boards/scaleops/jobs"
+    },
+    {
+      "company": "Glow",
+      "industry": "technology",
+      "provider": "ashby",
+      "providerKey": "glow",
+      "careerUrl": "https://jobs.ashbyhq.com/glow",
+      "countryCoverage": [
+        "IL"
+      ],
+      "enabled": true,
+      "verifiedAt": "2026-11-08T12:36:55Z",
+      "verificationSourceUrl": "https://api.ashbyhq.com/posting-api/job-board/glow"
+    },
+    {
+      "company": "Rubrik",
+      "industry": "technology",
+      "provider": "greenhouse",
+      "providerKey": "rubrik",
+      "careerUrl": "https://boards.greenhouse.io/rubrik",
+      "countryCoverage": [
+        "IL"
+      ],
+      "enabled": true,
+      "verifiedAt": "2026-11-08T12:36:56Z",
+      "verificationSourceUrl": "https://boards-api.greenhouse.io/v1/boards/rubrik/jobs"
+    },
+    {
+      "company": "Capitolis",
+      "industry": "technology",
+      "provider": "greenhouse",
+      "providerKey": "capitolis",
+      "careerUrl": "https://boards.greenhouse.io/capitolis",
+      "countryCoverage": [
+        "IL"
+      ],
+      "enabled": true,
+      "verifiedAt": "2026-11-08T12:36:56Z",
+      "verificationSourceUrl": "https://boards-api.greenhouse.io/v1/boards/capitolis/jobs"
+    },
+    {
+      "company": "Sweet Security",
+      "industry": "technology",
+      "provider": "greenhouse",
+      "providerKey": "sweetsecurity",
+      "careerUrl": "https://boards.greenhouse.io/sweetsecurity",
+      "countryCoverage": [
+        "IL"
+      ],
+      "enabled": true,
+      "verifiedAt": "2026-11-08T12:36:56Z",
+      "verificationSourceUrl": "https://boards-api.greenhouse.io/v1/boards/sweetsecurity/jobs"
+    },
+    {
+      "company": "Semperis",
+      "industry": "technology",
+      "provider": "ashby",
+      "providerKey": "semperis",
+      "careerUrl": "https://jobs.ashbyhq.com/semperis",
+      "countryCoverage": [
+        "IL"
+      ],
+      "enabled": true,
+      "verifiedAt": "2026-11-08T12:36:57Z",
+      "verificationSourceUrl": "https://api.ashbyhq.com/posting-api/job-board/semperis"
+    },
+    {
+      "company": "Apiiro",
+      "industry": "technology",
+      "provider": "greenhouse",
+      "providerKey": "apiiro",
+      "careerUrl": "https://boards.greenhouse.io/apiiro",
+      "countryCoverage": [
+        "IL"
+      ],
+      "enabled": true,
+      "verifiedAt": "2026-11-08T12:36:57Z",
+      "verificationSourceUrl": "https://boards-api.greenhouse.io/v1/boards/apiiro/jobs"
+    },
+    {
+      "company": "Descope",
+      "industry": "technology",
+      "provider": "greenhouse",
+      "providerKey": "descope",
+      "careerUrl": "https://boards.greenhouse.io/descope",
+      "countryCoverage": [
+        "IL"
+      ],
+      "enabled": true,
+      "verifiedAt": "2026-11-08T12:36:57Z",
+      "verificationSourceUrl": "https://boards-api.greenhouse.io/v1/boards/descope/jobs"
+    },
+    {
+      "company": "Token Security",
+      "industry": "technology",
+      "provider": "greenhouse",
+      "providerKey": "tokensecurity",
+      "careerUrl": "https://boards.greenhouse.io/tokensecurity",
+      "countryCoverage": [
+        "IL"
+      ],
+      "enabled": true,
+      "verifiedAt": "2026-11-08T12:36:57Z",
+      "verificationSourceUrl": "https://boards-api.greenhouse.io/v1/boards/tokensecurity/jobs"
+    },
+    {
+      "company": "SafeBreach",
+      "industry": "technology",
+      "provider": "greenhouse",
+      "providerKey": "safebreach",
+      "careerUrl": "https://boards.greenhouse.io/safebreach",
+      "countryCoverage": [
+        "IL"
+      ],
+      "enabled": true,
+      "verifiedAt": "2026-11-08T12:36:58Z",
+      "verificationSourceUrl": "https://boards-api.greenhouse.io/v1/boards/safebreach/jobs"
+    },
+    {
+      "company": "MyHeritage",
+      "industry": "technology",
+      "provider": "greenhouse",
+      "providerKey": "myheritage",
+      "careerUrl": "https://boards.greenhouse.io/myheritage",
+      "countryCoverage": [
+        "IL"
+      ],
+      "enabled": true,
+      "verifiedAt": "2026-11-08T12:36:58Z",
+      "verificationSourceUrl": "https://boards-api.greenhouse.io/v1/boards/myheritage/jobs"
+    },
+    {
+      "company": "Redis",
+      "industry": "technology",
+      "provider": "ashby",
+      "providerKey": "redis",
+      "careerUrl": "https://jobs.ashbyhq.com/redis",
+      "countryCoverage": [
+        "IL"
+      ],
+      "enabled": true,
+      "verifiedAt": "2026-11-08T12:36:58Z",
+      "verificationSourceUrl": "https://api.ashbyhq.com/posting-api/job-board/redis"
+    },
+    {
+      "company": "Tomorrow.io",
+      "industry": "technology",
+      "provider": "greenhouse",
+      "providerKey": "tomorrow",
+      "careerUrl": "https://boards.greenhouse.io/tomorrow",
+      "countryCoverage": [
+        "IL"
+      ],
+      "enabled": true,
+      "verifiedAt": "2026-11-08T12:36:58Z",
+      "verificationSourceUrl": "https://boards-api.greenhouse.io/v1/boards/tomorrow/jobs"
+    },
+    {
+      "company": "DataRails",
+      "industry": "technology",
+      "provider": "greenhouse",
+      "providerKey": "datarails",
+      "careerUrl": "https://boards.greenhouse.io/datarails",
+      "countryCoverage": [
+        "IL"
+      ],
+      "enabled": true,
+      "verifiedAt": "2026-11-08T12:36:58Z",
+      "verificationSourceUrl": "https://boards-api.greenhouse.io/v1/boards/datarails/jobs"
+    },
+    {
+      "company": "Aquant",
+      "industry": "technology",
+      "provider": "ashby",
+      "providerKey": "aquant",
+      "careerUrl": "https://jobs.ashbyhq.com/aquant",
+      "countryCoverage": [
+        "IL"
+      ],
+      "enabled": true,
+      "verifiedAt": "2026-11-08T12:36:59Z",
+      "verificationSourceUrl": "https://api.ashbyhq.com/posting-api/job-board/aquant"
+    },
+    {
+      "company": "Tonkean",
+      "industry": "technology",
+      "provider": "lever",
+      "providerKey": "tonkean",
+      "careerUrl": "https://jobs.lever.co/tonkean",
+      "countryCoverage": [
+        "IL"
+      ],
+      "enabled": true,
+      "verifiedAt": "2026-11-08T12:37:00Z",
+      "verificationSourceUrl": "https://api.lever.co/v0/postings/tonkean"
+    },
+    {
+      "company": "Wonderful",
+      "industry": "technology",
+      "provider": "ashby",
+      "providerKey": "wonderful",
+      "careerUrl": "https://jobs.ashbyhq.com/wonderful",
+      "countryCoverage": [
+        "IL"
+      ],
+      "enabled": true,
+      "verifiedAt": "2026-11-08T12:37:01Z",
+      "verificationSourceUrl": "https://api.ashbyhq.com/posting-api/job-board/wonderful"
+    },
+    {
+      "company": "Beach Bum",
+      "industry": "technology",
+      "provider": "ashby",
+      "providerKey": "beach-bum",
+      "careerUrl": "https://jobs.ashbyhq.com/beach-bum",
+      "countryCoverage": [
+        "IL"
+      ],
+      "enabled": true,
+      "verifiedAt": "2026-11-08T12:37:01Z",
+      "verificationSourceUrl": "https://api.ashbyhq.com/posting-api/job-board/beach-bum"
+    },
+    {
+      "company": "Lightrun",
+      "industry": "technology",
+      "provider": "greenhouse",
+      "providerKey": "lightrun",
+      "careerUrl": "https://boards.greenhouse.io/lightrun",
+      "countryCoverage": [
+        "IL"
+      ],
+      "enabled": true,
+      "verifiedAt": "2026-11-08T12:37:01Z",
+      "verificationSourceUrl": "https://boards-api.greenhouse.io/v1/boards/lightrun/jobs"
+    },
+    {
+      "company": "Snowflake",
+      "industry": "technology",
+      "provider": "ashby",
+      "providerKey": "snowflake",
+      "careerUrl": "https://jobs.ashbyhq.com/snowflake",
+      "countryCoverage": [
+        "IL"
+      ],
+      "enabled": true,
+      "verifiedAt": "2026-11-08T12:37:01Z",
+      "verificationSourceUrl": "https://api.ashbyhq.com/posting-api/job-board/snowflake"
+    },
+    {
+      "company": "Electreon",
+      "industry": "technology",
+      "provider": "greenhouse",
+      "providerKey": "electreon",
+      "careerUrl": "https://boards.greenhouse.io/electreon",
+      "countryCoverage": [
+        "IL"
+      ],
+      "enabled": true,
+      "verifiedAt": "2026-11-08T12:37:01Z",
+      "verificationSourceUrl": "https://boards-api.greenhouse.io/v1/boards/electreon/jobs"
+    },
+    {
+      "company": "Surf AI",
+      "industry": "technology",
+      "provider": "greenhouse",
+      "providerKey": "surfai",
+      "careerUrl": "https://boards.greenhouse.io/surfai",
+      "countryCoverage": [
+        "IL"
+      ],
+      "enabled": true,
+      "verifiedAt": "2026-11-08T12:37:02Z",
+      "verificationSourceUrl": "https://boards-api.greenhouse.io/v1/boards/surfai/jobs"
+    },
+    {
+      "company": "Loora",
+      "industry": "technology",
+      "provider": "ashby",
+      "providerKey": "loora",
+      "careerUrl": "https://jobs.ashbyhq.com/loora",
+      "countryCoverage": [
+        "IL"
+      ],
+      "enabled": true,
+      "verifiedAt": "2026-11-08T12:37:02Z",
+      "verificationSourceUrl": "https://api.ashbyhq.com/posting-api/job-board/loora"
+    },
+    {
+      "company": "QuantHealth",
+      "industry": "technology",
+      "provider": "greenhouse",
+      "providerKey": "quanthealth",
+      "careerUrl": "https://boards.greenhouse.io/quanthealth",
+      "countryCoverage": [
+        "IL"
+      ],
+      "enabled": true,
+      "verifiedAt": "2026-11-08T12:37:02Z",
+      "verificationSourceUrl": "https://boards-api.greenhouse.io/v1/boards/quanthealth/jobs"
+    },
+    {
+      "company": "Connecteam",
+      "industry": "technology",
+      "provider": "greenhouse",
+      "providerKey": "connecteam",
+      "careerUrl": "https://boards.greenhouse.io/connecteam",
+      "countryCoverage": [
+        "IL"
+      ],
+      "enabled": true,
+      "verifiedAt": "2026-11-08T12:37:02Z",
+      "verificationSourceUrl": "https://boards-api.greenhouse.io/v1/boards/connecteam/jobs"
+    },
+    {
+      "company": "Irregular",
+      "industry": "technology",
+      "provider": "ashby",
+      "providerKey": "irregular",
+      "careerUrl": "https://jobs.ashbyhq.com/irregular",
+      "countryCoverage": [
+        "IL"
+      ],
+      "enabled": true,
+      "verifiedAt": "2026-11-08T12:37:02Z",
+      "verificationSourceUrl": "https://api.ashbyhq.com/posting-api/job-board/irregular"
+    },
+    {
+      "company": "PhaseV",
+      "industry": "technology",
+      "provider": "greenhouse",
+      "providerKey": "phasev",
+      "careerUrl": "https://boards.greenhouse.io/phasev",
+      "countryCoverage": [
+        "IL"
+      ],
+      "enabled": true,
+      "verifiedAt": "2026-11-08T12:37:03Z",
+      "verificationSourceUrl": "https://boards-api.greenhouse.io/v1/boards/phasev/jobs"
+    },
+    {
+      "company": "Guidde",
+      "industry": "technology",
+      "provider": "greenhouse",
+      "providerKey": "guidde",
+      "careerUrl": "https://boards.greenhouse.io/guidde",
+      "countryCoverage": [
+        "IL"
+      ],
+      "enabled": true,
+      "verifiedAt": "2026-11-08T12:37:03Z",
+      "verificationSourceUrl": "https://boards-api.greenhouse.io/v1/boards/guidde/jobs"
+    },
+    {
+      "company": "PointFive",
+      "industry": "technology",
+      "provider": "ashby",
+      "providerKey": "pointfive",
+      "careerUrl": "https://jobs.ashbyhq.com/pointfive",
+      "countryCoverage": [
+        "IL"
+      ],
+      "enabled": true,
+      "verifiedAt": "2026-11-08T12:37:03Z",
+      "verificationSourceUrl": "https://api.ashbyhq.com/posting-api/job-board/pointfive"
+    },
+    {
+      "company": "Finout",
+      "industry": "technology",
+      "provider": "ashby",
+      "providerKey": "finout",
+      "careerUrl": "https://jobs.ashbyhq.com/finout",
+      "countryCoverage": [
+        "IL"
+      ],
+      "enabled": true,
+      "verifiedAt": "2026-11-08T12:37:03Z",
+      "verificationSourceUrl": "https://api.ashbyhq.com/posting-api/job-board/finout"
+    },
+    {
+      "company": "Stigg",
+      "industry": "technology",
+      "provider": "ashby",
+      "providerKey": "stigg",
+      "careerUrl": "https://jobs.ashbyhq.com/stigg",
+      "countryCoverage": [
+        "IL"
+      ],
+      "enabled": true,
+      "verifiedAt": "2026-11-08T12:37:04Z",
+      "verificationSourceUrl": "https://api.ashbyhq.com/posting-api/job-board/stigg"
     }
   ]
 }

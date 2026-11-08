@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { retryTransient, type Pool, type Queryable } from "../db/pool";
 import { FILTER_VERSION } from "../filter";
+import { classifyTier, TITLE_ONLY_REJECTIONS, type Tier } from "../filter/tiers";
 import type { Profile } from "../profile/schema";
 import { ensureProfile } from "../profile/store";
 import { readHealth, type Health } from "../worker/maintenance";
@@ -25,6 +26,8 @@ export const JobFiltersSchema = z.object({
   page: z.coerce.number().int().min(1).max(10_000).catch(1),
   /** A filter reason code, used by the rejection audit. */
   reason: z.preprocess(blankToUndefined, z.string().regex(/^[a-z_]{1,60}$/).optional()).catch(undefined),
+  /** Narrows the rejection audit to adjacent roles. */
+  tier: z.enum(["adjacent"]).optional().catch(undefined),
 });
 
 export type JobFilters = z.infer<typeof JobFiltersSchema>;
@@ -123,6 +126,8 @@ export interface JobSummary {
   dismissedReason: DismissReason | null;
   /** The owner said the filter was wrong to reject this job. */
   flaggedMissed: boolean;
+  /** "adjacent" for a filtered job whose title names a nearby role. Computed from preferences, never stored. */
+  tier: Tier | null;
 }
 
 function toSummary(row: Record<string, any>): JobSummary {
@@ -149,8 +154,19 @@ function toSummary(row: Record<string, any>): JobSummary {
     appliedAt: row.applied_at,
     dismissedReason: row.dismissed_reason ?? null,
     flaggedMissed: row.missed_at != null,
+    tier: null,
   };
 }
+
+/** The tier needs the owner's current terms, so it is computed on the way out rather than in SQL. */
+function withTier(summary: JobSummary, adjacentTitles: string[]): JobSummary {
+  if (summary.matchState !== "filtered") return summary;
+  const tier = classifyTier({ decision: "rejected", reasons: summary.reasonCodes, title: summary.title }, adjacentTitles);
+  return { ...summary, tier: tier === "adjacent" ? tier : null };
+}
+
+/** More rows than the filter could ever hold for one owner; the adjacent view pages in memory. */
+const ADJACENT_SCAN_LIMIT = 5000;
 
 const escapeLike = (value: string) => value.replace(/[\\%_]/g, "\\$&");
 
@@ -187,6 +203,8 @@ export async function searchJobs(db: Queryable, context: ViewContext, filters: J
     where.push(`match_state = 'current' AND dismissed_reason IS NULL AND score >= ${bind(NEAR_MISS_FLOOR)} AND score < ${bind(context.profile.preferences.notificationThreshold)}`);
   }
   if (filters.reason) where.push(`${bind(filters.reason)} = ANY(reason_codes) AND match_state = 'filtered'`);
+  const adjacentOnly = only === "filtered" && filters.tier === "adjacent";
+  if (adjacentOnly) where.push(`reason_codes <@ ${bind([...TITLE_ONLY_REJECTIONS])}::text[]`);
 
   const orders = {
     best: `CASE WHEN match_state = 'current' THEN score END DESC NULLS LAST, first_discovered_at DESC, id DESC`,
@@ -194,6 +212,19 @@ export async function searchJobs(db: Queryable, context: ViewContext, filters: J
     posted: `posted_or_found_at DESC, id DESC`,
   };
   const order = orders[filters.sort];
+  const adjacentTitles = context.profile.preferences.adjacentTitles;
+  if (adjacentOnly) {
+    const { rows: candidates } = await db.query(
+      `SELECT * FROM (SELECT ${JOB_COLUMNS} FROM ${JOB_ROWS}) job
+        WHERE ${where.join(" AND ")}
+        ORDER BY ${order}
+        LIMIT ${ADJACENT_SCAN_LIMIT}`,
+      params,
+    );
+    const adjacent = candidates.map((row) => withTier(toSummary(row), adjacentTitles)).filter((job) => job.tier === "adjacent");
+    const offset = (filters.page - 1) * PAGE_SIZE;
+    return { jobs: adjacent.slice(offset, offset + PAGE_SIZE), hasMore: adjacent.length > offset + PAGE_SIZE };
+  }
   const { rows } = await db.query(
     `SELECT * FROM (SELECT ${JOB_COLUMNS} FROM ${JOB_ROWS}) job
       ${where.length ? `WHERE ${where.join(" AND ")}` : ""}
@@ -201,7 +232,7 @@ export async function searchJobs(db: Queryable, context: ViewContext, filters: J
       LIMIT ${PAGE_SIZE + 1} OFFSET ${(filters.page - 1) * PAGE_SIZE}`,
     params,
   );
-  return { jobs: rows.slice(0, PAGE_SIZE).map(toSummary), hasMore: rows.length > PAGE_SIZE };
+  return { jobs: rows.slice(0, PAGE_SIZE).map((row) => withTier(toSummary(row), adjacentTitles)), hasMore: rows.length > PAGE_SIZE };
 }
 
 export interface JobDetail extends JobSummary {
@@ -294,6 +325,8 @@ export async function setMissed(db: Queryable, profileId: string, jobId: string,
 export interface RejectionSummary {
   total: number;
   flagged: number;
+  /** Filtered jobs whose only fault is the role and whose title names an adjacent one. Already counted in `total`. */
+  adjacent: number;
   byReason: Array<{ reason: string; count: number }>;
   /** Filter reasons on the jobs the owner flagged as wrongly rejected: the rules most likely to need a fix. */
   flaggedByReason: Array<{ reason: string; count: number }>;
@@ -332,9 +365,23 @@ export async function readRejections(db: Queryable, context: ViewContext): Promi
       WHERE job.match_state = 'filtered' AND job.status = 'active' AND job.dismissed_reason IS NULL`,
     params,
   );
+  const { rows: candidates } = await db.query(
+    `SELECT job.title, job.reason_codes
+       FROM (SELECT c.title, e.reason_codes, ${MATCH_STATE} AS match_state, c.status, dj.reason AS dismissed_reason
+               FROM ${current}) job
+      WHERE job.match_state = 'filtered' AND job.status = 'active' AND job.dismissed_reason IS NULL
+        AND job.reason_codes <@ $5::text[]
+      LIMIT ${ADJACENT_SCAN_LIMIT}`,
+    [...params, [...TITLE_ONLY_REJECTIONS]],
+  );
+  const adjacentTitles = context.profile.preferences.adjacentTitles;
+  const adjacent = candidates.filter(
+    (row) => classifyTier({ decision: "rejected", reasons: row.reason_codes, title: row.title }, adjacentTitles) === "adjacent",
+  ).length;
   return {
     total: totals[0]?.total ?? 0,
     flagged: totals[0]?.flagged ?? 0,
+    adjacent,
     byReason: rows.map((row) => ({ reason: row.reason, count: row.count })),
     flaggedByReason: flaggedReasons.map((row) => ({ reason: row.reason, count: row.count })),
   };

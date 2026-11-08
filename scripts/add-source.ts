@@ -12,6 +12,7 @@
 import { readFile, writeFile } from "node:fs/promises";
 import { parseArgs } from "node:util";
 import { HttpClient } from "../src/http/client";
+import { careerUrl } from "../src/ingest/board-url";
 import { CATALOG_PATH } from "../src/ingest/seed";
 import { discoverBoards, PROVIDERS, probeBoard, verificationUrl, type ProbeResult } from "../src/ingest/probe";
 import type { Provider } from "../src/connectors/types";
@@ -63,11 +64,6 @@ const taken = new Set(catalog.sources.map((s) => `${s.provider}:${s.providerKey}
 const companies = new Set(catalog.sources.map((s) => s.company.toLowerCase()));
 const http = new HttpClient();
 
-const careerUrlFor = (provider: Provider, key: string) =>
-  provider === "greenhouse" ? `https://job-boards.greenhouse.io/${key}`
-  : provider === "lever" ? `https://jobs.lever.co/${key}`
-  : `https://jobs.ashbyhq.com/${key}`;
-
 let added = 0;
 for (const name of names) {
   if (companies.has(name.toLowerCase())) {
@@ -88,7 +84,7 @@ for (const name of names) {
     continue;
   }
   const tag = `${best.provider}:${best.providerKey}`;
-  if (best.israeli === 0) {
+  if (best.israeliNamed === 0) {
     console.log(`no-il    ${name}: ${tag} has ${best.total} jobs, none in Israel scope`);
     continue;
   }
@@ -104,7 +100,7 @@ for (const name of names) {
     industry: values.industry,
     provider: best.provider,
     providerKey: best.providerKey,
-    careerUrl: values["career-url"] ?? careerUrlFor(best.provider, best.providerKey),
+    careerUrl: values["career-url"] ?? careerUrl(best),
     countryCoverage: ["IL"],
     enabled: true,
     verifiedAt: new Date().toISOString().replace(/\.\d+Z$/, "Z"),

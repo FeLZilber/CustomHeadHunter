@@ -146,7 +146,7 @@ test.describe("as the owner", () => {
     const form = page.getByRole("form", { name: "Follow a company" });
     await form.getByLabel("Job or careers link").fill("https://www.linkedin.com/jobs/view/123");
     await form.getByRole("button", { name: "Follow" }).click();
-    await expect(page.locator("p[role=alert]")).toContainText("Only Greenhouse, Lever and Ashby");
+    await expect(page.locator("p[role=alert]")).toContainText("Only Greenhouse, Lever, Ashby and Workable");
     await form.getByLabel("Job or careers link").fill("https://jobs.lever.co/e2e-acme/abc");
     await form.getByLabel("Company name (optional)").fill("E2E Acme");
     await form.getByRole("button", { name: "Follow" }).click();
@@ -227,6 +227,16 @@ test.describe("as the owner", () => {
     await page.getByRole("link", { name: /^Flagged as missed/ }).click();
     await jobRow(page, TITLES.filtered).getByRole("button", { name: /undo/ }).click();
     await expect(page.getByText("Nothing flagged yet.")).toBeVisible();
+  });
+
+  test("shows an adjacent role under Filtered out with a badge, and lists it by tier", async ({ page }) => {
+    await page.goto("/filtered");
+    await expect(jobRow(page, TITLES.adjacent).getByText("Adjacent", { exact: true })).toBeVisible();
+    await expect(jobRow(page, TITLES.filtered).getByText("Adjacent", { exact: true })).toHaveCount(0);
+    await page.getByRole("link", { name: /^Adjacent \(1\)/ }).click();
+    await expect(page).toHaveURL(/tier=adjacent/);
+    await expect(jobRow(page, TITLES.adjacent)).toBeVisible();
+    await expect(jobRow(page, TITLES.filtered)).toHaveCount(0);
   });
 
   test("marks a job as applied from its page, lists it, and undoes it", async ({ page }) => {
