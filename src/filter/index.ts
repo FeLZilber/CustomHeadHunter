@@ -76,7 +76,7 @@ function factFit(job: FilterJob, profile: MatchingProfile): number {
 /** A posting this short says too little to reject on content. */
 const MIN_DESCRIBED_CHARS = 200;
 
-const includesTerm = (text: string, term: string) => word(foldText(term).replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).test(text);
+export const includesTerm = (text: string, term: string) => word(foldText(term).replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).test(text);
 
 function classifyTitle(title: string, description: string, profile: MatchingProfile) {
   const hasSignal = SOFTWARE_TEST_SIGNAL.test(description);

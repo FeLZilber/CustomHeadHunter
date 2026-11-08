@@ -5,7 +5,7 @@ import { safeHref } from "../../src/app/_components/format";
 import { allowSignIn, isOwner } from "../../src/dashboard/owner";
 import { parseProfileForm } from "../../src/dashboard/profile-form";
 import { parseFilters } from "../../src/dashboard/queries";
-import { MatchingProfileSchema } from "../../src/profile/schema";
+import { DEFAULT_ADJACENT_TITLES, hashMatchingProfile, MatchingProfileSchema } from "../../src/profile/schema";
 import { SEED_MATCH_PROFILE } from "../../src/profile/seed";
 
 describe("owner check", () => {
@@ -69,6 +69,19 @@ describe("profile form", () => {
     const result = parseProfileForm(form(), current);
     expect(result).toMatchObject({ ok: true, preferences: { notificationThreshold: 80 } });
     if (result.ok) expect(result.matching.titles).toEqual(["QA Engineer", "SDET", "Test Automation"]);
+  });
+
+  it("reads adjacent roles into preferences, and keeps the default when the field is absent", () => {
+    const set = parseProfileForm(form({ adjacentTitles: "DevOps\nSRE, Platform" }), current);
+    if (!set.ok) throw new Error("expected a valid form");
+    expect(set.preferences.adjacentTitles).toEqual(["DevOps", "SRE", "Platform"]);
+    const absent = parseProfileForm(form(), current);
+    if (!absent.ok) throw new Error("expected a valid form");
+    expect(absent.preferences.adjacentTitles).toEqual(DEFAULT_ADJACENT_TITLES);
+    expect(hashMatchingProfile(set.matching)).toBe(hashMatchingProfile(absent.matching));
+    const cleared = parseProfileForm(form({ adjacentTitles: "" }), current);
+    if (!cleared.ok) throw new Error("expected a valid form");
+    expect(cleared.preferences.adjacentTitles).toEqual([]);
   });
 
   it("keeps settings the form does not show", () => {

@@ -207,6 +207,10 @@ textarea {
   color: var(--bad);
 }
 
+.badge-adjacent {
+  color: var(--accent, var(--warn));
+}
+
 .badge-filtered,
 .badge-expired {
   color: var(--muted);

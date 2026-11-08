@@ -84,6 +84,7 @@ Everything left needs the operator's accounts. Tick these off here as they happe
 - **Human calibration is outstanding.** Evaluation labels are machine-proposed, so results measure agreement with a draft, not quality.
 - **Evidence is weak,** especially in Hebrew: about a third of quotes are literal on hosted runs. Evidence is stored and shown as verified or not.
 - **Scores vary across runners.** Same seed, 85 and 78 in one case, 15 and 23 in another, so a score near the threshold can flip.
+- **Adjacent roles are display-only.** They get no score and no alert, by design. The tier is a title match on role-only rejections, so a near role whose title lacks a listed term stays an ordinary filtered job until the owner adds the term. The adjacent view reads at most 5000 rejected jobs and pages them in memory.
 
 **Runtime**
 

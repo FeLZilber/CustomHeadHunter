@@ -389,6 +389,28 @@ describe("dashboard queries", () => {
       expect((await search({ status: "all", reason: "no_qa_signal" }, "filtered")).jobs).toHaveLength(0);
     });
 
+    it("marks role-only rejections with an adjacent title as adjacent, and lists them by tier", async () => {
+      const description = "We keep our cloud platform running and reliable for every customer, around the clock. ".repeat(4);
+      await crawlListings(
+        rawListing("office", { title: "Office Manager" }),
+        rawListing("devops", { title: "DevOps Engineer", descriptionText: description }),
+        rawListing("abroad", { title: "DevOps Engineer Abroad", descriptionText: description, location: "Berlin, Germany", workplaceType: "remote" }),
+      );
+      await match();
+      const filtered = (await search({ status: "all" }, "filtered")).jobs;
+      const tierOf = (title: string) => filtered.find((job) => job.title === title)?.tier;
+      expect(tierOf("DevOps Engineer")).toBe("adjacent");
+      expect(tierOf("Office Manager")).toBeNull();
+      expect((await search({ status: "all", tier: "adjacent" }, "filtered")).jobs.map((job) => job.title)).toEqual(["DevOps Engineer"]);
+      expect((await readRejections(pool, await context())).adjacent).toBe(1);
+
+      const { profileId } = await ensureProfile(pool);
+      expect(profileId).toBeTruthy();
+      await saveProfile(pool, { preferences: { adjacentTitles: [] } });
+      expect((await search({ status: "all", tier: "adjacent" }, "filtered")).jobs).toEqual([]);
+      expect((await readRejections(pool, await context())).adjacent).toBe(0);
+    });
+
     it("flags and unflags a wrongly filtered job idempotently, and leaves dismissed jobs out", async () => {
       await crawlListings(rawListing("office", { title: "Office Manager" }), rawListing("hr", { title: "HR Manager" }));
       await match();
