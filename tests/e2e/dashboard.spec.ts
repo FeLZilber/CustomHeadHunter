@@ -229,6 +229,16 @@ test.describe("as the owner", () => {
     await expect(page.getByText("Nothing flagged yet.")).toBeVisible();
   });
 
+  test("shows an adjacent role under Filtered out with a badge, and lists it by tier", async ({ page }) => {
+    await page.goto("/filtered");
+    await expect(jobRow(page, TITLES.adjacent).getByText("Adjacent", { exact: true })).toBeVisible();
+    await expect(jobRow(page, TITLES.filtered).getByText("Adjacent", { exact: true })).toHaveCount(0);
+    await page.getByRole("link", { name: /^Adjacent \(1\)/ }).click();
+    await expect(page).toHaveURL(/tier=adjacent/);
+    await expect(jobRow(page, TITLES.adjacent)).toBeVisible();
+    await expect(jobRow(page, TITLES.filtered)).toHaveCount(0);
+  });
+
   test("marks a job as applied from its page, lists it, and undoes it", async ({ page }) => {
     await page.goto("/applied");
     await expect(page.getByText("No applications marked yet.")).toBeVisible();

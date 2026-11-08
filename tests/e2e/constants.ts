@@ -11,6 +11,7 @@ export const TITLES = {
   pending: "QA Automation Engineer Waiting",
   failed: "QA Automation Engineer Unparseable",
   filtered: "Office Manager",
+  adjacent: "DevOps Engineer Pipelines",
 } as const;
 
 export const HOSTILE_DESCRIPTION = [

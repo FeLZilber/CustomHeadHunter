@@ -18,6 +18,7 @@ export const FIELD_LABELS: Record<string, string> = {
   candidateExperienceYears: "Experience",
   salaryExpectation: "Salary expectation",
   notificationThreshold: "Notification threshold",
+  adjacentTitles: "Adjacent roles",
   excludedTitleTerms: "Excluded title terms",
 };
 
@@ -56,7 +57,14 @@ export function parseProfileForm(data: FormData, current: MatchingProfile): Prof
     const field = path.find((part): part is string => typeof part === "string" && part in FIELD_LABELS);
     return { ok: false, field: field ?? "titles" };
   }
-  const preferences = PreferencesSchema.safeParse({ notificationThreshold: number(value(data, "notificationThreshold")) });
-  if (!preferences.success) return { ok: false, field: "notificationThreshold" };
+  const preferences = PreferencesSchema.safeParse({
+    notificationThreshold: number(value(data, "notificationThreshold")),
+    // A form without the field keeps the default rather than clearing the tier.
+    ...(data.has("adjacentTitles") ? { adjacentTitles: list(data, "adjacentTitles") } : {}),
+  });
+  if (!preferences.success) {
+    const adjacent = preferences.error.issues[0]?.path[0] === "adjacentTitles";
+    return { ok: false, field: adjacent ? "adjacentTitles" : "notificationThreshold" };
+  }
   return { ok: true, matching: matching.data, preferences: preferences.data };
 }

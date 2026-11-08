@@ -64,6 +64,11 @@ export default async function ProfilePage({ searchParams }: { searchParams: Para
           </label>
         </div>
         <label>
+          Adjacent roles (shown, never alerted)
+          <textarea name="adjacentTitles" rows={3} dir="auto" defaultValue={preferences.adjacentTitles.join("\n")} />
+          <span className="meta">Jobs the filter rejects only for being the wrong role, but whose title contains one of these, appear under Filtered out as Adjacent. They are never scored or alerted.</span>
+        </label>
+        <label>
           Notification threshold (0 to 100)
           <input name="notificationThreshold" type="number" min={0} max={100} required defaultValue={preferences.notificationThreshold} />
         </label>

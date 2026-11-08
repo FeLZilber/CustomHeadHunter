@@ -87,6 +87,11 @@ export async function seedFixtures(pool: Pool) {
     listing("low", TITLES.low, { publishedAt: new Date("2020-03-15T12:00:00Z") }),
     listing("failed", TITLES.failed),
     listing("filtered", TITLES.filtered, { descriptionText: "Run the office." }),
+    listing("adjacent", TITLES.adjacent, {
+      descriptionText:
+        "Operate our cloud infrastructure, maintain the deployment pipelines, and keep the platform reliable. " +
+        "You will own monitoring, incident response and capacity planning across several regions for a growing product team.",
+    }),
   ];
   const deps = { pool, http: new HttpClient(), log, connectors: { greenhouse: connectorFor(listings), lever: connectorFor(listings), ashby: connectorFor(listings) } };
   await crawl(deps, crawlOptions);
