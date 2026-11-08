@@ -1,0 +1,786 @@
+# Candidate companies for catalog discovery (npm run catalog:discover -- --file catalog/candidates.txt).
+# Format: Company | board URL or empty | where the name came from.
+# Collected 2026-11-08 by subagents from public lists (Wikipedia, Dealroom, VC portfolio pages, press lists).
+# Rows marked "recall" came from a model's memory, not a fetched page. Being listed here proves nothing:
+# a company reaches catalog/sources.json only after a live probe finds a public board with Israeli jobs.
+Check Point |  | https://en.wikipedia.org/wiki/Israeli_cybersecurity_industry
+CyberArk |  | https://en.wikipedia.org/wiki/Israeli_cybersecurity_industry
+Cato Networks |  | https://en.wikipedia.org/wiki/Israeli_cybersecurity_industry
+Glow |  | https://en.wikipedia.org/wiki/Israeli_cybersecurity_industry
+Radware |  | https://en.wikipedia.org/wiki/Israeli_cybersecurity_industry
+Wiz |  | https://en.wikipedia.org/wiki/Israeli_cybersecurity_industry
+CrowdStrike |  | https://builtin.com/articles/cyber-security-companies-israel
+Coro |  | https://builtin.com/articles/cyber-security-companies-israel
+Silverfort |  | https://builtin.com/articles/cyber-security-companies-israel
+Cybersixgill |  | https://builtin.com/articles/cyber-security-companies-israel
+Torq |  | https://builtin.com/articles/cyber-security-companies-israel
+Snyk |  | https://builtin.com/articles/cyber-security-companies-israel
+Zscaler |  | https://builtin.com/articles/cyber-security-companies-israel
+Cyera |  | https://builtin.com/articles/cyber-security-companies-israel
+Aqua Security |  | https://builtin.com/articles/cyber-security-companies-israel
+Tufin |  | https://builtin.com/articles/cyber-security-companies-israel
+Rubrik |  | https://builtin.com/articles/cyber-security-companies-israel
+BioCatch |  | https://builtin.com/articles/cyber-security-companies-israel
+Riskified |  | https://builtin.com/articles/fintech-companies-israel
+Payoneer |  | https://builtin.com/articles/fintech-companies-israel
+Pagaya |  | https://builtin.com/articles/fintech-companies-israel
+SSV Labs |  | https://builtin.com/articles/fintech-companies-israel
+Navan |  | https://builtin.com/articles/fintech-companies-israel
+HoneyBook |  | https://builtin.com/articles/fintech-companies-israel
+Gynger |  | https://builtin.com/articles/fintech-companies-israel
+Lemonade |  | https://archive.israel21c.org/?p=81837
+FeeX |  | https://archive.israel21c.org/?p=81837
+BondIT |  | https://archive.israel21c.org/?p=81837
+Avante |  | https://archive.israel21c.org/?p=81837
+Sling |  | https://archive.israel21c.org/?p=81837
+Zooz |  | https://archive.israel21c.org/?p=81837
+CreditPlace |  | https://archive.israel21c.org/?p=81837
+Fundbox |  | https://archive.israel21c.org/?p=81837
+MyCheck |  | https://archive.israel21c.org/?p=81837
+Covercy |  | https://archive.israel21c.org/?p=81837
+Rapyd |  | https://www.cio.com/article/3527284/10-israeli-fintech-startups-shaping-financial-services-today.html
+BlueVine |  | https://www.cio.com/article/3527284/10-israeli-fintech-startups-shaping-financial-services-today.html
+ThetaRay |  | https://www.cio.com/article/3527284/10-israeli-fintech-startups-shaping-financial-services-today.html
+Tipalti |  | https://www.cio.com/article/3527284/10-israeli-fintech-startups-shaping-financial-services-today.html
+Next Insurance |  | https://www.cio.com/article/3527284/10-israeli-fintech-startups-shaping-financial-services-today.html
+Capitolis |  | https://www.cio.com/article/3527284/10-israeli-fintech-startups-shaping-financial-services-today.html
+OpenLegacy |  | https://www.cio.com/article/3527284/10-israeli-fintech-startups-shaping-financial-services-today.html
+Forter |  | https://www.cio.com/article/3527284/10-israeli-fintech-startups-shaping-financial-services-today.html
+AppZen |  | https://www.cio.com/article/3527284/10-israeli-fintech-startups-shaping-financial-services-today.html
+Clal Insurance |  | https://www.cio.com/article/3527284/10-israeli-fintech-startups-shaping-financial-services-today.html
+Bank Leumi |  | https://www.cio.com/article/3527284/10-israeli-fintech-startups-shaping-financial-services-today.html
+Bank Hapoalim |  | https://www.cio.com/article/3527284/10-israeli-fintech-startups-shaping-financial-services-today.html
+Creatio |  | https://www.cio.com/article/3527284/10-israeli-fintech-startups-shaping-financial-services-today.html
+Atera |  | https://www.cio.com/article/3527284/10-israeli-fintech-startups-shaping-financial-services-today.html
+Dream Security |  | https://dealroom.co/unicorns/israel/
+Transmit Security |  | https://dealroom.co/unicorns/israel/
+Nayax |  | https://dealroom.co/unicorns/israel/
+Kela Technologies |  | https://dealroom.co/unicorns/israel/
+Hub Security |  | https://dealroom.co/unicorns/israel/
+Guardio |  | https://dealroom.co/unicorns/israel/
+Allot |  | https://dealroom.co/unicorns/israel/
+D-Fend Solutions |  | https://dealroom.co/unicorns/israel/
+Earnix |  | https://dealroom.co/unicorns/israel/
+Global-e |  | https://dealroom.co/unicorns/israel/
+StarkWare |  | https://dealroom.co/unicorns/israel/
+SafeCharge |  | https://dealroom.co/unicorns/israel/
+NSO Group |  | https://mepc.org/commentaries/israeli-cyber-companies-overview/
+Candiru |  | https://mepc.org/commentaries/israeli-cyber-companies-overview/
+Taveta |  | https://mepc.org/commentaries/israeli-cyber-companies-overview/
+QuaDream |  | https://mepc.org/commentaries/israeli-cyber-companies-overview/
+InReach Technologies |  | https://mepc.org/commentaries/israeli-cyber-companies-overview/
+Paragon Solutions |  | https://mepc.org/commentaries/israeli-cyber-companies-overview/
+Palo Alto Networks |  | recall, not from a fetched page
+Akamai Technologies |  | recall, not from a fetched page
+Imperva |  | recall, not from a fetched page
+Varonis Systems |  | recall, not from a fetched page
+SentinelOne |  | recall, not from a fetched page
+Cybereason |  | recall, not from a fetched page
+Armis |  | recall, not from a fetched page
+Axonius |  | recall, not from a fetched page
+Pentera |  | recall, not from a fetched page
+Orca Security |  | recall, not from a fetched page
+Upwind |  | recall, not from a fetched page
+Island |  | recall, not from a fetched page
+Cymulate |  | recall, not from a fetched page
+Claroty |  | recall, not from a fetched page
+Nozomi Networks |  | recall, not from a fetched page
+Intezer |  | recall, not from a fetched page
+Sygnia |  | recall, not from a fetched page
+Sweet Security |  | recall, not from a fetched page
+Hunters |  | recall, not from a fetched page
+Cyberint |  | recall, not from a fetched page
+Semperis |  | recall, not from a fetched page
+Ironscales |  | recall, not from a fetched page
+BigID |  | recall, not from a fetched page
+Netskope |  | recall, not from a fetched page
+Checkmarx |  | recall, not from a fetched page
+Mend |  | recall, not from a fetched page
+Apiiro |  | recall, not from a fetched page
+Cycode |  | recall, not from a fetched page
+Legit Security |  | recall, not from a fetched page
+Jit |  | recall, not from a fetched page
+OX Security |  | recall, not from a fetched page
+Backslash Security |  | recall, not from a fetched page
+Kodem Security |  | recall, not from a fetched page
+Veriti |  | recall, not from a fetched page
+Salt Security |  | recall, not from a fetched page
+Aim Security |  | recall, not from a fetched page
+Noma Security |  | recall, not from a fetched page
+Zafran |  | recall, not from a fetched page
+Zenity |  | recall, not from a fetched page
+Prompt Security |  | recall, not from a fetched page
+Lasso Security |  | recall, not from a fetched page
+Pillar Security |  | recall, not from a fetched page
+Reco |  | recall, not from a fetched page
+Descope |  | recall, not from a fetched page
+Oasis Security |  | recall, not from a fetched page
+Astrix Security |  | recall, not from a fetched page
+Token Security |  | recall, not from a fetched page
+Entro Security |  | recall, not from a fetched page
+Zero Networks |  | recall, not from a fetched page
+Cyata |  | recall, not from a fetched page
+Morphisec |  | recall, not from a fetched page
+Deep Instinct |  | recall, not from a fetched page
+Cynet |  | recall, not from a fetched page
+Cyvers |  | recall, not from a fetched page
+Mindgard |  | recall, not from a fetched page
+XM Cyber |  | recall, not from a fetched page
+SafeBreach |  | recall, not from a fetched page
+Cognyte |  | recall, not from a fetched page
+Safe-T |  | recall, not from a fetched page
+Forescout |  | recall, not from a fetched page
+Verint |  | recall, not from a fetched page
+Cellebrite |  | recall, not from a fetched page
+Cybellum |  | recall, not from a fetched page
+Sternum |  | recall, not from a fetched page
+PCYSYS |  | recall, not from a fetched page
+Cymotive |  | recall, not from a fetched page
+eToro |  | recall, not from a fetched page
+Melio |  | recall, not from a fetched page
+Papaya Global |  | recall, not from a fetched page
+Fireblocks |  | recall, not from a fetched page
+One Zero |  | recall, not from a fetched page
+Personetics |  | recall, not from a fetched page
+Tranzila |  | recall, not from a fetched page
+Pelecard |  | recall, not from a fetched page
+Cardcom |  | recall, not from a fetched page
+Meshulam |  | recall, not from a fetched page
+PayPlus |  | recall, not from a fetched page
+Isracard |  | recall, not from a fetched page
+Stampli |  | recall, not from a fetched page
+Israel Discount Bank |  | recall, not from a fetched page
+Mizrahi Tefahot Bank |  | recall, not from a fetched page
+First International Bank of Israel |  | recall, not from a fetched page
+Bank Yahav |  | recall, not from a fetched page
+Harel Insurance |  | recall, not from a fetched page
+Migdal Insurance |  | recall, not from a fetched page
+Phoenix Insurance |  | recall, not from a fetched page
+Menora Mivtachim |  | recall, not from a fetched page
+Sapiens International |  | recall, not from a fetched page
+Fundtech |  | recall, not from a fetched page
+NICE Actimize |  | recall, not from a fetched page
+Perimeter 81 |  | recall, not from a fetched page
+Cyberbit |  | recall, not from a fetched page
+Mitiga |  | recall, not from a fetched page
+Anvilogic |  | recall, not from a fetched page
+Halo Security |  | recall, not from a fetched page
+Securonix |  | recall, not from a fetched page
+Akeyless |  | recall, not from a fetched page
+Dig Security |  | recall, not from a fetched page
+Dazz |  | recall, not from a fetched page
+Seemplicity |  | recall, not from a fetched page
+Ermetic |  | recall, not from a fetched page
+Cider Security |  | recall, not from a fetched page
+Talon Cyber Security |  | recall, not from a fetched page
+Cyren |  | recall, not from a fetched page
+Vdoo |  | recall, not from a fetched page
+Cyberproof |  | recall, not from a fetched page
+Sentra |  | recall, not from a fetched page
+Aporia |  | recall, not from a fetched page
+Bit |  | recall, not from a fetched page
+Yaad Sarig |  | recall, not from a fetched page
+iCount |  | recall, not from a fetched page
+Green Invoice |  | recall, not from a fetched page
+Priority Software |  | recall, not from a fetched page
+Shirbit |  | recall, not from a fetched page
+JFrog |  | recall, not from a fetched page
+Ayalon Insurance |  | recall, not from a fetched page
+Hachshara Insurance |  | recall, not from a fetched page
+Meitav Investment House |  | recall, not from a fetched page
+Psagot Investment House |  | recall, not from a fetched page
+Altshuler Shaham |  | recall, not from a fetched page
+Bank Otsar HaHayal |  | recall, not from a fetched page
+Mercantile Discount Bank |  | recall, not from a fetched page
+Sepio Systems |  | recall, not from a fetched page
+Radiflow |  | recall, not from a fetched page
+Waterfall Security Solutions |  | recall, not from a fetched page
+Indegy |  | recall, not from a fetched page
+Wallarm |  | recall, not from a fetched page
+Rezilion |  | recall, not from a fetched page
+Cybord |  | recall, not from a fetched page
+Votiro |  | recall, not from a fetched page
+Algosec |  | recall, not from a fetched page
+Tikal Security |  | recall, not from a fetched page
+Bitdam |  | recall, not from a fetched page
+monday.com |  | https://en.wikipedia.org/wiki/List_of_companies_of_Israel
+Wix |  | https://en.wikipedia.org/wiki/List_of_companies_of_Israel
+Fiverr |  | https://en.wikipedia.org/wiki/List_of_companies_of_Israel
+Any.do |  | https://en.wikipedia.org/wiki/List_of_companies_of_Israel
+Moovit |  | https://en.wikipedia.org/wiki/List_of_companies_of_Israel
+Waze |  | https://en.wikipedia.org/wiki/List_of_companies_of_Israel
+Viber |  | https://en.wikipedia.org/wiki/List_of_companies_of_Israel
+MyHeritage |  | https://en.wikipedia.org/wiki/List_of_companies_of_Israel
+Overwolf |  | https://en.wikipedia.org/wiki/List_of_companies_of_Israel
+Perion Network |  | https://en.wikipedia.org/wiki/List_of_companies_of_Israel
+Magic Software |  | https://en.wikipedia.org/wiki/List_of_companies_of_Israel
+NICE |  | https://en.wikipedia.org/wiki/List_of_companies_of_Israel
+OverOps |  | https://en.wikipedia.org/wiki/List_of_companies_of_Israel
+AppsFlyer |  | https://www.calcalistech.com/ctech/articles/0,7340,L-3920992,00.html
+Gong |  | https://www.calcalistech.com/ctech/articles/0,7340,L-3920992,00.html
+Redis |  | https://www.calcalistech.com/ctech/articles/0,7340,L-3920992,00.html
+Sisense |  | https://www.calcalistech.com/ctech/articles/0,7340,L-3920992,00.html
+OwnBackup |  | https://www.calcalistech.com/ctech/articles/0,7340,L-3920992,00.html
+Trax |  | https://www.calcalistech.com/ctech/articles/0,7340,L-3920992,00.html
+Yotpo |  | https://www.calcalistech.com/ctech/articles/0,7340,L-3920992,00.html
+Lightricks |  | https://www.calcalistech.com/ctech/articles/0,7340,L-3920992,00.html
+Verbit |  | https://www.calcalistech.com/ctech/articles/0,7340,L-3920992,00.html
+Bringg |  | https://www.calcalistech.com/ctech/articles/0,7340,L-3920992,00.html
+JoyTunes |  | https://www.calcalistech.com/ctech/articles/0,7340,L-3920992,00.html
+VAST Data |  | https://www.calcalistech.com/ctech/articles/0,7340,L-3920992,00.html
+Moon Active |  | https://www.calcalistech.com/ctech/articles/0,7340,L-3920992,00.html
+Cloudinary |  | https://www.vccafe.com/israeli-centaurs/
+Elementor |  | https://www.vccafe.com/israeli-centaurs/
+BigPanda |  | https://www.vccafe.com/israeli-centaurs/
+Dremio |  | https://www.vccafe.com/israeli-centaurs/
+Tomorrow.io |  | https://www.vccafe.com/israeli-centaurs/
+Pyramid Analytics |  | https://www.vccafe.com/israeli-centaurs/
+vcita |  | https://www.vccafe.com/israeli-centaurs/
+Riverside |  | https://www.vccafe.com/israeli-centaurs/
+SundaySky |  | https://www.vccafe.com/israeli-centaurs/
+Fullpath |  | https://www.vccafe.com/israeli-centaurs/
+DataRails |  | https://www.vccafe.com/israeli-centaurs/
+Aquant |  | https://www.vccafe.com/israeli-centaurs/
+Foretellix |  | https://www.vccafe.com/israeli-centaurs/
+SQream |  | https://www.vccafe.com/israeli-centaurs/
+Demostack |  | https://www.vccafe.com/israeli-centaurs/
+Sparkbeyond |  | https://www.vccafe.com/israeli-centaurs/
+Tonkean |  | https://www.vccafe.com/israeli-centaurs/
+Evinced |  | https://www.vccafe.com/israeli-centaurs/
+Swimm |  | https://www.vccafe.com/israeli-centaurs/
+Blink Ops |  | https://www.vccafe.com/israeli-centaurs/
+entrio |  | https://www.vccafe.com/israeli-centaurs/
+Solvo |  | https://www.vccafe.com/israeli-centaurs/
+Harmonya |  | https://www.vccafe.com/israeli-centaurs/
+Kahun |  | https://www.vccafe.com/israeli-centaurs/
+Rep AI |  | https://www.vccafe.com/israeli-centaurs/
+DBmaestro |  | https://www.vccafe.com/israeli-centaurs/
+Kubiya |  | https://www.vccafe.com/israeli-centaurs/
+Equally AI |  | https://www.vccafe.com/israeli-centaurs/
+illumex |  | https://www.vccafe.com/israeli-centaurs/
+HoopsAI |  | https://www.vccafe.com/israeli-centaurs/
+ProntoNLP |  | https://www.vccafe.com/israeli-centaurs/
+Bright Data |  | https://www.vccafe.com/israeli-centaurs/
+Safe Superintelligence |  | https://www.vccafe.com/israeli-unicorns/
+Wonderful |  | https://www.vccafe.com/israeli-unicorns/
+Decart |  | https://www.vccafe.com/israeli-unicorns/
+Eon |  | https://www.vccafe.com/israeli-unicorns/
+Coralogix |  | https://www.vccafe.com/israeli-unicorns/
+Lusha |  | https://www.vccafe.com/israeli-unicorns/
+OpenWeb |  | https://www.vccafe.com/israeli-unicorns/
+Placer.ai |  | https://www.vccafe.com/israeli-unicorns/
+AI21 Labs |  | https://www.vccafe.com/israeli-unicorns/
+Optibus |  | https://www.vccafe.com/israeli-unicorns/
+CHEQ |  | https://www.vccafe.com/israeli-unicorns/
+Fabric |  | https://www.vccafe.com/israeli-unicorns/
+Firebolt |  | https://www.vccafe.com/israeli-unicorns/
+Minute Media |  | https://www.vccafe.com/israeli-unicorns/
+Trigo |  | https://www.vccafe.com/israeli-unicorns/
+Artlist |  | https://www.vccafe.com/israeli-unicorns/
+Augury |  | https://www.vccafe.com/israeli-unicorns/
+Buildots |  | https://www.vccafe.com/israeli-unicorns/
+Q.ai |  | https://www.vccafe.com/israeli-unicorns/
+Playtika |  | https://builtin.com/articles/gaming-companies-israel
+Plarium |  | https://builtin.com/articles/gaming-companies-israel
+Datagen |  | https://en.wikipedia.org/wiki/Category:Technology_companies_of_Israel
+K2view |  | https://en.wikipedia.org/wiki/Category:Technology_companies_of_Israel
+Photomyne |  | https://en.wikipedia.org/wiki/Category:Technology_companies_of_Israel
+Playermaker |  | https://en.wikipedia.org/wiki/Category:Technology_companies_of_Israel
+Second Nature |  | https://en.wikipedia.org/wiki/Category:Technology_companies_of_Israel
+Port |  | https://en.wikipedia.org/wiki/Category:Technology_companies_of_Israel
+Tabnine |  | https://en.wikipedia.org/wiki/Category:Technology_companies_of_Israel
+Pixellot |  | https://en.wikipedia.org/wiki/Category:Technology_companies_of_Israel
+Glide |  | https://en.wikipedia.org/wiki/Category:Online_companies_of_Israel
+Appcharge |  | https://en.wikipedia.org/wiki/Category:Video_game_companies_of_Israel
+Beach Bum |  | https://en.wikipedia.org/wiki/Category:Video_game_companies_of_Israel
+Playworks Digital |  | https://en.wikipedia.org/wiki/Category:Video_game_companies_of_Israel
+Beyond Verbal |  | https://en.wikipedia.org/wiki/Category:Software_companies_of_Israel
+CallApp |  | https://en.wikipedia.org/wiki/Category:Software_companies_of_Israel
+DealHub |  | https://en.wikipedia.org/wiki/Category:Software_companies_of_Israel
+Ex Libris |  | https://en.wikipedia.org/wiki/Category:Software_companies_of_Israel
+GigaSpaces |  | https://en.wikipedia.org/wiki/Category:Software_companies_of_Israel
+Guesty |  | https://en.wikipedia.org/wiki/Category:Software_companies_of_Israel
+Lango |  | https://en.wikipedia.org/wiki/Category:Software_companies_of_Israel
+Optimove |  | https://en.wikipedia.org/wiki/Category:Software_companies_of_Israel
+Personyze |  | https://en.wikipedia.org/wiki/Category:Software_companies_of_Israel
+Rollout.io |  | https://en.wikipedia.org/wiki/Category:Software_companies_of_Israel
+SysAid |  | https://en.wikipedia.org/wiki/Category:Software_companies_of_Israel
+Starlims |  | https://en.wikipedia.org/wiki/Category:Software_companies_of_Israel
+ZoomInfo |  | https://en.wikipedia.org/wiki/Category:Software_companies_of_Israel
+JPEGmini |  | https://en.wikipedia.org/wiki/Category:Software_companies_of_Israel
+Sapiens |  | https://en.wikipedia.org/wiki/Category:Software_companies_of_Israel
+Qodo |  | https://en.wikipedia.org/wiki/Category:Companies_based_in_Tel_Aviv
+Lingopie |  | https://en.wikipedia.org/wiki/Category:Companies_based_in_Tel_Aviv
+TipRanks |  | https://en.wikipedia.org/wiki/Category:Companies_based_in_Tel_Aviv
+Kaltura |  | recall, not from a fetched page
+Similarweb |  | recall, not from a fetched page
+Taboola |  | recall, not from a fetched page
+Outbrain |  | recall, not from a fetched page
+Hour One |  | recall, not from a fetched page
+D-ID |  | recall, not from a fetched page
+Komodor |  | recall, not from a fetched page
+Lightrun |  | recall, not from a fetched page
+Logz.io |  | recall, not from a fetched page
+Cortex |  | recall, not from a fetched page
+Rookout |  | recall, not from a fetched page
+Lumigo |  | recall, not from a fetched page
+Deepchecks |  | recall, not from a fetched page
+Anodot |  | recall, not from a fetched page
+Pecan AI |  | recall, not from a fetched page
+Explorium |  | recall, not from a fetched page
+Permit.io |  | recall, not from a fetched page
+Codefresh |  | recall, not from a fetched page
+Quali |  | recall, not from a fetched page
+Applitools |  | recall, not from a fetched page
+Amdocs |  | recall, not from a fetched page
+Pepperi |  | recall, not from a fetched page
+Tremor International |  | recall, not from a fetched page
+Zoomd |  | recall, not from a fetched page
+Vidazoo |  | recall, not from a fetched page
+Glassbox |  | recall, not from a fetched page
+Wakie |  | recall, not from a fetched page
+Yad2 |  | recall, not from a fetched page
+TabTale |  | recall, not from a fetched page
+WalkMe |  | recall, not from a fetched page
+LivePerson |  | recall, not from a fetched page
+Weka |  | recall, not from a fetched page
+Base44 |  | recall, not from a fetched page
+Nexar |  | recall, not from a fetched page
+Totango |  | recall, not from a fetched page
+Sealights |  | recall, not from a fetched page
+Recart |  | recall, not from a fetched page
+Ayehu |  | recall, not from a fetched page
+Cognata |  | recall, not from a fetched page
+DoiT |  | recall, not from a fetched page
+Bigabid |  | recall, not from a fetched page
+Adgorithms |  | recall, not from a fetched page
+Hola |  | recall, not from a fetched page
+3M |  | https://en.wikipedia.org/wiki/List_of_multinational_companies_with_research_and_development_centres_in_Israel
+Amazon |  | https://en.wikipedia.org/wiki/List_of_multinational_companies_with_research_and_development_centres_in_Israel
+Fujitsu |  | https://en.wikipedia.org/wiki/List_of_multinational_companies_with_research_and_development_centres_in_Israel
+Vimeo |  | https://en.wikipedia.org/wiki/List_of_multinational_companies_with_research_and_development_centres_in_Israel
+AOL |  | https://en.wikipedia.org/wiki/List_of_multinational_companies_with_research_and_development_centres_in_Israel
+Mercedes-Benz |  | https://en.wikipedia.org/wiki/List_of_multinational_companies_with_research_and_development_centres_in_Israel
+Yandex |  | https://en.wikipedia.org/wiki/List_of_multinational_companies_with_research_and_development_centres_in_Israel
+Amobee |  | https://en.wikipedia.org/wiki/List_of_multinational_companies_with_research_and_development_centres_in_Israel
+Apple |  | https://en.wikipedia.org/wiki/List_of_multinational_companies_with_research_and_development_centres_in_Israel
+Elastic |  | https://en.wikipedia.org/wiki/List_of_multinational_companies_with_research_and_development_centres_in_Israel
+Applied Materials |  | https://en.wikipedia.org/wiki/List_of_multinational_companies_with_research_and_development_centres_in_Israel
+Arm |  | https://en.wikipedia.org/wiki/List_of_multinational_companies_with_research_and_development_centres_in_Israel
+Bosch |  | https://en.wikipedia.org/wiki/List_of_multinational_companies_with_research_and_development_centres_in_Israel
+PTC |  | https://en.wikipedia.org/wiki/List_of_multinational_companies_with_research_and_development_centres_in_Israel
+AT&T |  | https://en.wikipedia.org/wiki/List_of_multinational_companies_with_research_and_development_centres_in_Israel
+Autodesk |  | https://en.wikipedia.org/wiki/List_of_multinational_companies_with_research_and_development_centres_in_Israel
+Toshiba |  | https://en.wikipedia.org/wiki/List_of_multinational_companies_with_research_and_development_centres_in_Israel
+Google |  | https://en.wikipedia.org/wiki/List_of_multinational_companies_with_research_and_development_centres_in_Israel
+BlackBerry |  | https://en.wikipedia.org/wiki/List_of_multinational_companies_with_research_and_development_centres_in_Israel
+BMC Software |  | https://en.wikipedia.org/wiki/List_of_multinational_companies_with_research_and_development_centres_in_Israel
+Booking.com |  | https://en.wikipedia.org/wiki/List_of_multinational_companies_with_research_and_development_centres_in_Israel
+Snowflake |  | https://en.wikipedia.org/wiki/List_of_multinational_companies_with_research_and_development_centres_in_Israel
+Broadcom |  | https://en.wikipedia.org/wiki/List_of_multinational_companies_with_research_and_development_centres_in_Israel
+Cisco |  | https://en.wikipedia.org/wiki/List_of_multinational_companies_with_research_and_development_centres_in_Israel
+ST Engineering |  | https://en.wikipedia.org/wiki/List_of_multinational_companies_with_research_and_development_centres_in_Israel
+Dassault Systemes |  | https://en.wikipedia.org/wiki/List_of_multinational_companies_with_research_and_development_centres_in_Israel
+Dell |  | https://en.wikipedia.org/wiki/List_of_multinational_companies_with_research_and_development_centres_in_Israel
+Dropbox |  | https://en.wikipedia.org/wiki/List_of_multinational_companies_with_research_and_development_centres_in_Israel
+TDK |  | https://en.wikipedia.org/wiki/List_of_multinational_companies_with_research_and_development_centres_in_Israel
+eBay |  | https://en.wikipedia.org/wiki/List_of_multinational_companies_with_research_and_development_centres_in_Israel
+EMC |  | https://en.wikipedia.org/wiki/List_of_multinational_companies_with_research_and_development_centres_in_Israel
+Meta |  | https://en.wikipedia.org/wiki/List_of_multinational_companies_with_research_and_development_centres_in_Israel
+Gemalto |  | https://en.wikipedia.org/wiki/List_of_multinational_companies_with_research_and_development_centres_in_Israel
+General Electric |  | https://en.wikipedia.org/wiki/List_of_multinational_companies_with_research_and_development_centres_in_Israel
+General Motors |  | https://en.wikipedia.org/wiki/List_of_multinational_companies_with_research_and_development_centres_in_Israel
+Harman |  | https://en.wikipedia.org/wiki/List_of_multinational_companies_with_research_and_development_centres_in_Israel
+HP |  | https://en.wikipedia.org/wiki/List_of_multinational_companies_with_research_and_development_centres_in_Israel
+IBM |  | https://en.wikipedia.org/wiki/List_of_multinational_companies_with_research_and_development_centres_in_Israel
+Skoda Auto |  | https://en.wikipedia.org/wiki/List_of_multinational_companies_with_research_and_development_centres_in_Israel
+Infosys |  | https://en.wikipedia.org/wiki/List_of_multinational_companies_with_research_and_development_centres_in_Israel
+Intel |  | https://en.wikipedia.org/wiki/List_of_multinational_companies_with_research_and_development_centres_in_Israel
+Intuit |  | https://en.wikipedia.org/wiki/List_of_multinational_companies_with_research_and_development_centres_in_Israel
+John Deere |  | https://en.wikipedia.org/wiki/List_of_multinational_companies_with_research_and_development_centres_in_Israel
+Johnson & Johnson |  | https://en.wikipedia.org/wiki/List_of_multinational_companies_with_research_and_development_centres_in_Israel
+Lenovo |  | https://en.wikipedia.org/wiki/List_of_multinational_companies_with_research_and_development_centres_in_Israel
+LG |  | https://en.wikipedia.org/wiki/List_of_multinational_companies_with_research_and_development_centres_in_Israel
+Marvell |  | https://en.wikipedia.org/wiki/List_of_multinational_companies_with_research_and_development_centres_in_Israel
+McAfee |  | https://en.wikipedia.org/wiki/List_of_multinational_companies_with_research_and_development_centres_in_Israel
+Micro Focus |  | https://en.wikipedia.org/wiki/List_of_multinational_companies_with_research_and_development_centres_in_Israel
+Microsoft |  | https://en.wikipedia.org/wiki/List_of_multinational_companies_with_research_and_development_centres_in_Israel
+Motorola |  | https://en.wikipedia.org/wiki/List_of_multinational_companies_with_research_and_development_centres_in_Israel
+Oracle |  | https://en.wikipedia.org/wiki/List_of_multinational_companies_with_research_and_development_centres_in_Israel
+Nokia |  | https://en.wikipedia.org/wiki/List_of_multinational_companies_with_research_and_development_centres_in_Israel
+Nvidia |  | https://en.wikipedia.org/wiki/List_of_multinational_companies_with_research_and_development_centres_in_Israel
+PayPal |  | https://en.wikipedia.org/wiki/List_of_multinational_companies_with_research_and_development_centres_in_Israel
+Philips |  | https://en.wikipedia.org/wiki/List_of_multinational_companies_with_research_and_development_centres_in_Israel
+Polycom |  | https://en.wikipedia.org/wiki/List_of_multinational_companies_with_research_and_development_centres_in_Israel
+Qualcomm |  | https://en.wikipedia.org/wiki/List_of_multinational_companies_with_research_and_development_centres_in_Israel
+Red Hat |  | https://en.wikipedia.org/wiki/List_of_multinational_companies_with_research_and_development_centres_in_Israel
+Samsung |  | https://en.wikipedia.org/wiki/List_of_multinational_companies_with_research_and_development_centres_in_Israel
+SAP |  | https://en.wikipedia.org/wiki/List_of_multinational_companies_with_research_and_development_centres_in_Israel
+Siemens |  | https://en.wikipedia.org/wiki/List_of_multinational_companies_with_research_and_development_centres_in_Israel
+Software AG |  | https://en.wikipedia.org/wiki/List_of_multinational_companies_with_research_and_development_centres_in_Israel
+Sony |  | https://en.wikipedia.org/wiki/List_of_multinational_companies_with_research_and_development_centres_in_Israel
+Teradata |  | https://en.wikipedia.org/wiki/List_of_multinational_companies_with_research_and_development_centres_in_Israel
+Texas Instruments |  | https://en.wikipedia.org/wiki/List_of_multinational_companies_with_research_and_development_centres_in_Israel
+Western Digital |  | https://en.wikipedia.org/wiki/List_of_multinational_companies_with_research_and_development_centres_in_Israel
+Xiaomi |  | https://en.wikipedia.org/wiki/List_of_multinational_companies_with_research_and_development_centres_in_Israel
+Xerox |  | https://en.wikipedia.org/wiki/List_of_multinational_companies_with_research_and_development_centres_in_Israel
+Yahoo |  | https://en.wikipedia.org/wiki/List_of_multinational_companies_with_research_and_development_centres_in_Israel
+Hewlett Packard Enterprise |  | https://en.wikipedia.org/wiki/List_of_multinational_companies_with_research_and_development_centres_in_Israel
+Gartner |  | https://en.wikipedia.org/wiki/List_of_multinational_companies_with_research_and_development_centres_in_Israel
+Winbond |  | https://en.wikipedia.org/wiki/List_of_multinational_companies_with_research_and_development_centres_in_Israel
+Salesforce |  | https://en.wikipedia.org/wiki/List_of_multinational_companies_with_research_and_development_centres_in_Israel
+Palantir |  | https://en.wikipedia.org/wiki/List_of_multinational_companies_with_research_and_development_centres_in_Israel
+Kaspersky |  | https://en.wikipedia.org/wiki/List_of_multinational_companies_with_research_and_development_centres_in_Israel
+Atos |  | https://en.wikipedia.org/wiki/List_of_multinational_companies_with_research_and_development_centres_in_Israel
+Thales |  | https://en.wikipedia.org/wiki/List_of_multinational_companies_with_research_and_development_centres_in_Israel
+Capgemini |  | https://en.wikipedia.org/wiki/List_of_multinational_companies_with_research_and_development_centres_in_Israel
+Carl Zeiss |  | https://en.wikipedia.org/wiki/List_of_multinational_companies_with_research_and_development_centres_in_Israel
+Honda |  | https://en.wikipedia.org/wiki/List_of_multinational_companies_with_research_and_development_centres_in_Israel
+CA Technologies |  | https://en.wikipedia.org/wiki/List_of_multinational_companies_with_research_and_development_centres_in_Israel
+Schneider Electric |  | https://en.wikipedia.org/wiki/List_of_multinational_companies_with_research_and_development_centres_in_Israel
+Ford |  | https://en.wikipedia.org/wiki/List_of_multinational_companies_with_research_and_development_centres_in_Israel
+Tech Mahindra |  | https://en.wikipedia.org/wiki/List_of_multinational_companies_with_research_and_development_centres_in_Israel
+Comverse Technology |  | https://en.wikipedia.org/wiki/List_of_multinational_companies_with_research_and_development_centres_in_Israel
+Porsche |  | https://www.automotive-iq.com/autonomous-drive/articles/list-of-carmaker-rd-centers-in-israel
+Volvo Cars |  | https://www.automotive-iq.com/autonomous-drive/articles/list-of-carmaker-rd-centers-in-israel
+Volvo Group |  | https://www.automotive-iq.com/autonomous-drive/articles/list-of-carmaker-rd-centers-in-israel
+Hertz |  | https://www.automotive-iq.com/autonomous-drive/articles/list-of-carmaker-rd-centers-in-israel
+NEC |  | https://www.automotive-iq.com/autonomous-drive/articles/list-of-carmaker-rd-centers-in-israel
+Aptiv |  | https://www.automotive-iq.com/autonomous-drive/articles/list-of-carmaker-rd-centers-in-israel
+SAIC Motor |  | https://www.automotive-iq.com/autonomous-drive/articles/list-of-carmaker-rd-centers-in-israel
+SEAT |  | https://www.automotive-iq.com/autonomous-drive/articles/list-of-carmaker-rd-centers-in-israel
+Daimler |  | https://www.automotive-iq.com/autonomous-drive/articles/list-of-carmaker-rd-centers-in-israel
+Volkswagen Group |  | https://www.automotive-iq.com/autonomous-drive/articles/list-of-carmaker-rd-centers-in-israel
+Hyundai |  | https://www.automotive-iq.com/autonomous-drive/articles/list-of-carmaker-rd-centers-in-israel
+Renault |  | https://www.automotive-iq.com/autonomous-drive/articles/list-of-carmaker-rd-centers-in-israel
+Nissan |  | https://www.automotive-iq.com/autonomous-drive/articles/list-of-carmaker-rd-centers-in-israel
+Mitsubishi |  | https://www.automotive-iq.com/autonomous-drive/articles/list-of-carmaker-rd-centers-in-israel
+BMW |  | https://www.automotive-iq.com/autonomous-drive/articles/list-of-carmaker-rd-centers-in-israel
+DENSO |  | https://www.automotive-iq.com/autonomous-drive/articles/list-of-carmaker-rd-centers-in-israel
+Polypid |  | https://en.wikipedia.org/wiki/List_of_Israeli_companies_quoted_on_the_Nasdaq
+Allot Communications |  | https://en.wikipedia.org/wiki/List_of_Israeli_companies_quoted_on_the_Nasdaq
+Brainsway |  | https://en.wikipedia.org/wiki/List_of_Israeli_companies_quoted_on_the_Nasdaq
+Caesarstone |  | https://en.wikipedia.org/wiki/List_of_Israeli_companies_quoted_on_the_Nasdaq
+Camtek |  | https://en.wikipedia.org/wiki/List_of_Israeli_companies_quoted_on_the_Nasdaq
+Ceragon |  | https://en.wikipedia.org/wiki/List_of_Israeli_companies_quoted_on_the_Nasdaq
+CEVA |  | https://en.wikipedia.org/wiki/List_of_Israeli_companies_quoted_on_the_Nasdaq
+Check-Cap |  | https://en.wikipedia.org/wiki/List_of_Israeli_companies_quoted_on_the_Nasdaq
+DSP Group |  | https://en.wikipedia.org/wiki/List_of_Israeli_companies_quoted_on_the_Nasdaq
+Eltek |  | https://en.wikipedia.org/wiki/List_of_Israeli_companies_quoted_on_the_Nasdaq
+Foresight Autonomous |  | https://en.wikipedia.org/wiki/List_of_Israeli_companies_quoted_on_the_Nasdaq
+Gilat Satellite Networks |  | https://en.wikipedia.org/wiki/List_of_Israeli_companies_quoted_on_the_Nasdaq
+InMode |  | https://en.wikipedia.org/wiki/List_of_Israeli_companies_quoted_on_the_Nasdaq
+Itamar Medical |  | https://en.wikipedia.org/wiki/List_of_Israeli_companies_quoted_on_the_Nasdaq
+Ituran |  | https://en.wikipedia.org/wiki/List_of_Israeli_companies_quoted_on_the_Nasdaq
+Kornit Digital |  | https://en.wikipedia.org/wiki/List_of_Israeli_companies_quoted_on_the_Nasdaq
+Magal Security Systems |  | https://en.wikipedia.org/wiki/List_of_Israeli_companies_quoted_on_the_Nasdaq
+Medigus |  | https://en.wikipedia.org/wiki/List_of_Israeli_companies_quoted_on_the_Nasdaq
+Microbot Medical |  | https://en.wikipedia.org/wiki/List_of_Israeli_companies_quoted_on_the_Nasdaq
+Micronet Enertec |  | https://en.wikipedia.org/wiki/List_of_Israeli_companies_quoted_on_the_Nasdaq
+Motus GI |  | https://en.wikipedia.org/wiki/List_of_Israeli_companies_quoted_on_the_Nasdaq
+Nano Dimension |  | https://en.wikipedia.org/wiki/List_of_Israeli_companies_quoted_on_the_Nasdaq
+Nano-X Imaging |  | https://en.wikipedia.org/wiki/List_of_Israeli_companies_quoted_on_the_Nasdaq
+Nova |  | https://en.wikipedia.org/wiki/List_of_Israeli_companies_quoted_on_the_Nasdaq
+RADA Electronic Industries |  | https://en.wikipedia.org/wiki/List_of_Israeli_companies_quoted_on_the_Nasdaq
+Radcom |  | https://en.wikipedia.org/wiki/List_of_Israeli_companies_quoted_on_the_Nasdaq
+ReWalk |  | https://en.wikipedia.org/wiki/List_of_Israeli_companies_quoted_on_the_Nasdaq
+Silicom |  | https://en.wikipedia.org/wiki/List_of_Israeli_companies_quoted_on_the_Nasdaq
+SolarEdge |  | https://en.wikipedia.org/wiki/List_of_Israeli_companies_quoted_on_the_Nasdaq
+Supercom |  | https://en.wikipedia.org/wiki/List_of_Israeli_companies_quoted_on_the_Nasdaq
+TAT Technologies |  | https://en.wikipedia.org/wiki/List_of_Israeli_companies_quoted_on_the_Nasdaq
+Tower Semiconductor |  | https://en.wikipedia.org/wiki/List_of_Israeli_companies_quoted_on_the_Nasdaq
+XTEND |  | https://en.wikipedia.org/wiki/List_of_Israeli_companies_quoted_on_the_Nasdaq
+Shamir Optical |  | https://en.wikipedia.org/wiki/List_of_Israeli_companies_quoted_on_the_Nasdaq
+Lumenis |  | https://en.wikipedia.org/wiki/List_of_Israeli_companies_quoted_on_the_Nasdaq
+Syneron Medical |  | https://en.wikipedia.org/wiki/List_of_Israeli_companies_quoted_on_the_Nasdaq
+Elbit Vision Systems |  | https://en.wikipedia.org/wiki/List_of_Israeli_companies_quoted_on_the_Nasdaq
+Galileo Technology |  | https://en.wikipedia.org/wiki/List_of_Israeli_companies_quoted_on_the_Nasdaq
+Given Imaging |  | https://en.wikipedia.org/wiki/List_of_Israeli_companies_quoted_on_the_Nasdaq
+Mellanox |  | https://en.wikipedia.org/wiki/List_of_Israeli_companies_quoted_on_the_Nasdaq
+Saifun Semiconductors |  | https://en.wikipedia.org/wiki/List_of_Israeli_companies_quoted_on_the_Nasdaq
+Zoran |  | https://en.wikipedia.org/wiki/List_of_Israeli_companies_quoted_on_the_Nasdaq
+Voltaire |  | https://en.wikipedia.org/wiki/List_of_Israeli_companies_quoted_on_the_Nasdaq
+DSP Communications |  | https://en.wikipedia.org/wiki/List_of_Israeli_companies_quoted_on_the_Nasdaq
+RADWIN |  | https://en.wikipedia.org/wiki/List_of_Israeli_companies_quoted_on_the_Nasdaq
+Ormat |  | https://en.wikipedia.org/wiki/List_of_companies_of_Israel
+Enlight Renewable Energy |  | https://en.wikipedia.org/wiki/List_of_companies_of_Israel
+Arava Power |  | https://en.wikipedia.org/wiki/List_of_companies_of_Israel
+Netafim |  | https://en.wikipedia.org/wiki/List_of_companies_of_Israel
+Solel |  | https://en.wikipedia.org/wiki/List_of_companies_of_Israel
+Zenith Solar |  | https://en.wikipedia.org/wiki/Category:Technology_companies_of_Israel
+StoreDot |  | https://en.wikipedia.org/wiki/List_of_companies_of_Israel
+Phinergy |  | https://en.wikipedia.org/wiki/Category:Technology_companies_of_Israel
+IDE Technologies |  | https://en.wikipedia.org/wiki/Category:Technology_companies_of_Israel
+TSD Desalination |  | https://en.wikipedia.org/wiki/Category:Technology_companies_of_Israel
+SodaStream |  | https://en.wikipedia.org/wiki/List_of_companies_of_Israel
+AudioCodes |  | https://en.wikipedia.org/wiki/List_of_companies_of_Israel
+Kramer Electronics |  | https://en.wikipedia.org/wiki/List_of_companies_of_Israel
+ISCAR |  | https://en.wikipedia.org/wiki/List_of_companies_of_Israel
+Plasan |  | https://en.wikipedia.org/wiki/List_of_companies_of_Israel
+Tadiran Telecom |  | https://en.wikipedia.org/wiki/List_of_companies_of_Israel
+Orckit Communications |  | https://en.wikipedia.org/wiki/List_of_companies_of_Israel
+Objet |  | https://en.wikipedia.org/wiki/List_of_companies_of_Israel
+HP Indigo |  | https://en.wikipedia.org/wiki/List_of_companies_of_Israel
+HP Scitex |  | https://en.wikipedia.org/wiki/List_of_companies_of_Israel
+ECI Telecom |  | https://en.wikipedia.org/wiki/List_of_companies_of_Israel
+Scopus Video Networks |  | https://en.wikipedia.org/wiki/List_of_companies_of_Israel
+Radvision |  | https://en.wikipedia.org/wiki/List_of_companies_of_Israel
+MER Telemanagement Solutions |  | https://en.wikipedia.org/wiki/List_of_companies_of_Israel
+Alvarion |  | https://en.wikipedia.org/wiki/Category:Technology_companies_of_Israel
+APM Automation Solutions |  | https://en.wikipedia.org/wiki/Category:Technology_companies_of_Israel
+Arbe Robotics |  | https://en.wikipedia.org/wiki/Category:Technology_companies_of_Israel
+BATM |  | https://en.wikipedia.org/wiki/Category:Technology_companies_of_Israel
+Everysight |  | https://en.wikipedia.org/wiki/Category:Technology_companies_of_Israel
+Hailo |  | https://en.wikipedia.org/wiki/Category:Technology_companies_of_Israel
+Infinidat |  | https://en.wikipedia.org/wiki/Category:Technology_companies_of_Israel
+SolidRun |  | https://en.wikipedia.org/wiki/Category:Technology_companies_of_Israel
+SpaceIL |  | https://en.wikipedia.org/wiki/Category:Technology_companies_of_Israel
+Sarine |  | https://en.wikipedia.org/wiki/Category:Technology_companies_of_Israel
+Altair Semiconductor |  | https://en.wikipedia.org/wiki/Category:Semiconductor_companies_of_Israel
+Annapurna Labs |  | https://en.wikipedia.org/wiki/Category:Semiconductor_companies_of_Israel
+BroadLight |  | https://en.wikipedia.org/wiki/Category:Semiconductor_companies_of_Israel
+EZchip |  | https://en.wikipedia.org/wiki/Category:Semiconductor_companies_of_Israel
+MagnaCom |  | https://en.wikipedia.org/wiki/Category:Semiconductor_companies_of_Israel
+Metalink |  | https://en.wikipedia.org/wiki/Category:Semiconductor_companies_of_Israel
+Oramir |  | https://en.wikipedia.org/wiki/Category:Semiconductor_companies_of_Israel
+Orbotech |  | https://en.wikipedia.org/wiki/Category:Semiconductor_companies_of_Israel
+Plurality |  | https://en.wikipedia.org/wiki/Category:Semiconductor_companies_of_Israel
+PrimeSense |  | https://en.wikipedia.org/wiki/Category:Semiconductor_companies_of_Israel
+Vayyar |  | https://en.wikipedia.org/wiki/Category:Semiconductor_companies_of_Israel
+Valens Semiconductor |  | https://en.wikipedia.org/wiki/Category:Semiconductor_companies_of_Israel
+Weebit Nano |  | https://en.wikipedia.org/wiki/Category:Semiconductor_companies_of_Israel
+Aidoc |  | https://en.wikipedia.org/wiki/Category:Medical_technology_companies_of_Israel
+AIVF |  | https://en.wikipedia.org/wiki/Category:Medical_technology_companies_of_Israel
+Circ MedTech |  | https://en.wikipedia.org/wiki/Category:Medical_technology_companies_of_Israel
+D. Medical Industries |  | https://en.wikipedia.org/wiki/Category:Medical_technology_companies_of_Israel
+EarlySense |  | https://en.wikipedia.org/wiki/Category:Medical_technology_companies_of_Israel
+Exalenz Bioscience |  | https://en.wikipedia.org/wiki/Category:Medical_technology_companies_of_Israel
+Insightec |  | https://en.wikipedia.org/wiki/Category:Medical_technology_companies_of_Israel
+Lumen |  | https://en.wikipedia.org/wiki/Category:Medical_technology_companies_of_Israel
+Mazor Robotics |  | https://en.wikipedia.org/wiki/Category:Medical_technology_companies_of_Israel
+OneStep |  | https://en.wikipedia.org/wiki/Category:Medical_technology_companies_of_Israel
+Ophir Optronics |  | https://en.wikipedia.org/wiki/Category:Medical_technology_companies_of_Israel
+Sofwave Medical |  | https://en.wikipedia.org/wiki/Category:Medical_technology_companies_of_Israel
+StemRad |  | https://en.wikipedia.org/wiki/Category:Medical_technology_companies_of_Israel
+Elscint |  | https://en.wikipedia.org/wiki/Category:Medical_technology_companies_of_Israel
+Argus |  | https://www.automotive-iq.com/autonomous-drive/articles/list-of-carmaker-rd-centers-in-israel
+Autotalks |  | https://www.automotive-iq.com/autonomous-drive/articles/list-of-carmaker-rd-centers-in-israel
+BrightWay Vision |  | https://www.automotive-iq.com/autonomous-drive/articles/list-of-carmaker-rd-centers-in-israel
+Electreon |  | https://www.automotive-iq.com/autonomous-drive/articles/list-of-carmaker-rd-centers-in-israel
+Enigmatos |  | https://www.automotive-iq.com/autonomous-drive/articles/list-of-carmaker-rd-centers-in-israel
+IRP Systems |  | https://www.automotive-iq.com/autonomous-drive/articles/list-of-carmaker-rd-centers-in-israel
+Karamba |  | https://www.automotive-iq.com/autonomous-drive/articles/list-of-carmaker-rd-centers-in-israel
+Moodify |  | https://www.automotive-iq.com/autonomous-drive/articles/list-of-carmaker-rd-centers-in-israel
+Saferide |  | https://www.automotive-iq.com/autonomous-drive/articles/list-of-carmaker-rd-centers-in-israel
+Upstream |  | https://www.automotive-iq.com/autonomous-drive/articles/list-of-carmaker-rd-centers-in-israel
+SAIPS |  | https://www.automotive-iq.com/autonomous-drive/articles/list-of-carmaker-rd-centers-in-israel
+iOnRoad |  | https://www.automotive-iq.com/autonomous-drive/articles/list-of-carmaker-rd-centers-in-israel
+Red Bend |  | https://www.automotive-iq.com/autonomous-drive/articles/list-of-carmaker-rd-centers-in-israel
+TowerSec |  | https://www.automotive-iq.com/autonomous-drive/articles/list-of-carmaker-rd-centers-in-israel
+Konnect |  | https://www.automotive-iq.com/autonomous-drive/articles/list-of-carmaker-rd-centers-in-israel
+Apollo Power |  | https://www.automotive-iq.com/autonomous-drive/articles/list-of-carmaker-rd-centers-in-israel
+Mobileye |  | https://www.automotive-iq.com/autonomous-drive/articles/list-of-carmaker-rd-centers-in-israel
+Kela |  | http://www.calcalistech.com/ctechnews/article/ryyan00mazx
+ForSight Robotics |  | http://www.calcalistech.com/ctechnews/article/ryyan00mazx
+Vega |  | http://www.calcalistech.com/ctechnews/article/ryyan00mazx
+Encore |  | https://www.team8.vc/portfolio
+Tribal |  | https://www.team8.vc/portfolio
+Frame Security |  | https://www.team8.vc/portfolio
+FlowRx |  | https://www.team8.vc/portfolio
+Dimer Health |  | https://www.team8.vc/portfolio
+Astelia |  | https://www.team8.vc/portfolio
+Lema |  | https://www.team8.vc/portfolio
+Avalor |  | https://www.viola.vc/portfolio
+Bionic |  | https://www.viola.vc/portfolio
+Blockaid |  | https://www.viola.vc/portfolio
+Gambit Security |  | https://www.viola.vc/portfolio
+Linx Security |  | https://www.viola.vc/portfolio
+NewCore |  | https://www.viola.vc/portfolio
+Noname Security |  | https://www.viola.vc/portfolio
+Onyx Security |  | https://www.viola.vc/portfolio
+Savvy |  | https://www.viola.vc/portfolio
+Surf AI |  | https://www.viola.vc/portfolio
+Trail Security |  | https://www.viola.vc/portfolio
+Trustdome |  | https://www.viola.vc/portfolio
+Trustmi |  | https://www.viola.vc/portfolio
+Valence Security |  | https://unicornscreener.vc/blog/8-most-promising-israeli-startups-to-watch-in-2026
+LightSolver |  | https://unicornscreener.vc/blog/8-most-promising-israeli-startups-to-watch-in-2026
+Anima |  | https://unicornscreener.vc/blog/8-most-promising-israeli-startups-to-watch-in-2026
+Granulate |  | https://unicornscreener.vc/blog/8-most-promising-israeli-startups-to-watch-in-2026
+Run:ai |  | https://unicornscreener.vc/blog/8-most-promising-israeli-startups-to-watch-in-2026
+UltraSight |  | https://fundediq.co/funded-startups-series-b-israel/
+Loora |  | https://fundediq.co/funded-startups-series-b-israel/
+QuantHealth |  | https://fundediq.co/funded-startups-series-b-israel/
+Phytolon |  | https://fundediq.co/funded-startups-series-b-israel/
+Sett |  | https://fundediq.co/funded-startups-series-b-israel/
+Parametrix Insurance |  | https://fundediq.co/funded-startups-series-b-israel/
+Reflectiz |  | https://fundediq.co/funded-startups-series-b-israel/
+Bria |  | https://fundediq.co/funded-startups-series-b-israel/
+IVIX |  | https://fundediq.co/funded-startups-series-b-israel/
+Teramount |  | https://fundediq.co/funded-startups-series-b-israel/
+Exodigo |  | https://fundediq.co/funded-startups-series-b-israel/
+Restore Medical |  | https://fundediq.co/funded-startups-series-b-israel/
+Imagene AI |  | https://fundediq.co/funded-startups-series-b-israel/
+Hypernative |  | https://fundediq.co/funded-startups-series-b-israel/
+Speedata |  | https://fundediq.co/funded-startups-series-b-israel/
+FEMSelect |  | https://fundediq.co/funded-startups-series-b-israel/
+Fincom |  | https://fundediq.co/funded-startups-series-b-israel/
+Orca AI |  | https://fundediq.co/funded-startups-series-b-israel/
+ScaleOps |  | https://fundediq.co/funded-startups-series-b-israel/
+Air Doctor |  | https://fundediq.co/funded-startups-series-b-israel/
+Faye |  | https://fundediq.co/funded-startups-series-b-israel/
+Fetcherr |  | https://fundediq.co/funded-startups-series-b-israel/
+Sensi.Ai |  | https://fundediq.co/funded-startups-series-b-israel/
+DOT Compliance |  | https://fundediq.co/funded-startups-series-b-israel/
+DustPhotonics |  | https://fundediq.co/funded-startups-series-b-israel/
+NoTraffic |  | https://fundediq.co/funded-startups-series-b-israel/
+Anzu.io |  | https://fundediq.co/funded-startups-series-b-israel/
+Beaconcure |  | https://fundediq.co/funded-startups-series-b-israel/
+Onebeat |  | https://fundediq.co/funded-startups-series-b-israel/
+ADASKY |  | https://fundediq.co/funded-startups-series-b-israel/
+Neteera |  | https://fundediq.co/funded-startups-series-b-israel/
+Videocites |  | https://fundediq.co/funded-startups-series-b-israel/
+NsKnox |  | https://fundediq.co/funded-startups-series-b-israel/
+Evigence Sensors |  | https://fundediq.co/funded-startups-series-b-israel/
+Lynxight |  | https://fundediq.co/funded-startups-series-b-israel/
+Shield |  | https://fundediq.co/funded-startups-series-b-israel/
+MOV.AI |  | https://fundediq.co/funded-startups-series-b-israel/
+Dataloop AI |  | https://fundediq.co/funded-startups-series-b-israel/
+Securithings |  | https://fundediq.co/funded-startups-series-b-israel/
+Zesty.co |  | https://fundediq.co/funded-startups-series-b-israel/
+Groundwork BioAg |  | https://fundediq.co/funded-startups-series-b-israel/
+Shopic |  | https://fundediq.co/funded-startups-series-b-israel/
+Sodyo |  | https://fundediq.co/funded-startups-series-b-israel/
+Frontegg |  | https://fundediq.co/funded-startups-series-b-israel/
+Balance |  | https://fundediq.co/funded-startups-series-b-israel/
+Diagnostic Robotics |  | https://fundediq.co/funded-startups-series-b-israel/
+Cyolo |  | https://fundediq.co/funded-startups-series-b-israel/
+Incredibuild |  | https://fundediq.co/funded-startups-series-b-israel/
+Lusix |  | https://fundediq.co/funded-startups-series-b-israel/
+BlueWind Medical |  | https://fundediq.co/funded-startups-series-b-israel/
+Source Defense |  | https://fundediq.co/funded-startups-series-b-israel/
+RiseUp |  | https://fundediq.co/funded-startups-series-b-israel/
+vHive |  | https://fundediq.co/funded-startups-series-b-israel/
+Prisma Photonics |  | https://fundediq.co/funded-startups-series-b-israel/
+AgriTask |  | https://fundediq.co/funded-startups-series-b-israel/
+Torii |  | https://fundediq.co/funded-startups-series-b-israel/
+SiteAware |  | https://fundediq.co/funded-startups-series-b-israel/
+Remilk |  | https://fundediq.co/funded-startups-series-b-israel/
+Cylus |  | https://fundediq.co/funded-startups-series-b-israel/
+EasySend |  | https://fundediq.co/funded-startups-series-b-israel/
+Justt |  | https://fundediq.co/funded-startups-series-b-israel/
+groundcover |  | https://seedtable.com/best-israel-startups
+Voyantis |  | https://seedtable.com/best-israel-startups
+TailorMed |  | https://seedtable.com/best-israel-startups
+BiltOn |  | https://seedtable.com/best-israel-startups
+Stream Security |  | https://seedtable.com/best-israel-startups
+CytoReason |  | https://seedtable.com/best-israel-startups
+Agora |  | https://seedtable.com/best-israel-startups
+Mine |  | https://seedtable.com/best-israel-startups
+Grip Security |  | https://seedtable.com/best-israel-startups
+Wenrix |  | https://seedtable.com/best-israel-startups
+MIND |  | https://www.ylventures.com/portfolio
+Miggo |  | https://www.ylventures.com/portfolio
+Novee |  | https://www.ylventures.com/portfolio
+Satori |  | https://www.ylventures.com/portfolio
+Opus Security |  | https://www.ylventures.com/portfolio
+Opti |  | https://www.ylventures.com/portfolio
+Native |  | https://www.ylventures.com/portfolio
+Eureka Security |  | https://www.ylventures.com/portfolio
+Spera Security |  | https://www.ylventures.com/portfolio
+Enso Security |  | https://www.ylventures.com/portfolio
+Hush |  | https://www.ylventures.com/portfolio
+build.security |  | https://www.ylventures.com/portfolio
+Minimus |  | https://www.ylventures.com/portfolio
+FireLayers |  | https://www.ylventures.com/portfolio
+Autonomous Security |  | https://www.ylventures.com/portfolio
+Ride Vision |  | https://www.ylventures.com/portfolio
+Hirundo |  | https://www.vcbacked.co/directory/cities/industry/tel-aviv-israel/artificial-intelligence-ai
+Milestone |  | https://www.vcbacked.co/directory/cities/industry/tel-aviv-israel/artificial-intelligence-ai
+Alphabiome.ai |  | https://www.vcbacked.co/directory/cities/industry/tel-aviv-israel/artificial-intelligence-ai
+Hi Auto |  | https://www.vcbacked.co/directory/cities/industry/tel-aviv-israel/artificial-intelligence-ai
+Orion Security |  | https://www.vcbacked.co/directory/cities/industry/tel-aviv-israel/artificial-intelligence-ai
+Dig |  | https://www.vcbacked.co/directory/cities/industry/tel-aviv-israel/artificial-intelligence-ai
+Package.ai |  | https://www.vcbacked.co/directory/cities/industry/tel-aviv-israel/artificial-intelligence-ai
+Botika |  | https://www.vcbacked.co/directory/cities/industry/tel-aviv-israel/artificial-intelligence-ai
+bananaz |  | https://www.vcbacked.co/directory/cities/industry/tel-aviv-israel/artificial-intelligence-ai
+FertilAI |  | https://www.vcbacked.co/directory/cities/industry/tel-aviv-israel/artificial-intelligence-ai
+Panjaya |  | https://www.vcbacked.co/directory/cities/industry/tel-aviv-israel/artificial-intelligence-ai
+Scopio Labs |  | https://www.vcbacked.co/directory/cities/industry/tel-aviv-israel/artificial-intelligence-ai
+Connecteam |  | https://www.tryfundable.ai/blog/top-startups-tel-aviv-2026-02-05
+Irregular |  | https://www.tryfundable.ai/blog/top-startups-tel-aviv-2026-02-05
+Quantum Art |  | https://www.tryfundable.ai/blog/top-startups-tel-aviv-2026-02-05
+ZyG |  | https://www.tryfundable.ai/blog/top-startups-tel-aviv-2026-02-05
+Karma |  | https://www.tryfundable.ai/blog/top-startups-tel-aviv-2026-02-05
+Hometalk |  | https://www.tryfundable.ai/blog/top-startups-tel-aviv-2026-02-05
+proteanTecs |  | https://www.tryfundable.ai/blog/top-startups-tel-aviv-2026-02-05
+Captain's Eye |  | https://www.tryfundable.ai/blog/top-startups-tel-aviv-2026-02-05
+HAAT Delivery |  | https://www.tryfundable.ai/blog/top-startups-tel-aviv-2026-02-05
+doubleAI |  | https://www.tryfundable.ai/blog/top-startups-tel-aviv-2026-02-05
+Pluto Security |  | https://www.tryfundable.ai/blog/top-startups-tel-aviv-2026-02-05
+Tenzai |  | https://www.tryfundable.ai/blog/top-startups-tel-aviv-2026-02-05
+Converge Bio |  | https://www.tryfundable.ai/blog/top-startups-tel-aviv-2026-02-05
+Nilus |  | https://www.tryfundable.ai/blog/top-startups-tel-aviv-2026-02-05
+Port.io |  | https://www.tryfundable.ai/blog/top-startups-tel-aviv-2026-02-05
+Augmedics |  | https://www.tryfundable.ai/blog/top-startups-tel-aviv-2026-02-05
+Chain Reaction |  | https://www.tryfundable.ai/blog/top-startups-tel-aviv-2026-02-05
+Biobeat |  | https://www.tryfundable.ai/blog/top-startups-tel-aviv-2026-02-05
+NeuraLight |  | https://www.tryfundable.ai/blog/top-startups-tel-aviv-2026-02-05
+PhaseV |  | https://www.tryfundable.ai/blog/top-startups-tel-aviv-2026-02-05
+Syremis Therapeutics |  | https://www.tryfundable.ai/blog/top-startups-tel-aviv-2026-02-05
+Alice |  | https://vinnews.com/2026/09/01/israeli-startups-raise-9-6-billion-in-first-eight-months-of-2026/
+Corma |  | https://vinnews.com/2026/09/01/israeli-startups-raise-9-6-billion-in-first-eight-months-of-2026/
+Oligo |  | https://vinnews.com/2026/09/01/israeli-startups-raise-9-6-billion-in-first-eight-months-of-2026/
+QuantiHealth |  | https://vinnews.com/2026/09/01/israeli-startups-raise-9-6-billion-in-first-eight-months-of-2026/
+Guidde |  | https://en.globes.co.il/en/article-1001536361
+Nimble |  | https://en.globes.co.il/en/article-1001536361
+DriveNets |  | https://en.globes.co.il/en/article-1001547583
+ZutaCore |  | https://en.globes.co.il/en/article-1001547583
+Rylo |  | https://en.globes.co.il/en/article-1001547583
+PointFive |  | https://en.globes.co.il/en/article-1001547583
+Cedar Money |  | https://www.vcbacked.co/directory/cities/industry/tel-aviv-israel/financial-services
+Atlas Invest |  | https://www.vcbacked.co/directory/cities/industry/tel-aviv-israel/financial-services
+Firmbase |  | https://www.vcbacked.co/directory/cities/industry/tel-aviv-israel/financial-services
+40seas |  | https://www.vcbacked.co/directory/cities/industry/tel-aviv-israel/financial-services
+Grain |  | https://www.vcbacked.co/directory/cities/industry/tel-aviv-israel/financial-services
+Refine Intelligence |  | https://www.vcbacked.co/directory/cities/industry/tel-aviv-israel/fintech
+Bounce |  | https://www.vcbacked.co/directory/cities/industry/tel-aviv-israel/fintech
+Neurotrigger |  | https://www.vcbacked.co/directory/cities/industry/tel-aviv-israel/health-care
+Guardoc Health |  | https://www.vcbacked.co/directory/cities/industry/tel-aviv-israel/health-care
+Radiaction Medical |  | https://www.vcbacked.co/directory/cities/industry/tel-aviv-israel/health-care
+GWave |  | https://www.vcbacked.co/directory/cities/industry/tel-aviv-israel/health-care
+FeelBetter |  | https://www.vcbacked.co/directory/cities/industry/tel-aviv-israel/health-care
+Betteryou |  | https://www.vcbacked.co/directory/cities/industry/tel-aviv-israel/health-care
+Laguna Health |  | https://www.vcbacked.co/directory/cities/industry/tel-aviv-israel/health-care
+Identifai-genetics |  | https://www.vcbacked.co/directory/cities/industry/tel-aviv-israel/health-care
+Diversion Company |  | https://www.vcbacked.co/directory/cities/industry/tel-aviv-israel/real-estate
+LayerX |  | https://www.vcbacked.co/directory/cities/industry/tel-aviv-israel/real-estate
+Brain.space |  | https://www.vcbacked.co/directory/cities/industry/tel-aviv-israel/real-estate
+Vayu |  | https://www.vcbacked.co/directory/cities/industry/tel-aviv-israel/real-estate
+Finout |  | https://www.vcbacked.co/directory/cities/industry/tel-aviv-israel/real-estate
+Reeco |  | https://www.vcbacked.co/directory/cities/industry/tel-aviv-israel/real-estate
+PrettyDamnQuick |  | https://www.vcbacked.co/directory/cities/industry/tel-aviv-israel/real-estate
+Orbb |  | https://www.vcbacked.co/directory/cities/industry/tel-aviv-israel/real-estate
+Stigg |  | https://www.vcbacked.co/directory/cities/industry/tel-aviv-israel/real-estate
+Secret Double Octopus |  | https://www.vcbacked.co/directory/cities/industry/tel-aviv-israel/real-estate
+Ubeya |  | https://www.vcbacked.co/directory/cities/industry/tel-aviv-israel/real-estate
+Swapp |  | https://www.vcbacked.co/directory/cities/industry/tel-aviv-israel/real-estate
+Addressable |  | https://www.vcbacked.co/directory/cities/israel/tel-aviv?page=2
+RoadSense |  | https://www.vcbacked.co/directory/cities/israel/tel-aviv?page=2
+Datafy.io |  | https://www.vcbacked.co/directory/cities/israel/tel-aviv?page=2
+Emerix |  | https://www.vcbacked.co/directory/cities/israel/tel-aviv?page=2
+Revrod |  | https://www.vcbacked.co/directory/cities/israel/tel-aviv?page=2
+IO River |  | https://www.vcbacked.co/directory/cities/israel/tel-aviv?page=2
+KTrust |  | https://www.vcbacked.co/directory/cities/israel/tel-aviv?page=2
+Substrata |  | https://www.vcbacked.co/directory/cities/israel/tel-aviv?page=2
+Breez |  | https://www.vcbacked.co/directory/cities/israel/tel-aviv?page=2
+Lightblocks |  | https://www.vcbacked.co/directory/cities/israel/tel-aviv?page=2
+Humanz |  | https://www.vcbacked.co/directory/cities/israel/tel-aviv?page=2
+ControlMonkey |  | https://www.vcbacked.co/directory/cities/israel/tel-aviv?page=2
+Cyabra |  | https://www.vcbacked.co/directory/cities/israel/tel-aviv?page=2
+Odigos |  | https://www.vcbacked.co/directory/cities/israel/tel-aviv?page=2
+Tedooo |  | https://www.vcbacked.co/directory/cities/israel/tel-aviv?page=2
+Firefly |  | https://www.vcbacked.co/directory/cities/israel/tel-aviv?page=2
+Bluewhite |  | https://www.vcbacked.co/directory/funding/series-c/city/tel-aviv-israel
+SeeTree |  | https://www.vcbacked.co/directory/funding/series-c/city/tel-aviv-israel
+Cortica |  | https://www.vcbacked.co/directory/funding/series-d/city/tel-aviv-israel

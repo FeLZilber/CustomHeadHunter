@@ -16,7 +16,7 @@ import type { Provider } from "../src/connectors/types";
 import { HttpClient } from "../src/http/client";
 import { careerUrl, parseBoardUrl, type BoardRef } from "../src/ingest/board-url";
 import {
-  cacheKey, classify, formatOutcome, fromCacheEntry, isFresh, parseCache, parseCandidateLines,
+  cacheKey, classify, extraSlugs, formatOutcome, fromCacheEntry, isFresh, parseCache, parseCandidateLines,
   skipped, summarize, toCacheEntry, type Candidate, type Outcome, type ProbeCache,
 } from "../src/ingest/discover";
 import { PROVIDERS, probeBoard, slugCandidates, verificationUrl, type ProbeResult } from "../src/ingest/probe";
@@ -43,6 +43,8 @@ const { values } = parseArgs({
     cache: { type: "string", default: ".cache/discover-sources.json" },
     "max-age-days": { type: "string", default: "7" },
     report: { type: "string" },
+    "extra-slugs": { type: "boolean", default: false },
+    "extra-providers": { type: "string", default: "greenhouse,ashby" },
   },
 });
 
@@ -51,9 +53,13 @@ function fail(message: string): never {
   process.exit(2);
 }
 
-if (!values.file) fail("usage: catalog:discover --file <list.txt> [--write] [--industry x] [--providers greenhouse,lever,ashby] [--cache path] [--max-age-days n] [--report path]");
+if (!values.file) fail("usage: catalog:discover --file <list.txt> [--write] [--industry x] [--providers greenhouse,lever,ashby] [--cache path] [--max-age-days n] [--report path] [--extra-slugs [--extra-providers greenhouse,ashby]]");
 const providers = (values.providers ?? PROVIDERS.join(",")).split(",").map((p) => p.trim()).filter(Boolean);
 for (const p of providers) if (!PROVIDERS.includes(p as Provider)) fail(`--providers must be from ${PROVIDERS.join(", ")}`);
+const extraProviders = values["extra-slugs"]
+  ? values["extra-providers"]!.split(",").map((p) => p.trim()).filter(Boolean)
+  : [];
+for (const p of extraProviders) if (!PROVIDERS.includes(p as Provider)) fail(`--extra-providers must be from ${PROVIDERS.join(", ")}`);
 const maxAgeDays = Number(values["max-age-days"]);
 if (!Number.isFinite(maxAgeDays) || maxAgeDays < 0) fail("--max-age-days must be a non-negative number");
 const cachePath = values.cache!;
@@ -96,6 +102,14 @@ async function discover(candidate: Candidate): Promise<Outcome> {
   if (taken) return skipped(candidate.name, `${cacheKey(taken.provider, taken.providerKey)} is already in the catalog`);
   const results: ProbeResult[] = [];
   for (const group of groups) results.push(...(await Promise.all(group.map(probeCached))));
+  const first = classify(candidate.name, results);
+  // --extra-slugs: a second, narrower round of guesses, only when the plain ones found no board at all.
+  if (first.status !== "miss" || extraProviders.length === 0 || candidate.boardUrl) return first;
+  for (const providerKey of extraSlugs(candidate.name, slugCandidates(candidate.name))) {
+    const group = extraProviders.map((provider) => ({ provider: provider as Provider, providerKey }));
+    if (group.some((b) => takenBoards.has(cacheKey(b.provider, b.providerKey)))) continue;
+    results.push(...(await Promise.all(group.map(probeCached))));
+  }
   return classify(candidate.name, results);
 }
 

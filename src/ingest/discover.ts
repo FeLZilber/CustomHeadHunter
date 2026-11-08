@@ -3,6 +3,22 @@ import { z } from "zod";
 import type { Provider } from "../connectors/types";
 import type { ProbeResult } from "./probe";
 
+/** Words companies drop from their board slug: "Oasis Security" -> oasis, "monday.com" -> monday. */
+const CORPORATE_SUFFIX = /\s+(?:technologies|technology|tech|ltd|inc|labs|security|software|systems|networks|group|io|ai|hq)$/i;
+
+/**
+ * Slugs worth a second try after the plain guesses miss: the name without a corporate suffix or
+ * domain, and the forms boards commonly add ("wizinc", "snykhq"). Excludes the plain guesses.
+ */
+export function extraSlugs(name: string, plain: string[]): string[] {
+  const base = name.trim().replace(/\.(?:com|io|ai|co)$/i, "").replace(CORPORATE_SUFFIX, "");
+  const compact = base.toLowerCase().normalize("NFKD").replace(/[^a-z0-9]/g, "");
+  if (compact.length < 3) return []; // "AI" or "Q" is too unspecific to guess around.
+  const words = base.toLowerCase().normalize("NFKD").replace(/[^a-z0-9\s-]/g, "").split(/[\s-]+/).filter(Boolean);
+  const variants = [compact, words.join("-"), `${compact}inc`, `${compact}hq`, `${compact}io`, `${compact}ai`];
+  return [...new Set(variants)].filter((slug) => slug.length >= 3 && !plain.includes(slug));
+}
+
 export interface Candidate {
   name: string;
   /** A pasted board or job link; used instead of slug guessing when it names a supported ATS. */
@@ -28,8 +44,9 @@ export function parseCandidateLines(text: string): Candidate[] {
   return candidates;
 }
 
+// Any provider name is accepted: a cache written by a build with more providers must not discard the file.
 const cacheEntrySchema = z.object({
-  provider: z.enum(["greenhouse", "lever", "ashby"]),
+  provider: z.string().transform((value) => value as Provider),
   providerKey: z.string(),
   status: z.enum(["found", "missing"]),
   total: z.number(),

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
-  chooseBest, classify, formatOutcome, isFresh, parseCache, parseCandidateLines, summarize, toCacheEntry,
+  chooseBest, classify, extraSlugs, formatOutcome, isFresh, parseCache, parseCandidateLines, summarize, toCacheEntry,
 } from "../../src/ingest/discover";
 import type { ProbeResult } from "../../src/ingest/probe";
 
@@ -96,5 +96,19 @@ describe("cache", () => {
     expect(parseCache("not json")).toEqual({});
     expect(parseCache(JSON.stringify({ x: { status: "found" } }))).toEqual({});
     expect(parseCache("")).toEqual({});
+  });
+});
+
+describe("extraSlugs", () => {
+  it("drops corporate suffixes and domains, and adds common board forms", () => {
+    expect(extraSlugs("Oasis Security", ["oasissecurity", "oasis-security", "oasis_security"])).toEqual([
+      "oasis", "oasisinc", "oasishq", "oasisio", "oasisai",
+    ]);
+    expect(extraSlugs("monday.com", ["mondaycom"])).toEqual(["monday", "mondayinc", "mondayhq", "mondayio", "mondayai"]);
+  });
+
+  it("never repeats a plain guess or returns slugs too short to be specific", () => {
+    expect(extraSlugs("Wiz", ["wiz"])).toEqual(["wizinc", "wizhq", "wizio", "wizai"]);
+    expect(extraSlugs("AI", ["ai"])).toEqual([]);
   });
 });
