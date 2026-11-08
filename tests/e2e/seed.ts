@@ -88,7 +88,7 @@ export async function seedFixtures(pool: Pool) {
     listing("failed", TITLES.failed),
     listing("filtered", TITLES.filtered, { descriptionText: "Run the office." }),
   ];
-  const deps = { pool, http: new HttpClient(), log, connectors: { greenhouse: connectorFor(listings), lever: connectorFor(listings), ashby: connectorFor(listings) } };
+  const deps = { pool, http: new HttpClient(), log, connectors: { greenhouse: connectorFor(listings), lever: connectorFor(listings), ashby: connectorFor(listings), workable: connectorFor(listings) } };
   await crawl(deps, crawlOptions);
 
   const profile = await ensureProfile(pool);
@@ -131,7 +131,7 @@ export async function seedFixtures(pool: Pool) {
 
   // Arrives after the match run, so it stays pending.
   await crawl(
-    { ...deps, connectors: { greenhouse: connectorFor([...listings, listing("pending", TITLES.pending)]), lever: deps.connectors.lever, ashby: deps.connectors.ashby } },
+    { ...deps, connectors: { greenhouse: connectorFor([...listings, listing("pending", TITLES.pending)]), lever: deps.connectors.lever, ashby: deps.connectors.ashby, workable: deps.connectors.workable } },
     crawlOptions,
   );
   await evaluateJobs(pool, config, profile);

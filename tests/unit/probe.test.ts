@@ -78,5 +78,6 @@ describe("verificationUrl", () => {
     expect(verificationUrl("greenhouse", "acme")).toBe("https://boards-api.greenhouse.io/v1/boards/acme/jobs");
     expect(verificationUrl("lever", "acme")).toBe("https://api.lever.co/v0/postings/acme");
     expect(verificationUrl("ashby", "acme")).toBe("https://api.ashbyhq.com/posting-api/job-board/acme");
+    expect(verificationUrl("workable", "acme")).toBe("https://apply.workable.com/api/v1/widget/accounts/acme?details=true");
   });
 });

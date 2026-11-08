@@ -110,7 +110,7 @@ When compute or egress is used up, the project suspends until the next period. C
 
 To add a source, verify it live, then add it to `catalog/sources.json` with the verification URL and date. Never add an unverified endpoint. Open a sampled job link as well: Lemonade's Ashby API returns jobs, but its job pages return 404, so it is left out. The `seed` step applies the catalog on the next run, including `enabled: false` to pause a source.
 
-A catalog entry must respect the provider's terms and `robots.txt`. Lever declares `Crawl-delay: 1`, which the connector honors. Ashby's job board API is public and needs no key, but its docs describe it for a company's own careers page and state no terms for third parties, and its `robots.txt` could not be read.
+A catalog entry must respect the provider's terms and `robots.txt`. Lever declares `Crawl-delay: 1`, which the connector honors. Ashby's job board API is public and needs no key, but its docs describe it for a company's own careers page and state no terms for third parties, and its `robots.txt` could not be read. Workable is read through the public jobs-widget endpoint (`apply.workable.com/api/v1/widget/accounts/{account}`), which `robots.txt` on apply.workable.com allows; no official documentation for it was found.
 
 To change the model, see `OLLAMA_SETUP.md`. A new digest invalidates every result, so the whole eligible set is rematched over several runs.
 

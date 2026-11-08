@@ -5,7 +5,7 @@ A single TypeScript package. The CLI worker runs on GitHub Actions and the Next.
 ## Data flow
 
 ```
-Greenhouse, Lever, Ashby
+Greenhouse, Lever, Ashby, Workable
       │  crawl: conditional requests, SSRF-safe client
       ▼
 source_snapshots ─► source_listings ─► canonical_jobs ─► job_events
@@ -31,7 +31,7 @@ Each stage commits before the next starts, so jobs are never lost to a later fai
 
 | Directory | Holds |
 | --- | --- |
-| `src/connectors` | Greenhouse, Lever and Ashby clients |
+| `src/connectors` | Greenhouse, Lever, Ashby and Workable clients |
 | `src/http` | Crawler HTTP client with DNS-aware SSRF protection |
 | `src/normalize` | Location, technology, seniority and text normalization |
 | `src/ingest` | Crawl, identity, lifecycle and events |
@@ -107,7 +107,7 @@ Workflows share the `job-hunter-worker` concurrency group, and migrate, evaluate
 
 ## Trade-offs
 
-- **Recall depends on the catalog.** The owner can add a company from `/search` by pasting a Greenhouse, Lever or Ashby link; the `adopt` step probes it and keeps it only if it lists Israeli jobs. These boards list few Israeli QA jobs. Comeet is left out on purpose, see `PROJECT_STATUS.md`. Other ATS connectors are roadmap work.
+- **Recall depends on the catalog.** The owner can add a company from `/search` by pasting a Greenhouse, Lever, Ashby or Workable link; the `adopt` step probes it and keeps it only if it lists Israeli jobs. These boards list few Israeli QA jobs. Comeet is left out on purpose, see `PROJECT_STATUS.md`. Other ATS connectors are roadmap work.
 - **Daily discovery is not real time.** GitHub can delay or drop scheduled runs, so a job can wait a day or more before it is seen.
 - **Scores vary across runners.** The same seed gave `mixed-sdet` 63 on one runner and 78 and 85 on others. Treat a score as a band, not a measurement.
 - **Single owner, single profile.** Multi-user support is out of scope.
