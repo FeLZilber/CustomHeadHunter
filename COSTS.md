@@ -143,7 +143,7 @@ In order:
 3. Lower `MAX_AI_JOBS_PER_RUN` or `AI_TIME_BUDGET_SECONDS`.
 4. Lower the maintenance AI limit in `.github/workflows/maintenance.yml`.
 
-Discovery runs once a day, so the owner gets one message around 09:00 Israel time. This uses fewer minutes than the six-hourly schedule the figures above assume, but jobs that close or open between runs are noticed up to a day late.
+Discovery runs once a day, with a backup pass in the early afternoon in case GitHub drops the first; maintenance likewise. That is 62 discovery and 62 maintenance runs a month, still fewer than the 155 assumed above, and a backup pass with nothing new costs about 1.5 minutes. The owner gets one message around 09:00 Israel time. This uses fewer minutes than the six-hourly schedule the figures above assume, but jobs that close or open between runs are noticed up to a day late.
 
 Raising `AI_MINUTES_PER_MONTH` trades reserve for throughput. Above about 1,000 the 20% reserve is gone, and more manual runs or a slow month can reach the block. Paid runners, external AI and other infrastructure are outside this design and would need a separate decision.
 
