@@ -143,5 +143,5 @@ An injection example embedded in a posting scored 55 locally and 25 on hosted ru
 | Real GitHub sign-in | No OAuth app exists |
 | Neon, including its connection pooler | No project exists. Tests use plain Postgres 18 |
 | Vercel deployment | No project exists. The production build runs locally and in CI |
-| Scheduled workflow runs | They need `master`, secrets and `PRODUCTION_ENABLED` |
+| Scheduled workflow runs | None has fired yet. See `PROJECT_STATUS.md` |
 | Human review of the evaluation labels | Needs a person |
