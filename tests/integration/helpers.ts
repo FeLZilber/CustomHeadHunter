@@ -101,7 +101,7 @@ export function testDeps(pool: Pool, connector: Connector, overrides: Partial<Cr
     pool,
     http: new HttpClient(),
     log: createLogger("error", () => {}),
-    connectors: { greenhouse: connector, lever: connector, ashby: connector, workable: connector },
+    connectors: { greenhouse: connector, lever: connector, ashby: connector, workable: connector, jsonld: connector },
     ...overrides,
   };
 }
