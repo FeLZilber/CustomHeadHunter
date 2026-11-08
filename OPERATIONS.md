@@ -59,7 +59,7 @@ The dashboard's status page shows everything below. `worker health` prints the s
 
 A run matches up to 8 jobs in 900 s and starts jobs only until 570 s. Slow runners complete about 3 long jobs. Anything left stays pending for the next run. Tasks are taken by priority, then newest first, so fresh jobs get a verdict quickly and old tasks can wait during a long backlog. The health report shows the oldest task's age.
 
-`evaluate` queues at most `AI_QUEUE_LIMIT` open tasks (default 40), best deterministic priority first. Eligible jobs beyond that are `deferred` in the evaluate log, show as pending on the dashboard, and are queued automatically as the queue drains. `AI_QUEUE_LIMIT=0` queues no AI work (an off switch, like `AI_MINUTES_PER_MONTH=0`). Lowering the limit does not cancel tasks already queued.
+`evaluate` queues at most `AI_QUEUE_LIMIT` open tasks (default 40), best deterministic priority first. Eligible jobs beyond that are `deferred` in the evaluate log, show as pending on the dashboard, and are queued automatically as the queue drains. `AI_QUEUE_LIMIT=0` queues no AI work (an off switch, like `AI_MINUTES_PER_MONTH=0`). Lowering the limit does not cancel tasks already queued. The workflows do not pass `AI_QUEUE_LIMIT` yet, so on Actions it stays at 40 until it is added to a job's `env`, like the variables listed above.
 
 A backlog that keeps growing means more jobs pass the filter than the budget can match. Narrow the profile before raising limits, then see `COSTS.md`.
 
