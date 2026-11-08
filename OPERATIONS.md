@@ -29,7 +29,7 @@
 
 Blank means the default. Workflows read only the names below, so other settings need a code change.
 
-`MAX_AI_JOBS_PER_RUN`, `AI_TIME_BUDGET_SECONDS`, `AI_MINUTES_PER_MONTH`, `INFERENCE_TIMEOUT_SECONDS`, `MAX_JOB_INPUT_TOKENS`, `CRAWL_TIME_BUDGET_SECONDS`, `MAX_ALERTS_PER_RUN`, `NOTIFY_TIME_BUDGET_SECONDS`, `STALE_DISCOVERY_HOURS`, `RETENTION_DAYS`
+`CRAWLER_CONTACT` (appended to the crawler's User-Agent; defaults to the repository URL), `MAX_AI_JOBS_PER_RUN`, `AI_TIME_BUDGET_SECONDS`, `AI_MINUTES_PER_MONTH`, `INFERENCE_TIMEOUT_SECONDS`, `MAX_JOB_INPUT_TOKENS`, `CRAWL_TIME_BUDGET_SECONDS`, `MAX_ALERTS_PER_RUN`, `NOTIFY_TIME_BUDGET_SECONDS`, `STALE_DISCOVERY_HOURS`, `RETENTION_DAYS`
 
 Before raising a time budget, check it against the job's `timeout-minutes`. `AI_TIME_BUDGET_SECONDS` must stay above `INFERENCE_TIMEOUT_SECONDS`, or no job starts. Discovery's 38 minutes covers the default 900 s budget and no more.
 

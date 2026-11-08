@@ -15,6 +15,7 @@
     "benchmark:ollama": "tsx benchmarks/ollama/run.ts",
     "worker": "tsx --env-file-if-exists=.env src/worker/cli.ts",
     "catalog:add": "tsx scripts/add-source.ts",
+    "catalog:discover": "tsx scripts/discover-sources.ts",
     "check:live-ingest": "tsx scripts/live-ingest-check.ts",
     "test:e2e": "next build && playwright test"
   },

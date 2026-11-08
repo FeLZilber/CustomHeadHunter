@@ -14,7 +14,7 @@ afterAll(() => pool.end());
 beforeEach(() => resetDatabase(pool));
 
 const probeAs = (result: Partial<ProbeResult>) => async (_: HttpClient, provider: ProbeResult["provider"], key: string): Promise<ProbeResult> =>
-  ({ provider, providerKey: key, status: "found", total: 10, israeli: 3, qaTitles: 1, ...result });
+  ({ provider, providerKey: key, status: "found", total: 10, israeli: 3, israeliNamed: 3, qaTitles: 1, ...result });
 
 const sources = async () => (await pool.query(`SELECT provider_key, enabled, origin FROM job_sources WHERE origin = 'requested'`)).rows;
 
@@ -33,8 +33,8 @@ describe("requested sources", () => {
     await requestSource(pool, { provider: "ashby", providerKey: "abroad" }, "Abroad");
     const probe = async (_: HttpClient, provider: ProbeResult["provider"], key: string): Promise<ProbeResult> =>
       key === "ghost"
-        ? { provider, providerKey: key, status: "missing", total: 0, israeli: 0, qaTitles: 0 }
-        : { provider, providerKey: key, status: "found", total: 5, israeli: 0, qaTitles: 0 };
+        ? { provider, providerKey: key, status: "missing", total: 0, israeli: 0, israeliNamed: 0, qaTitles: 0 }
+        : { provider, providerKey: key, status: "found", total: 5, israeli: 0, israeliNamed: 0, qaTitles: 0 };
     expect(await adoptRequestedSources(pool, http, probe)).toEqual({ added: 0, rejected: 2, retry: 0 });
     expect(await sources()).toEqual([]);
     await requestSource(pool, { provider: "ashby", providerKey: "abroad" }, "Abroad");

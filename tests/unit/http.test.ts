@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { HttpClient, ResponseTooLargeError, type Transport, type TransportResponse } from "../../src/http/client";
+import { HttpClient, ResponseTooLargeError, userAgentFor, type Transport, type TransportResponse } from "../../src/http/client";
 import { assertAllowedUrl, BlockedDestinationError, createGuardedLookup, isBlockedAddress } from "../../src/http/guard";
 
 const respond = (status: number, body = "{}", headers: Record<string, string> = {}): TransportResponse => ({ status, body, headers });
@@ -160,5 +160,132 @@ describe("HttpClient", () => {
     await client.get("https://api.lever.co/b");
     await client.get("https://api.lever.co/c");
     expect(sleeps).toEqual([1000, 2000]);
+  });
+});
+
+describe("HttpClient robots.txt", () => {
+  const ROBOTS = "https://example.test/robots.txt";
+
+  function site(robots: TransportResponse | Error, pages: Record<string, TransportResponse> = {}) {
+    const requests: Array<{ url: string; headers: Record<string, string> }> = [];
+    const sleeps: number[] = [];
+    const transport: Transport = async (url, headers) => {
+      requests.push({ url: url.toString(), headers });
+      if (url.pathname === "/robots.txt") {
+        if (robots instanceof Error) throw robots;
+        return robots;
+      }
+      return pages[url.pathname] ?? respond(200, "page");
+    };
+    const client = new HttpClient({
+      transport,
+      robots: true,
+      sleep: async (ms) => {
+        sleeps.push(ms);
+      },
+      now: () => 1000,
+      random: () => 0,
+      hostIntervalMs: { default: 0 },
+      userAgent: userAgentFor("ops@example.test"),
+    });
+    return { client, requests, sleeps };
+  }
+
+  it("never requests a disallowed path and reports it blocked", async () => {
+    const { client, requests } = site(respond(200, "User-agent: *\nDisallow: /private"));
+    expect(await client.get("https://example.test/private/x")).toEqual({
+      kind: "blocked",
+      status: 0,
+      error: "Disallowed by robots.txt",
+    });
+    expect(requests.map((r) => r.url)).toEqual([ROBOTS]);
+    expect((await client.get("https://example.test/public")).kind).toBe("ok");
+  });
+
+  it("treats a 404 robots.txt as allow-all", async () => {
+    const { client } = site(respond(404));
+    expect((await client.get("https://example.test/anything")).kind).toBe("ok");
+  });
+
+  it("treats a 403 robots.txt as allow-all", async () => {
+    const { client } = site(respond(403));
+    expect((await client.get("https://example.test/anything")).kind).toBe("ok");
+  });
+
+  it("blocks everything when robots.txt answers 5xx, trying it only twice", async () => {
+    const { client, requests } = site(respond(500));
+    expect(await client.get("https://example.test/a")).toMatchObject({ kind: "blocked", error: "Disallowed by robots.txt" });
+    expect((await client.get("https://example.test/b")).kind).toBe("blocked");
+    expect(requests.map((r) => r.url)).toEqual([ROBOTS, ROBOTS]);
+  });
+
+  it("blocks everything when robots.txt cannot be reached", async () => {
+    const { client } = site(new Error("ECONNRESET"));
+    expect((await client.get("https://example.test/a")).kind).toBe("blocked");
+  });
+
+  it("fetches robots.txt once per origin across concurrent requests", async () => {
+    const { client, requests } = site(respond(200, "User-agent: *\nDisallow: /nope"));
+    await Promise.all(["/a", "/b", "/c", "/d"].map((path) => client.get(`https://example.test${path}`)));
+    await client.get("https://example.test/e");
+    expect(requests.filter((r) => r.url === ROBOTS)).toHaveLength(1);
+    expect(requests).toHaveLength(6);
+  });
+
+  it("follows a robots.txt redirect", async () => {
+    const requests: string[] = [];
+    const client = new HttpClient({
+      robots: true,
+      sleep: async () => {},
+      hostIntervalMs: {},
+      transport: async (url) => {
+        requests.push(url.toString());
+        if (url.toString() === ROBOTS) return respond(301, "", { location: "https://example.test/real-robots" });
+        if (url.pathname === "/real-robots") return respond(200, "User-agent: *\nDisallow: /x");
+        return respond(200);
+      },
+    });
+    expect((await client.get("https://example.test/x")).kind).toBe("blocked");
+    expect(requests).toEqual([ROBOTS, "https://example.test/real-robots"]);
+  });
+
+  it("slows pacing to the site's Crawl-delay, capped at 10 seconds", async () => {
+    const { client, sleeps } = site(respond(200, "User-agent: *\nCrawl-delay: 3"));
+    await client.get("https://example.test/a");
+    await client.get("https://example.test/b");
+    expect(sleeps).toContain(3000);
+
+    const capped = site(respond(200, "User-agent: *\nCrawl-delay: 600"));
+    await capped.client.get("https://example.test/a");
+    await capped.client.get("https://example.test/b");
+    expect(Math.max(...capped.sleeps)).toBe(10_000);
+  });
+
+  it("blocks a redirect that lands on a disallowed path", async () => {
+    const { client, requests } = site(respond(200, "User-agent: *\nDisallow: /private"), {
+      "/start": respond(302, "", { location: "/private/page" }),
+    });
+    expect(await client.get("https://example.test/start")).toMatchObject({ kind: "blocked", error: "Disallowed by robots.txt" });
+    expect(requests.map((r) => new URL(r.url).pathname)).toEqual(["/robots.txt", "/start"]);
+  });
+
+  it("sends the contact in the user agent, also on robots.txt", async () => {
+    const { client, requests } = site(respond(404));
+    await client.get("https://example.test/a");
+    for (const request of requests) {
+      expect(request.headers["user-agent"]).toBe("headhunter-personal-job-search/0.2 (+ops@example.test)");
+    }
+  });
+
+  it("lets a caller ask for another content type", async () => {
+    const { client, requests } = site(respond(404));
+    await client.get("https://example.test/a", { accept: "text/html" });
+    expect(requests.at(-1)?.headers.accept).toBe("text/html");
+  });
+
+  it("builds the user agent with or without a contact", () => {
+    expect(userAgentFor(undefined)).toBe("headhunter-personal-job-search/0.2");
+    expect(userAgentFor("")).toBe("headhunter-personal-job-search/0.2");
+    expect(userAgentFor("https://example.test/repo")).toBe("headhunter-personal-job-search/0.2 (+https://example.test/repo)");
   });
 });

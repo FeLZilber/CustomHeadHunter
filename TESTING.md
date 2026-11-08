@@ -50,6 +50,17 @@ These use real services or runner minutes, so they run only when chosen.
 
 ## Live results
 
+### Catalog growth, 2026-11-08, real boards, throwaway database, `catalog/discover-sources`
+
+Same day, same filter (`filter-v4`), before and after adding the 30 sources found by `catalog:discover`. Crawl, then `evaluate`; no model ran.
+
+| Catalog | Sources (complete) | Listings seen | Israeli jobs | Eligible after filter |
+| --- | --- | --- | --- | --- |
+| `master`, 37 sources | 37 | 2,821 | 454 | 13 |
+| This branch, 67 sources | 67 | 3,752 | 596 | 14 |
+
+One existing source (`greenhouse:perionnetworkltd`) listed no Israeli job on that day.
+
 ### Ingestion, 2026-11-02, real boards, throwaway database, `search-recall`
 
 Crawl stage only, with Ashby and the nine new sources.
