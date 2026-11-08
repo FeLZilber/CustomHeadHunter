@@ -140,6 +140,8 @@ export class HttpClient {
       hostIntervalMs: options.hostIntervalMs ?? {
         default: 250,
         "api.lever.co": 1000, // Crawl-delay: 1 in its robots.txt.
+        // No published limit, but it answered 429 after about 46 requests at 250 ms (2026-11-08).
+        "apply.workable.com": 5000,
       },
     };
   }
