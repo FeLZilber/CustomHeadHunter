@@ -1,11 +1,13 @@
 import { ashbyConnector } from "../connectors/ashby";
 import { greenhouseConnector } from "../connectors/greenhouse";
+import { jsonldConnector } from "../connectors/jsonld";
 import { leverConnector } from "../connectors/lever";
 import { workableConnector } from "../connectors/workable";
 import type { Connector, Provider, RawListing } from "../connectors/types";
 import type { HttpClient } from "../http/client";
 import { isInIsraelScope, normalizeLocation } from "../normalize/location";
 
+/** Providers whose board slug can be guessed from a company name. jsonld is excluded: its key is a URL. */
 export const PROVIDERS: Provider[] = ["greenhouse", "lever", "ashby", "workable"];
 
 const CONNECTORS: Record<Provider, Connector> = {
@@ -13,10 +15,12 @@ const CONNECTORS: Record<Provider, Connector> = {
   lever: leverConnector,
   ashby: ashbyConnector,
   workable: workableConnector,
+  jsonld: jsonldConnector,
 };
 
 /** Where a provider's public listing endpoint lives, recorded as the catalog's verification source. */
 export const verificationUrl = (provider: Provider, key: string): string => {
+  if (provider === "jsonld") return key;
   const k = encodeURIComponent(key);
   if (provider === "greenhouse") return `https://boards-api.greenhouse.io/v1/boards/${k}/jobs`;
   if (provider === "lever") return `https://api.lever.co/v0/postings/${k}`;

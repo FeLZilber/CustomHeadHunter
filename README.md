@@ -93,6 +93,8 @@ Workable is left out of bulk discovery unless named with `--providers workable`:
 
 [catalog/candidates.txt](catalog/candidates.txt) holds 781 names with where each came from. On 2026-11-08 it yielded 30 new sources; most Israeli employers in it use Comeet or a board this project does not read.
 
+A company with its own careers page can be followed without an ATS if the page (or a job sitemap) embeds `schema.org/JobPosting` JSON-LD. `catalog:add` does not guess these. Add an entry to `catalog/sources.json` by hand with `"provider": "jsonld"` and `"providerKey"` set to the full https URL of the careers page or sitemap `.xml`, fill in the other fields as for any entry, and check the page's robots.txt allows it. A crawl that finds no JobPosting fails rather than expiring jobs.
+
 ## Documentation
 
 | File | Covers |

@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { ashbyConnector } from "../connectors/ashby";
 import { greenhouseConnector } from "../connectors/greenhouse";
+import { jsonldConnector } from "../connectors/jsonld";
 import { leverConnector } from "../connectors/lever";
 import { workableConnector } from "../connectors/workable";
 import type { Connector, CrawlOutcome, CrawlPage, Provider } from "../connectors/types";
@@ -25,6 +26,7 @@ export const defaultConnectors: Record<Provider, Connector> = {
   lever: leverConnector,
   ashby: ashbyConnector,
   workable: workableConnector,
+  jsonld: jsonldConnector,
 };
 
 const TRANSACTION_BATCH = 50;
