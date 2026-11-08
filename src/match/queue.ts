@@ -1,3 +1,4 @@
+import { DEFAULT_AI_QUEUE_LIMIT } from "../config/budget";
 import { retryTransient, withTransaction, type Pool, type Queryable } from "../db/pool";
 import { applyFilter, FILTER_VERSION, type FilterResult } from "../filter";
 import { redact } from "../logger";
@@ -15,7 +16,10 @@ export interface EvaluationSummary {
   evaluated: number;
   eligible: number;
   rejected: number;
+  /** Tasks this run really added to the queue. */
   queued: number;
+  /** Eligible, unscored and not queued: ranked below the queue limit and waiting for room. */
+  deferred: number;
   reused: number;
 }
 
@@ -88,7 +92,7 @@ async function queueTask(db: Queryable, row: Record<string, any>, profile: Profi
 
 async function evaluateBatch(db: Queryable, profile: Profile, hashes: Hashes): Promise<EvaluationSummary> {
   await db.query(`SELECT pg_advisory_xact_lock($1)`, [EVALUATION_LOCK_ID]);
-  const summary: EvaluationSummary = { evaluated: 0, eligible: 0, rejected: 0, queued: 0, reused: 0 };
+  const summary: EvaluationSummary = { evaluated: 0, eligible: 0, rejected: 0, queued: 0, deferred: 0, reused: 0 };
   for (const row of await selectStale(db, hashes)) {
     const result = decide(row, profile.matching);
     const key = result.decision === "eligible" ? buildInputKey(row.content_hash, hashes.profileHash, hashes.configHash) : null;
@@ -99,22 +103,19 @@ async function evaluateBatch(db: Queryable, profile: Profile, hashes: Hashes): P
         key,
       ]);
       if (rowCount) summary.reused += 1;
-      else {
-        await queueTask(db, row, profile, hashes, key, result.priority);
-        summary.queued += 1;
-      }
     }
     await db.query(
       `INSERT INTO job_evaluations (canonical_job_id, source_listing_id, profile_revision_id, profile_hash, filter_version,
-                                    config_hash, content_hash, decision, reason_codes, input_key)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+                                    config_hash, content_hash, decision, reason_codes, input_key, priority)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
        ON CONFLICT (canonical_job_id) DO UPDATE
          SET source_listing_id = EXCLUDED.source_listing_id, profile_revision_id = EXCLUDED.profile_revision_id,
              profile_hash = EXCLUDED.profile_hash, filter_version = EXCLUDED.filter_version,
              config_hash = EXCLUDED.config_hash, content_hash = EXCLUDED.content_hash, decision = EXCLUDED.decision,
-             reason_codes = EXCLUDED.reason_codes, input_key = EXCLUDED.input_key, evaluated_at = now()`,
+             reason_codes = EXCLUDED.reason_codes, input_key = EXCLUDED.input_key, priority = EXCLUDED.priority,
+             evaluated_at = now()`,
       [row.canonical_job_id, row.listing_id, profile.revisionId, hashes.profileHash, FILTER_VERSION, hashes.configHash,
-       row.content_hash, result.decision, result.reasons, key],
+       row.content_hash, result.decision, result.reasons, key, result.priority],
     );
     summary.evaluated += 1;
     summary[result.decision === "eligible" ? "eligible" : "rejected"] += 1;
@@ -122,15 +123,72 @@ async function evaluateBatch(db: Queryable, profile: Profile, hashes: Hashes): P
   return summary;
 }
 
-/** Runs the deterministic stage. It commits batch by batch and spends no model time. */
-export async function evaluateJobs(pool: Pool, config: MatchConfig, profile: Profile): Promise<EvaluationSummary> {
+/**
+ * Tops the queue up with the best-ranked eligible jobs that have no answer and no
+ * task yet. Ranking is the deterministic priority stored at evaluation, so a deep
+ * catalog never turns into a deep model backlog. Exhausted and succeeded tasks are
+ * left alone; only a superseded one reopens (inside queueTask).
+ */
+async function fillQueue(db: Queryable, profile: Profile, hashes: Hashes, limit: number): Promise<{ queued: number; deferred: number }> {
+  await db.query(`SELECT pg_advisory_xact_lock($1)`, [EVALUATION_LOCK_ID]);
+  // Only tasks that can still run take a slot. A pending task whose job closed, whose posting
+  // changed or whose profile was replaced is never claimed, and counting it would starve the queue.
+  const { rows: open } = await db.query(
+    `SELECT count(*)::int AS n FROM match_tasks t
+      WHERE t.status IN ('pending', 'claimed') AND t.config_hash = $1 AND t.profile_hash = $2
+        AND EXISTS (SELECT 1 FROM canonical_jobs c WHERE c.id = t.canonical_job_id AND c.status = 'active')
+        AND EXISTS (SELECT 1 FROM job_evaluations e WHERE e.canonical_job_id = t.canonical_job_id AND e.input_key = t.input_key)
+        AND EXISTS (SELECT 1 FROM source_listings l WHERE l.id = t.source_listing_id AND l.status = 'active'
+                     AND l.content_hash = t.content_hash)`,
+    [hashes.configHash, hashes.profileHash],
+  );
+  const room = Math.max(0, limit - open[0].n);
+  const unqueued = `
+      FROM job_evaluations e
+      JOIN canonical_jobs c ON c.id = e.canonical_job_id AND c.status = 'active'
+      JOIN source_listings l ON l.id = e.source_listing_id AND l.status = 'active' AND l.content_hash = e.content_hash
+     WHERE e.decision = 'eligible' AND e.input_key IS NOT NULL
+       AND e.profile_hash = $1 AND e.config_hash = $2 AND e.filter_version = $3
+       AND NOT EXISTS (SELECT 1 FROM match_results r WHERE r.canonical_job_id = e.canonical_job_id AND r.input_key = e.input_key)
+       AND NOT EXISTS (SELECT 1 FROM match_tasks t WHERE t.canonical_job_id = e.canonical_job_id AND t.input_key = e.input_key
+                        AND t.status <> 'superseded')`;
+  const params = [hashes.profileHash, hashes.configHash, FILTER_VERSION];
+  let queued = 0;
+  if (room > 0) {
+    const { rows } = await db.query(
+      `SELECT e.canonical_job_id, l.id AS listing_id, l.content_hash, e.input_key, e.priority ${unqueued}
+        ORDER BY e.priority DESC, l.published_at DESC NULLS LAST, e.canonical_job_id DESC
+        LIMIT $4`,
+      [...params, room],
+    );
+    for (const row of rows) await queueTask(db, row, profile, hashes, row.input_key, row.priority);
+    queued = rows.length;
+  }
+  const { rows: left } = await db.query(`SELECT count(*)::int AS n ${unqueued}`, params);
+  return { queued, deferred: left[0].n };
+}
+
+/**
+ * Runs the deterministic stage. It commits batch by batch and spends no model time.
+ * `queueLimit` caps open model tasks; 0 queues nothing.
+ */
+export async function evaluateJobs(
+  pool: Pool,
+  config: MatchConfig,
+  profile: Profile,
+  queueLimit: number = DEFAULT_AI_QUEUE_LIMIT,
+): Promise<EvaluationSummary> {
   const hashes = { profileHash: profile.matchingHash, configHash: hashMatchConfig(config) };
-  const total: EvaluationSummary = { evaluated: 0, eligible: 0, rejected: 0, queued: 0, reused: 0 };
+  const total: EvaluationSummary = { evaluated: 0, eligible: 0, rejected: 0, queued: 0, deferred: 0, reused: 0 };
   for (;;) {
     const batch = await withTransaction(pool, (client) => evaluateBatch(client, profile, hashes));
     for (const key of Object.keys(total) as Array<keyof EvaluationSummary>) total[key] += batch[key];
-    if (batch.evaluated < EVALUATION_BATCH) return total;
+    if (batch.evaluated < EVALUATION_BATCH) break;
   }
+  const filled = await withTransaction(pool, (client) => fillQueue(client, profile, hashes, queueLimit));
+  total.queued = filled.queued;
+  total.deferred = filled.deferred;
+  return total;
 }
 
 /** A task is runnable only while it is still the question this job needs answered. */

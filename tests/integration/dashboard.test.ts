@@ -58,7 +58,7 @@ describe("dashboard queries", () => {
     await runCrawl(pool, connector);
   };
 
-  const evaluate = async () => evaluateJobs(pool, config, await ensureProfile(pool));
+  const evaluate = async () => evaluateJobs(pool, config, await ensureProfile(pool), 1000);
 
   async function match(reply: (prompt: string) => string = () => modelReply(), maxJobs = 50, maxAttempts = 3) {
     await evaluate();

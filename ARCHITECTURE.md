@@ -57,7 +57,7 @@ A job moves between `active` and `expired`:
 
 ## Matching
 
-`evaluate` applies the filter and queues work without a model. A task's input key combines the content hash, the profile matching hash and the match config hash (model digest, prompt, schema, rubric, inference options and input limit).
+`evaluate` applies the filter and queues work without a model. Every evaluation stores the filter's deterministic priority. After evaluating, a fill step tops the queue up to `AI_QUEUE_LIMIT` open tasks with the best-ranked eligible jobs that have no result and no task (a superseded task may reopen, an exhausted one never does); the rest are deferred and picked up as the queue drains. A task's input key combines the content hash, the profile matching hash and the match config hash (model digest, prompt, schema, rubric, inference options and input limit).
 
 - An unchanged key is never rematched, so a full crawl does not re-run AI.
 - A changed key queues new work and marks the old result stale. Stale results stay readable and labelled.
@@ -99,12 +99,13 @@ The job list can filter and sort by posting date, using the discovery date when 
 
 ## Budget controls
 
-Three limits apply, from narrowest to widest:
+Four limits apply, from narrowest to widest:
 
 | Limit | Default | Enforced by |
 | --- | --- | --- |
 | Per job | 330 s, 1000 output tokens, 1600 input tokens | `OllamaClient`, `buildMatchConfig` |
 | Per run | 8 jobs, 900 s | `drainQueue`, stage `timeout`, job `timeout-minutes` |
+| Queue | 40 open tasks (`AI_QUEUE_LIMIT`, 0 = no AI work) | `fillQueue` queues the best-ranked jobs only |
 | Per month | 800 AI minutes | `pending` keeps Ollama off once spent; tasks stay queued |
 
 The monthly cap exists because a backlog that never clears would spend the Actions allowance, and GitHub would then block discovery too. See `COSTS.md`.

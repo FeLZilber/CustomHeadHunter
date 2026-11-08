@@ -109,6 +109,19 @@ The 1.5 minutes for a run without AI is an estimate, because no production run e
 
 **Expected case.** The base 583, plus about 21 eligible jobs a month across 10 AI runs, gives 640 to 680 minutes. The 21 is an assumption of about 5 new eligible postings a week, not a measurement. Only 11 of 377 current jobs pass the filter.
 
+## Volume after catalog growth
+
+Measured on 2026-11-08 against live boards, same filter (`filter-v4`), no model run:
+
+| Catalog | Sources | Israeli jobs | Eligible after filter | Pass rate |
+| --- | --- | --- | --- | --- |
+| Before (37 sources) | 37 | 454 | 13 | 2.9% |
+| After `catalog:discover` (67 sources) | 67 | 596 | 14 | 2.3% |
+
+The catalog grew 1.8x and Israeli jobs 1.3x, but eligible jobs only from 13 to 14: the new companies list few QA roles. So the expected case above barely moves. Scaling the assumed 21 new eligible jobs a month by 14/13 gives about 23 (estimate), still well under the roughly 210 to 250 long postings a month the monthly cap allows.
+
+Model time does not follow the job count in any case. Each run takes at most `MAX_AI_JOBS_PER_RUN` jobs inside `AI_TIME_BUDGET_SECONDS`, and `AI_MINUTES_PER_MONTH` keeps Ollama off once the month is spent, however many jobs are eligible. `AI_QUEUE_LIMIT` (default 40) bounds the backlog: `evaluate` ranks eligible jobs by the deterministic priority and queues only the best 40 runnable tasks that have no answer yet. The rest wait unqueued, shown as pending, and enter as the queue drains. A deeper catalog therefore adds no model calls; it only decides which jobs get them first. `tests/integration/match.test.ts` ("queue limit") checks this with ten times more eligible jobs than the limit.
+
 ## Throughput
 
 | Measure | Value |
