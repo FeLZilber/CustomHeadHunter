@@ -116,7 +116,7 @@ describe("notifications", () => {
   }
 
   async function evaluate() {
-    await evaluateJobs(pool, config, await ensureProfile(pool));
+    await evaluateJobs(pool, config, await ensureProfile(pool), 1000);
   }
 
   async function match(replies: string[] | (() => string) = () => modelReply(HIGH), maxJobs = 50) {

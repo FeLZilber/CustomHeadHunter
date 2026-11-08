@@ -112,4 +112,12 @@ describe("BudgetSchema", () => {
     expect(BudgetSchema.parse({ MAX_AI_JOBS_PER_RUN: "3" }).MAX_AI_JOBS_PER_RUN).toBe(3);
     expect(BudgetSchema.safeParse({ MAX_AI_JOBS_PER_RUN: "-1" }).success).toBe(false);
   });
+
+  it("bounds the AI queue, where 0 is an off switch", () => {
+    expect(BudgetSchema.parse({}).AI_QUEUE_LIMIT).toBe(40);
+    expect(BudgetSchema.parse({ AI_QUEUE_LIMIT: "0" }).AI_QUEUE_LIMIT).toBe(0);
+    expect(BudgetSchema.parse({ AI_QUEUE_LIMIT: "5000" }).AI_QUEUE_LIMIT).toBe(5000);
+    expect(BudgetSchema.safeParse({ AI_QUEUE_LIMIT: "-1" }).success).toBe(false);
+    expect(BudgetSchema.safeParse({ AI_QUEUE_LIMIT: "5001" }).success).toBe(false);
+  });
 });

@@ -104,7 +104,7 @@ async function main(): Promise<number> {
       }
       case "evaluate": {
         const profile = await ensureProfile(pool);
-        log.info("Evaluation finished", { ...(await evaluateJobs(pool, buildMatchConfig(env), profile)) });
+        log.info("Evaluation finished", { ...(await evaluateJobs(pool, buildMatchConfig(env), profile, env.AI_QUEUE_LIMIT)) });
         return 0;
       }
       case "requeue": {

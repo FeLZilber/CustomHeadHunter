@@ -109,6 +109,12 @@ The 1.5 minutes for a run without AI is an estimate, because no production run e
 
 **Expected case.** The base 583, plus about 21 eligible jobs a month across 10 AI runs, gives 640 to 680 minutes. The 21 is an assumption of about 5 new eligible postings a week, not a measurement. Only 11 of 377 current jobs pass the filter.
 
+## Volume after catalog growth
+
+The deterministic filter passed 13 of 454 Israeli jobs (2.9%) across 37 sources, measured on 2026-11-08. If the catalog grows about 4x, expect roughly 50 eligible jobs at first. Assuming the pass rate holds and new eligible postings also scale 4x, that is about 20 new eligible jobs a week, or about 85 a month. This is an estimate, not a measurement.
+
+Model time does not follow that number. Each run takes at most `MAX_AI_JOBS_PER_RUN` jobs inside `AI_TIME_BUDGET_SECONDS`, and `AI_MINUTES_PER_MONTH` keeps Ollama off once the month is spent, however many jobs are eligible. `AI_QUEUE_LIMIT` (default 40) bounds the backlog: `evaluate` ranks eligible jobs by the deterministic priority and queues only the best 40 that have no answer yet. The rest wait unqueued and enter as the queue drains, so a deeper catalog does not add model calls, it only decides which jobs get them first. At 85 jobs a month the expected case above would use roughly 830 to 970 minutes uncapped (estimate), so the 800 minute cap would bind late in the month and the lowest-ranked jobs would wait.
+
 ## Throughput
 
 | Measure | Value |

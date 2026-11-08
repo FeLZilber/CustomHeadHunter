@@ -92,7 +92,7 @@ export async function seedFixtures(pool: Pool) {
   await crawl(deps, crawlOptions);
 
   const profile = await ensureProfile(pool);
-  await evaluateJobs(pool, config, profile);
+  await evaluateJobs(pool, config, profile, 1000);
   const chatResult = { doneReason: "stop", totalMs: 1, loadMs: 0, promptTokens: 1, promptMs: 0, outputTokens: 1, outputMs: 0 };
   const matched = await runMatch(
     {
@@ -134,5 +134,5 @@ export async function seedFixtures(pool: Pool) {
     { ...deps, connectors: { greenhouse: connectorFor([...listings, listing("pending", TITLES.pending)]), lever: deps.connectors.lever, ashby: deps.connectors.ashby } },
     crawlOptions,
   );
-  await evaluateJobs(pool, config, profile);
+  await evaluateJobs(pool, config, profile, 1000);
 }
