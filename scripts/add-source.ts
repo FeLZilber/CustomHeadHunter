@@ -84,7 +84,7 @@ for (const name of names) {
     continue;
   }
   const tag = `${best.provider}:${best.providerKey}`;
-  if (best.israeli === 0) {
+  if (best.israeliNamed === 0) {
     console.log(`no-il    ${name}: ${tag} has ${best.total} jobs, none in Israel scope`);
     continue;
   }

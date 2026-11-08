@@ -42,7 +42,12 @@ describe("probeBoard", () => {
         ],
       }),
     );
-    expect(await probeBoard(client, "greenhouse", "acme")).toMatchObject({ status: "found", total: 3, israeli: 2, qaTitles: 1 });
+    expect(await probeBoard(client, "greenhouse", "acme")).toMatchObject({ status: "found", total: 3, israeli: 2, israeliNamed: 2, qaTitles: 1 });
+  });
+
+  it("counts a remote job open to Israel as in scope but not as a named Israeli location", async () => {
+    const { client } = http(() => json({ jobs: [job(1, "Account Executive", "Remote"), job(2, "Engineer", "Berlin, Germany")] }));
+    expect(await probeBoard(client, "greenhouse", "acme")).toMatchObject({ israeli: 1, israeliNamed: 0 });
   });
 
   it("reports an unknown board as missing, not as an error", async () => {

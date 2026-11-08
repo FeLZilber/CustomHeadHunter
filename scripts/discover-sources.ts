@@ -130,6 +130,7 @@ if (values.report) {
     provider: board?.provider ?? null,
     providerKey: board?.providerKey ?? null,
     israeli: board?.israeli ?? null,
+    israeliNamed: board?.israeliNamed ?? null,
     total: board?.total ?? null,
     qaTitles: board?.qaTitles ?? null,
     detail,
@@ -147,7 +148,7 @@ if (values.write) {
     // Another company in this run may have claimed the same board.
     if (takenBoards.has(tag)) continue;
     const live = await probeBoard(http, provider, providerKey); // Never trust the cache for what gets written.
-    if (live.status !== "found" || live.israeli === 0) {
+    if (live.status !== "found" || live.israeliNamed === 0) {
       console.log(`drop   ${outcome.name}  ${tag} no longer shows an Israeli job (${live.status})`);
       continue;
     }
@@ -163,7 +164,7 @@ if (values.write) {
       verifiedAt: new Date().toISOString().replace(/\.\d+Z$/, "Z"),
       verificationSourceUrl: verificationUrl(provider, providerKey),
     });
-    console.log(`add    ${outcome.name}  ${tag} ${live.israeli}/${live.total}`);
+    console.log(`add    ${outcome.name}  ${tag} ${live.israeliNamed}/${live.total}`);
     added += 1;
   }
   if (added > 0) await writeFile(CATALOG_PATH, `${JSON.stringify(catalog, null, 2)}\n`);

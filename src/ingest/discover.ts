@@ -51,6 +51,8 @@ const cacheEntrySchema = z.object({
   status: z.enum(["found", "missing"]),
   total: z.number(),
   israeli: z.number(),
+  /** Absent in caches written before the field existed; such a found board is re-probed. */
+  israeliNamed: z.number().optional(),
   qaTitles: z.number(),
   checkedAt: z.string(),
 });
@@ -59,17 +61,25 @@ export type ProbeCache = Record<string, CacheEntry>;
 
 export const cacheKey = (provider: Provider, providerKey: string): string => `${provider}:${providerKey}`;
 
-/** A damaged or foreign cache file is dropped rather than trusted: it only saves requests. */
+/** Damaged or foreign entries are dropped one by one rather than trusted: the cache only saves requests. */
 export function parseCache(text: string): ProbeCache {
+  let raw: unknown;
   try {
-    const parsed = z.record(z.string(), cacheEntrySchema).safeParse(JSON.parse(text));
-    return parsed.success ? parsed.data : {};
+    raw = JSON.parse(text);
   } catch {
     return {};
   }
+  if (typeof raw !== "object" || raw === null || Array.isArray(raw)) return {};
+  const cache: ProbeCache = {};
+  for (const [key, value] of Object.entries(raw)) {
+    const entry = cacheEntrySchema.safeParse(value);
+    if (entry.success) cache[key] = entry.data;
+  }
+  return cache;
 }
 
 export function isFresh(entry: CacheEntry, now: Date, maxAgeDays: number): boolean {
+  if (entry.status === "found" && entry.israeliNamed === undefined) return false;
   const age = now.getTime() - Date.parse(entry.checkedAt);
   return Number.isFinite(age) && age >= 0 && age < maxAgeDays * 86_400_000;
 }
@@ -77,19 +87,19 @@ export function isFresh(entry: CacheEntry, now: Date, maxAgeDays: number): boole
 /** Only definite answers are cached; an error says nothing about the board. */
 export function toCacheEntry(result: ProbeResult, now: Date): CacheEntry | null {
   if (result.status === "error") return null;
-  const { provider, providerKey, status, total, israeli, qaTitles } = result;
-  return { provider, providerKey, status, total, israeli, qaTitles, checkedAt: now.toISOString() };
+  const { provider, providerKey, status, total, israeli, israeliNamed, qaTitles } = result;
+  return { provider, providerKey, status, total, israeli, israeliNamed, qaTitles, checkedAt: now.toISOString() };
 }
 
 export function fromCacheEntry(entry: CacheEntry): ProbeResult {
-  const { checkedAt: _checkedAt, ...result } = entry;
-  return result;
+  const { checkedAt: _checkedAt, israeliNamed, ...result } = entry;
+  return { ...result, israeliNamed: israeliNamed ?? 0 };
 }
 
 /** The board that exists with the most Israeli jobs, then the most jobs overall. */
 export function chooseBest(results: ProbeResult[]): ProbeResult | null {
   const found = results.filter((r) => r.status === "found");
-  found.sort((a, b) => b.israeli - a.israeli || b.total - a.total);
+  found.sort((a, b) => b.israeliNamed - a.israeliNamed || b.israeli - a.israeli || b.total - a.total);
   return found[0] ?? null;
 }
 
@@ -107,9 +117,10 @@ export function classify(name: string, results: ProbeResult[]): Outcome {
   const best = chooseBest(results);
   if (best) {
     const tag = cacheKey(best.provider, best.providerKey);
-    return best.israeli > 0
-      ? { name, status: "found", board: best, detail: `${tag} ${best.israeli}/${best.total} ${best.qaTitles} qa-like` }
-      : { name, status: "no-il", board: best, detail: `${tag} 0/${best.total}` };
+    // A remote job open to Israel is in scope for the crawler but does not make an Israeli employer.
+    return best.israeliNamed > 0
+      ? { name, status: "found", board: best, detail: `${tag} ${best.israeliNamed}/${best.total} ${best.qaTitles} qa-like` }
+      : { name, status: "no-il", board: best, detail: `${tag} ${best.israeliNamed}/${best.total} (${best.israeli} remote or in scope)` };
   }
   const failed = results.find((r) => r.status === "error");
   if (failed) {

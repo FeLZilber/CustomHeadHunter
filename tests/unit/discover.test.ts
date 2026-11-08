@@ -10,6 +10,7 @@ const board = (over: Partial<ProbeResult>): ProbeResult => ({
   status: "found",
   total: 10,
   israeli: 2,
+  israeliNamed: 2,
   qaTitles: 1,
   ...over,
 });
@@ -38,9 +39,9 @@ describe("parseCandidateLines", () => {
 
 describe("chooseBest", () => {
   it("prefers more Israeli jobs, then more total, and ignores boards that were not found", () => {
-    const a = board({ providerKey: "a", israeli: 3, total: 5 });
-    const b = board({ providerKey: "b", israeli: 3, total: 50 });
-    const c = board({ providerKey: "c", israeli: 1, total: 500 });
+    const a = board({ providerKey: "a", israeli: 3, israeliNamed: 3, total: 5 });
+    const b = board({ providerKey: "b", israeli: 3, israeliNamed: 3, total: 50 });
+    const c = board({ providerKey: "c", israeli: 1, israeliNamed: 1, total: 500 });
     const missing = board({ providerKey: "d", status: "missing", israeli: 99 });
     expect(chooseBest([a, c, missing, b])?.providerKey).toBe("b");
     expect(chooseBest([missing])).toBeNull();
@@ -51,7 +52,9 @@ describe("chooseBest", () => {
 describe("classify", () => {
   it("reports found, no-il, error and miss", () => {
     expect(classify("Acme", [board({})])).toMatchObject({ status: "found", detail: "greenhouse:acme 2/10 1 qa-like" });
-    expect(classify("Acme", [board({ israeli: 0 })]).status).toBe("no-il");
+    expect(classify("Acme", [board({ israeli: 0, israeliNamed: 0 })]).status).toBe("no-il");
+    // Remote jobs open to Israel alone do not make an Israeli employer.
+    expect(classify("Acme", [board({ israeli: 4, israeliNamed: 0 })]).status).toBe("no-il");
     expect(classify("Acme", [board({ status: "missing" })]).status).toBe("miss");
     expect(classify("Acme", [board({ status: "error", detail: "HTTP 500" }), board({ status: "missing" })]).status).toBe("error");
   });
@@ -110,5 +113,19 @@ describe("extraSlugs", () => {
   it("never repeats a plain guess or returns slugs too short to be specific", () => {
     expect(extraSlugs("Wiz", ["wiz"])).toEqual(["wizinc", "wizhq", "wizio", "wizai"]);
     expect(extraSlugs("AI", ["ai"])).toEqual([]);
+  });
+});
+
+describe("cache upgrades", () => {
+  it("keeps valid entries when one is damaged, and re-probes a found board cached without israeliNamed", () => {
+    const now = new Date("2026-11-08T12:00:00Z");
+    const cache = parseCache(JSON.stringify({
+      "greenhouse:old": { provider: "greenhouse", providerKey: "old", status: "found", total: 5, israeli: 2, qaTitles: 0, checkedAt: "2026-11-08T11:00:00Z" },
+      "lever:gone": { provider: "lever", providerKey: "gone", status: "missing", total: 0, israeli: 0, qaTitles: 0, checkedAt: "2026-11-08T11:00:00Z" },
+      "ashby:bad": { provider: "ashby", status: "found" },
+    }));
+    expect(Object.keys(cache).sort()).toEqual(["greenhouse:old", "lever:gone"]);
+    expect(isFresh(cache["greenhouse:old"]!, now, 7)).toBe(false);
+    expect(isFresh(cache["lever:gone"]!, now, 7)).toBe(true);
   });
 });
