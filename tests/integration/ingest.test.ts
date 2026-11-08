@@ -132,6 +132,14 @@ describe("freshness", () => {
     expect(rows[0].outcome).toBe(kind);
   });
 
+  it("keeps a job that vanished from a partial Workable crawl", async () => {
+    const { connector } = scriptedConnector("workable", [snapshot(FULL), failedPage("partial"), failedPage("partial"), failedPage("partial")]);
+    for (let run = 0; run < 4; run += 1) await runCrawl(pool, connector);
+    expect((await listingStates(pool)).a).toEqual(["active", 0]);
+    const { rows } = await pool.query(`SELECT outcome FROM source_snapshots ORDER BY id DESC LIMIT 1`);
+    expect(rows[0].outcome).toBe("partial");
+  });
+
   it("does not trust a thrown crawl", async () => {
     const { connector } = scriptedConnector("greenhouse", [snapshot(FULL)]);
     await runCrawl(pool, connector);

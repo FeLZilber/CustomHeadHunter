@@ -29,7 +29,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
           <button type="submit" className="button">Follow</button>
         </form>
         {follow === "requested" ? <p role="status">Requested. The next run checks the board and adds it if it lists Israeli jobs.</p> : null}
-        {follow === "unsupported" ? <p role="alert">Only Greenhouse, Lever and Ashby links can be followed.</p> : null}
+        {follow === "unsupported" ? <p role="alert">Only Greenhouse, Lever, Ashby and Workable links can be followed.</p> : null}
         {requests.length ? (
           <ul>
             {requests.map((request) => (

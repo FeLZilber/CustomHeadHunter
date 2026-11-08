@@ -146,7 +146,7 @@ test.describe("as the owner", () => {
     const form = page.getByRole("form", { name: "Follow a company" });
     await form.getByLabel("Job or careers link").fill("https://www.linkedin.com/jobs/view/123");
     await form.getByRole("button", { name: "Follow" }).click();
-    await expect(page.locator("p[role=alert]")).toContainText("Only Greenhouse, Lever and Ashby");
+    await expect(page.locator("p[role=alert]")).toContainText("Only Greenhouse, Lever, Ashby and Workable");
     await form.getByLabel("Job or careers link").fill("https://jobs.lever.co/e2e-acme/abc");
     await form.getByLabel("Company name (optional)").fill("E2E Acme");
     await form.getByRole("button", { name: "Follow" }).click();

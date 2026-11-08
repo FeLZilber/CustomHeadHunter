@@ -22,7 +22,7 @@ on:
       provider:
         description: Limit the crawl to one ATS
         type: choice
-        options: [all, greenhouse, lever, ashby]
+        options: [all, greenhouse, lever, ashby, workable]
         default: all
       company:
         description: Limit the crawl to one company

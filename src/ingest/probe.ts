@@ -1,16 +1,18 @@
 import { ashbyConnector } from "../connectors/ashby";
 import { greenhouseConnector } from "../connectors/greenhouse";
 import { leverConnector } from "../connectors/lever";
+import { workableConnector } from "../connectors/workable";
 import type { Connector, Provider, RawListing } from "../connectors/types";
 import type { HttpClient } from "../http/client";
 import { isInIsraelScope, normalizeLocation } from "../normalize/location";
 
-export const PROVIDERS: Provider[] = ["greenhouse", "lever", "ashby"];
+export const PROVIDERS: Provider[] = ["greenhouse", "lever", "ashby", "workable"];
 
 const CONNECTORS: Record<Provider, Connector> = {
   greenhouse: greenhouseConnector,
   lever: leverConnector,
   ashby: ashbyConnector,
+  workable: workableConnector,
 };
 
 /** Where a provider's public listing endpoint lives, recorded as the catalog's verification source. */
@@ -18,6 +20,7 @@ export const verificationUrl = (provider: Provider, key: string): string => {
   const k = encodeURIComponent(key);
   if (provider === "greenhouse") return `https://boards-api.greenhouse.io/v1/boards/${k}/jobs`;
   if (provider === "lever") return `https://api.lever.co/v0/postings/${k}`;
+  if (provider === "workable") return `https://apply.workable.com/api/v1/widget/accounts/${k}?details=true`;
   return `https://api.ashbyhq.com/posting-api/job-board/${k}`;
 };
 

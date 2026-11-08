@@ -54,7 +54,9 @@ function fail(message: string): never {
 }
 
 if (!values.file) fail("usage: catalog:discover --file <list.txt> [--write] [--industry x] [--providers greenhouse,lever,ashby] [--cache path] [--max-age-days n] [--report path] [--extra-slugs [--extra-providers greenhouse,ashby]]");
-const providers = (values.providers ?? PROVIDERS.join(",")).split(",").map((p) => p.trim()).filter(Boolean);
+// Workable rate-limits bulk lookups (429, then a Retry-After over a minute), so it is probed only on request.
+const BULK_PROVIDERS = PROVIDERS.filter((p) => p !== "workable");
+const providers = (values.providers ?? BULK_PROVIDERS.join(",")).split(",").map((p) => p.trim()).filter(Boolean);
 for (const p of providers) if (!PROVIDERS.includes(p as Provider)) fail(`--providers must be from ${PROVIDERS.join(", ")}`);
 const extraProviders = values["extra-slugs"]
   ? values["extra-providers"]!.split(",").map((p) => p.trim()).filter(Boolean)
