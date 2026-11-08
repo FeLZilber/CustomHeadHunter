@@ -84,6 +84,14 @@ describe("jsonld connector, page mode", () => {
     expect(outcome.kind).toBe("complete");
   });
 
+  it("fails, rather than reporting an empty board, when every posting looks expired", async () => {
+    const html =
+      '<script type="application/ld+json">{"@type":"JobPosting","title":"Old","identifier":"X1","validThrough":"2020-01-01"}</script>';
+    const { listings, outcome } = await run(PAGE, http(() => ok(html)).client);
+    expect(listings).toEqual([]);
+    expect(outcome).toMatchObject({ kind: "failed", reason: "Every JobPosting found has expired" });
+  });
+
   it("falls back from identifier to https url to page url plus title", async () => {
     const { listings } = await run(PAGE, page("fallback.html").client);
     expect(listings.map((l) => l.providerJobId)).toEqual([`${PAGE}#No Id`, "https://acme.test/jobs/u", "ID-9"]);

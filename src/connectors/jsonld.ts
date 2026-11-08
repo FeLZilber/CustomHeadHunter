@@ -324,6 +324,9 @@ export const jsonldConnector: Connector = {
 
       if (problem) return { kind: "partial", pages, reason: problem, httpStatus: lastStatus };
       if (found === 0 && invalidTotal === 0) return failed("No JobPosting found", lastStatus, pages);
+      // Sites often leave a stale validThrough on postings that are still open, so a page where every
+      // posting looks expired is not trusted as an empty board: it would expire every job at once.
+      if (seen.size === 0 && invalidTotal === 0) return failed("Every JobPosting found has expired", lastStatus, pages);
       if (invalidTotal > 0) {
         return { kind: "partial", pages, reason: `${invalidTotal} invalid records`, httpStatus: lastStatus };
       }
