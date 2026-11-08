@@ -76,7 +76,6 @@ Everything left needs the operator's accounts. Tick these off here as they happe
 
 **Product**
 
-- **Adjacent roles are display-only.** They get no score and no alert, by design. The tier is a title match on role-only rejections, so a near role whose title lacks a listed term stays an ordinary filtered job until the owner adds the term. The adjacent view reads at most 5000 rejected jobs and pages them in memory.
 - **Target-role recall is the main risk.** On 2026-11-02 the catalog held 377 Israeli jobs, and `filter-v2` kept 11. Six have test or automation titles (three at Island, one at Navan, two at Cato, one of those for network automation). Five are not QA roles. This is catalog coverage, not a filter bug: these boards list few Israeli QA jobs. Do not pad the catalog with unverified sources. New ATS connectors are roadmap work and need separate authorization.
 - **Comeet is the largest known gap, and it is deliberately not crawled.** It holds most of the Israeli QA roles found: about 11 software QA titles among 383 Israeli jobs on the boards sampled, 2026-11-02. It has no public feed, so crawling means parsing hosted pages. [Spark Hire's job-seeker terms](https://www.sparkhire.com/terms/job-seeker) ban scraping but do not name Comeet, and Comeet's own terms pages returned 403 and are unread. The owner reaches it by hand through the `/search` page.
 - **AllJobs and Drushim are not crawled, checked 2026-11-02.** Drushim's `robots.txt` and sitemap allow access, but [its terms](https://www.drushim.co.il/article/2/) ban collecting information with automated software and limit use to personal job applications. AllJobs answers non-browser requests with a Radware block page and CAPTCHA, and [its terms](https://www.alljobs.co.il/UserAgreement.aspx) ban copying content without written permission. Both stay on the `/search` page.
@@ -84,6 +83,7 @@ Everything left needs the operator's accounts. Tick these off here as they happe
 - **Human calibration is outstanding.** Evaluation labels are machine-proposed, so results measure agreement with a draft, not quality.
 - **Evidence is weak,** especially in Hebrew: about a third of quotes are literal on hosted runs. Evidence is stored and shown as verified or not.
 - **Scores vary across runners.** Same seed, 85 and 78 in one case, 15 and 23 in another, so a score near the threshold can flip.
+- **Adjacent roles are display-only.** They get no score and no alert, by design. The tier is a title match on role-only rejections, so a near role whose title lacks a listed term stays an ordinary filtered job until the owner adds the term. The adjacent view reads at most 5000 rejected jobs and pages them in memory.
 
 **Runtime**
 
