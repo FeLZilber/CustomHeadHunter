@@ -1,3 +1,4 @@
+import { DEFAULT_AI_QUEUE_LIMIT } from "../config/budget";
 import { retryTransient, withTransaction, type Pool, type Queryable } from "../db/pool";
 import { applyFilter, FILTER_VERSION, type FilterResult } from "../filter";
 import { redact } from "../logger";
@@ -171,7 +172,12 @@ async function fillQueue(db: Queryable, profile: Profile, hashes: Hashes, limit:
  * Runs the deterministic stage. It commits batch by batch and spends no model time.
  * `queueLimit` caps open model tasks; 0 queues nothing.
  */
-export async function evaluateJobs(pool: Pool, config: MatchConfig, profile: Profile, queueLimit: number): Promise<EvaluationSummary> {
+export async function evaluateJobs(
+  pool: Pool,
+  config: MatchConfig,
+  profile: Profile,
+  queueLimit: number = DEFAULT_AI_QUEUE_LIMIT,
+): Promise<EvaluationSummary> {
   const hashes = { profileHash: profile.matchingHash, configHash: hashMatchConfig(config) };
   const total: EvaluationSummary = { evaluated: 0, eligible: 0, rejected: 0, queued: 0, deferred: 0, reused: 0 };
   for (;;) {
