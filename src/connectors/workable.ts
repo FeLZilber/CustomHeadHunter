@@ -1,6 +1,9 @@
-// Workable's public jobs-widget endpoint: GET /api/v1/widget/accounts/{account}?details=true.
-// No official Workable documentation for this endpoint was found. It is the endpoint Workable's own
-// embeddable widget calls, and apply.workable.com/robots.txt allows it. Shape verified against a live response.
+// Workable's public endpoint for an account's published jobs. Workable documents it as
+// `https://www.workable.com/api/accounts/{subdomain}?details=true` ("Using the Workable API to create a
+// careers page", https://help.workable.com/hc/en-us/articles/115012771647). That URL answers with a 302 to
+// apply.workable.com/api/v1/widget/accounts/{subdomain}?details=true, which is called directly here to save
+// a hop; apply.workable.com/robots.txt allows it (checked 2026-11-08, it also signals ai-train=no, and job
+// text is never used for training). Shape verified against a live response.
 import { z } from "zod";
 import { htmlToText } from "../normalize/html";
 import type { Connector, CrawlOutcome, CrawlPage, CrawlSource, RawListing } from "./types";
