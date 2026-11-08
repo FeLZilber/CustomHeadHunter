@@ -4,8 +4,9 @@ Resume document. Update after every milestone and any decision a new session cou
 
 - **Plan:** `Personal_Job_Hunter_Claude_Prompt.txt` in the repo root (gitignored, operator's local brief). Sections 18 (tests) and 21 (final report) define done.
 - **Branch:** `master`, the default branch. `search-recall` merged 2026-11-02. Scheduled and dispatch workflows only operate once they reach `master`.
-- **State:** Deployed 2026-11-02. The dashboard is live at the Vercel deployment and the owner signed in. A manual dry-run discovery on `master` passed against Neon (run 41432026270). `PRODUCTION_ENABLED` is `true`, so the daily schedule is active (discovery 06:17 UTC, about 09:00 in Israel; maintenance 07:17 UTC). **Not yet verified:** a real Telegram delivery, a scheduled run, and refusal of a second GitHub account.
-- **Last updated:** 2026-11-02
+- **State:** Deployed 2026-11-02. The dashboard is live at the Vercel deployment and the owner signed in. A manual dry-run discovery on `master` passed against Neon (run 41432026270). `PRODUCTION_ENABLED` is `true` (set 2026-11-04). **Not yet verified:** a real Telegram delivery and refusal of a second GitHub account.
+- **Scheduled runs: none has ever happened (checked 2026-11-08).** `gh run list --event schedule` returned nothing for any workflow, while push and workflow_dispatch runs worked (discovery dispatched 2026-11-04 twice and 2026-11-08 once, all green). The repository was created 2026-11-04 by pushing existing history and `master` was then force-pushed twice, so no push to this repository ever changed a workflow's `schedule`. The evidence points to the schedule never being registered. Ruled out: workflows disabled (both `active`), Actions settings (enabled, all actions allowed), the `PRODUCTION_ENABLED` gate and the concurrency group (both would still show runs, as skipped or cancelled), the 60-day inactivity rule (the repository is 4 days old), visibility (public), and best-effort dropping (8 of 8 slots missed, not a sporadic pattern). Both workflows were disabled and re-enabled at 2026-11-08 11:32 UTC to re-register them, and `ops/scheduled-runs` changes their schedules, which registers them again on merge. Each now has a backup cron (discovery 06:17 and 11:43, maintenance 07:17 and 13:43 UTC). **A scheduled run is still not verified:** confirm with `gh run list --event schedule` after the next cron time, and record the run id here.
+- **Last updated:** 2026-11-08
 
 ## Milestones
 
@@ -32,7 +33,7 @@ Plan section 21. "Blocked" means it needs an operator account or action. A mocke
 | 6 | AI output validated, failures leave jobs and tasks intact | Yes | Yes | Valid output live. Failure paths fixture-only | Blocked |
 | 7 | Matching-relevant changes invalidate stale results | Yes | Yes | No | Blocked |
 | 8 | Telegram delivery, outbox retry and ambiguity | Yes | Yes | **Blocked: no bot** | Blocked |
-| 9 | Scheduled and manual workflows, bounded maintenance | Yes | Yes | Shared pipeline passed in smoke. Schedules **blocked: need `master` and secrets** | Blocked |
+| 9 | Scheduled and manual workflows, bounded maintenance | Yes | Yes | Shared pipeline passed in smoke. Manual dispatch on `master` green 3 times. **No scheduled run has ever fired** (see State). Staleness drill: see `ops/scheduled-runs` PR | Manual runs only |
 | 10 | Owner-only dashboard | Yes | Yes, E2E with signed test sessions Owner sign-in worked on the Vercel deployment (2026-11-02). Stranger refusal not tested live | Yes, dashboard only. Workers not active |
 | 11 | Automated tests pass, setup reproducible | Yes | 407 + 33 pass | CI green. Compose built on a runner, and run locally with Ollama from a fresh clone | n/a |
 | 12 | No always-on PC, self-hosted runner, VPS or paid AI API | Yes | n/a | Holds by construction | Blocked |
@@ -45,7 +46,7 @@ Plan section 21. "Blocked" means it needs an operator account or action. A mocke
 | Real Telegram delivery | A bot and chat id |
 | Sign-in refusal of a second GitHub account | A second account |
 | Vercel deployment | A Vercel project |
-| Scheduled runs | Merge to `master`, secrets, `PRODUCTION_ENABLED` |
+| Scheduled runs | A schedule run to appear after re-registration (2026-11-08) |
 | Actual Actions spend | Billing page, or a `gh` token with the `user` scope |
 | Evaluation labels | A person to review them |
 
@@ -65,7 +66,7 @@ Everything left needs the operator's accounts. Tick these off here as they happe
 - [ ] Run the activation checks in order: dashboard as owner and as a stranger, edit the profile, set `PRODUCTION_ENABLED`, dry-run discovery, real discovery, first Telegram digest, scheduled run.
 - [ ] Set a $0 Actions budget if a payment method is on file. Compare real use with `COSTS.md` after a week.
 - [ ] Review the labels in `benchmarks/eval/dataset.json`. Until then quality is unconfirmed.
-- [ ] Optional: verify more company sources, because recall is the main risk.
+- [x] Verify more company sources. 2026-11-08: 781 candidate names probed with `catalog:discover`, 30 added (67 total). See Known limitations.
 
 ## Known limitations
 
@@ -76,10 +77,10 @@ Everything left needs the operator's accounts. Tick these off here as they happe
 
 **Product**
 
-- **Target-role recall is the main risk.** On 2026-11-02 the catalog held 377 Israeli jobs, and `filter-v2` kept 11. Six have test or automation titles (three at Island, one at Navan, two at Cato, one of those for network automation). Five are not QA roles. This is catalog coverage, not a filter bug: these boards list few Israeli QA jobs. Do not pad the catalog with unverified sources. New ATS connectors are roadmap work and need separate authorization.
+- **Target-role recall is the main risk.** On 2026-11-08 the 67-source catalog held 596 Israeli jobs (454 with the previous 37 sources the same day), and `filter-v4` kept 14 (13 before). More companies add few QA roles. On 2026-11-02 the catalog held 377 Israeli jobs, and `filter-v2` kept 11. Six have test or automation titles (three at Island, one at Navan, two at Cato, one of those for network automation). Five are not QA roles. This is catalog coverage, not a filter bug: these boards list few Israeli QA jobs. Do not pad the catalog with unverified sources. New ATS connectors are roadmap work and need separate authorization.
 - **Comeet is the largest known gap, and it is deliberately not crawled.** It holds most of the Israeli QA roles found: about 11 software QA titles among 383 Israeli jobs on the boards sampled, 2026-11-02. It has no public feed, so crawling means parsing hosted pages. [Spark Hire's job-seeker terms](https://www.sparkhire.com/terms/job-seeker) ban scraping but do not name Comeet, and Comeet's own terms pages returned 403 and are unread. The owner reaches it by hand through the `/search` page.
 - **AllJobs and Drushim are not crawled, checked 2026-11-02.** Drushim's `robots.txt` and sitemap allow access, but [its terms](https://www.drushim.co.il/article/2/) ban collecting information with automated software and limit use to personal job applications. AllJobs answers non-browser requests with a Radware block page and CAPTCHA, and [its terms](https://www.alljobs.co.il/UserAgreement.aspx) ban copying content without written permission. Both stay on the `/search` page.
-- **Catalog gap:** 25 Greenhouse, 2 Lever and 3 Ashby sources, few banks or government employers.
+- **Catalog gap:** 67 sources (47 Greenhouse, 4 Lever, 16 Ashby) after the 2026-11-08 discovery run, few banks or government employers. Of 781 candidate Israeli companies, 30 new ones had a Greenhouse, Lever or Ashby board with a job at a named Israeli location; 663 had no board found under any guessed slug and 55 had a board with no Israeli job. Nine more boards were rejected because their only "Israeli" jobs were remote-anywhere (e.g. a US company's board). The target of 150 sources is not reachable from these three providers: most Israeli employers use Comeet or their own sites.
 - **Human calibration is outstanding.** Evaluation labels are machine-proposed, so results measure agreement with a draft, not quality.
 - **Evidence is weak,** especially in Hebrew: about a third of quotes are literal on hosted runs. Evidence is stored and shown as verified or not.
 - **Scores vary across runners.** Same seed, 85 and 78 in one case, 15 and 23 in another, so a score near the threshold can flip.
@@ -141,5 +142,5 @@ Everything except the items below is in GitHub (code, docs, history), Neon (data
 
 - `NEXTAUTH_URL` must match the deployment URL.
 - A hosted benchmark costs about 36 runner minutes and leaves a `-spike-` cache to delete.
-- Neon, the Telegram bot, the OAuth app, the Vercel project and the three Actions secrets now exist. No scheduled or manual worker run has used them yet, `PRODUCTION_ENABLED` is not set, and no real Telegram message has been sent. Do not claim otherwise.
+- Neon, the Telegram bot, the OAuth app, the Vercel project and the three Actions secrets now exist. Manual discovery runs have used them since 2026-11-04 and `PRODUCTION_ENABLED` is `true`, but no scheduled run has happened yet, and no real Telegram message has been sent. Do not claim otherwise.
 - Do not merge to `master` without the operator: that is step 7 of `DEPLOYMENT.md`.

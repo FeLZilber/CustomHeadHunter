@@ -1,6 +1,6 @@
 # CustomHeadHunter
 
-A private job discovery system for one person in Israel. It watches Greenhouse, Lever and Ashby boards, scores shortlisted postings against a profile with a small local model, sends Telegram alerts, and shows everything on an owner-only dashboard.
+A private job discovery system for one person in Israel. It watches Greenhouse, Lever, Ashby and Workable boards, scores shortlisted postings against a profile with a small local model, sends Telegram alerts, and shows everything on an owner-only dashboard.
 
 It needs no always-on computer, paid AI API or self-hosted runner. Scheduled work runs on GitHub Actions, the model runs in Docker on the same runner, and data lives in PostgreSQL.
 
@@ -8,7 +8,7 @@ It needs no always-on computer, paid AI API or self-hosted runner. Scheduled wor
 
 ## What it does
 
-- Crawls 30 verified company boards once a day, around 09:00 Israel time, using conditional requests where the provider supports them.
+- Crawls 67 verified company boards once a day, around 09:00 Israel time, using conditional requests where the provider supports them.
 - Stores every job before any AI runs, and expires a job only after repeated, complete evidence that it closed.
 - Filters deterministically, then matches shortlisted jobs with `qwen2.5:3b` on the runner's CPU, within per-job, per-run and monthly limits.
 - Sends each alert once through a database outbox, and holds any delivery it cannot confirm.
@@ -79,7 +79,21 @@ npm run catalog:add -- "Company Name" --industry fintech --dry-run
 npm run catalog:add -- --file candidates.txt --industry technology
 ```
 
-The script guesses the company's board slug on Greenhouse, Lever and Ashby, and adds it to [catalog/sources.json](catalog/sources.json) only if the board answers and lists at least one Israeli job. Use `--provider` and `--key` when you know the slug. Candidate names can come from any public directory, such as Dealroom's Israel startup list. Companies that use Comeet or other boards report `no public board found`.
+The script guesses the company's board slug on Greenhouse, Lever, Ashby and Workable, and adds it to [catalog/sources.json](catalog/sources.json) only if the board answers and lists at least one job at a named Israeli location. A remote job open to Israel does not count: it is in scope for the crawler but does not show an Israeli employer. Use `--provider` and `--key` when you know the slug. Candidate names can come from any public directory, such as Dealroom's Israel startup list. Companies that use Comeet or other boards report `no public board found`.
+
+For many names at once, use the discovery script. It is a dry run unless `--write` is passed, caches probe results in `.cache/` for 7 days so a rerun is cheap and prints the same report, and re-probes each board live before writing it:
+
+```sh
+npm run catalog:discover -- --file catalog/candidates.txt                  # report only
+npm run catalog:discover -- --file catalog/candidates.txt --extra-slugs    # also try "acme" for "Acme Security", "acmeinc", ...
+npm run catalog:discover -- --file catalog/candidates.txt --write          # add verified boards
+```
+
+Workable is left out of bulk discovery unless named with `--providers workable`: it answers 429 to bulk lookups and then asks for waits over a minute.
+
+[catalog/candidates.txt](catalog/candidates.txt) holds 781 names with where each came from. On 2026-11-08 it yielded 30 new sources; most Israeli employers in it use Comeet or a board this project does not read.
+
+A company with its own careers page can be followed without an ATS if the page (or a job sitemap) embeds `schema.org/JobPosting` JSON-LD. `catalog:add` does not guess these. Add an entry to `catalog/sources.json` by hand with `"provider": "jsonld"` and `"providerKey"` set to the full https URL of the careers page or sitemap `.xml`, fill in the other fields as for any entry, and check the page's robots.txt allows it. A crawl that finds no JobPosting fails rather than expiring jobs.
 
 ## Documentation
 

@@ -1,7 +1,9 @@
 import { randomUUID } from "node:crypto";
 import { ashbyConnector } from "../connectors/ashby";
 import { greenhouseConnector } from "../connectors/greenhouse";
+import { jsonldConnector } from "../connectors/jsonld";
 import { leverConnector } from "../connectors/lever";
+import { workableConnector } from "../connectors/workable";
 import type { Connector, CrawlOutcome, CrawlPage, Provider } from "../connectors/types";
 import { retryTransient, withTransaction, type Pool } from "../db/pool";
 import type { HttpClient } from "../http/client";
@@ -23,6 +25,8 @@ export const defaultConnectors: Record<Provider, Connector> = {
   greenhouse: greenhouseConnector,
   lever: leverConnector,
   ashby: ashbyConnector,
+  workable: workableConnector,
+  jsonld: jsonldConnector,
 };
 
 const TRANSACTION_BATCH = 50;

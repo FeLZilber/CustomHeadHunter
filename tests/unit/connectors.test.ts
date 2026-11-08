@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { ashbyConnector } from "../../src/connectors/ashby";
 import { greenhouseConnector } from "../../src/connectors/greenhouse";
 import { LEVER_MAX_PAGES, LEVER_PAGE_SIZE, leverConnector } from "../../src/connectors/lever";
+import { workableConnector } from "../../src/connectors/workable";
 import type { Connector, CrawlOutcome, CrawlPage, RawListing } from "../../src/connectors/types";
 import { HttpClient, type Transport, type TransportResponse } from "../../src/http/client";
 
@@ -278,5 +279,107 @@ describe("ashby connector", () => {
     expect((await collect(ashbyConnector, http(() => json({ positions: [] })).client)).outcome.kind).toBe("failed");
     const notJson: TransportResponse = { status: 200, body: "<html>", headers: {} };
     expect((await collect(ashbyConnector, http(() => notJson).client)).outcome.kind).toBe("failed");
+  });
+});
+
+const workableJob = (shortcode: string, overrides: object = {}) => ({
+  title: "QA Automation Engineer",
+  shortcode,
+  code: "",
+  employment_type: "Full-time",
+  telecommuting: false,
+  department: "R&D",
+  url: `https://apply.workable.com/j/${shortcode}`,
+  shortlink: `https://apply.workable.com/j/${shortcode}`,
+  application_url: `https://apply.workable.com/j/${shortcode}/apply`,
+  published_on: "2026-09-01",
+  created_at: "2026-09-01",
+  country: "Israel",
+  city: "Tel Aviv",
+  locations: [{ country: "Israel", countryCode: "IL", city: "Tel Aviv", region: "Tel Aviv District", hidden: false }],
+  description: "<p>Playwright &amp; TypeScript</p>",
+  ...overrides,
+});
+
+describe("workable connector", () => {
+  it("maps a job, using the shortcode as its identity", async () => {
+    const { client, urls } = http(() => json({ name: "Acme", description: null, jobs: [workableJob("ABC123")] }, { etag: "v1" }));
+    const first = await collect(workableConnector, client);
+    expect(urls[0]).toBe("https://apply.workable.com/api/v1/widget/accounts/acme?details=true");
+    expect(first.outcome).toMatchObject({ kind: "complete", listings: 1, etag: "v1" });
+    expect(first.listings[0]).toMatchObject({
+      providerJobId: "ABC123",
+      title: "QA Automation Engineer",
+      descriptionText: "Playwright & TypeScript",
+      originalDescription: "<p>Playwright &amp; TypeScript</p>",
+      location: "Tel Aviv, Israel",
+      workplaceType: null,
+      commitment: "Full-time",
+      applicationUrl: "https://apply.workable.com/j/ABC123",
+    });
+    expect(first.listings[0]?.publishedAt?.toISOString()).toBe("2026-09-01T00:00:00.000Z");
+    const second = await collect(workableConnector, client);
+    expect(second.listings[0]?.providerJobId).toBe("ABC123");
+  });
+
+  it("maps telecommuting to remote and falls back to the shortlink", async () => {
+    const { client } = http(() => json({ jobs: [workableJob("R1", { telecommuting: true, url: null })] }));
+    expect((await collect(workableConnector, client)).listings[0]).toMatchObject({
+      workplaceType: "remote",
+      applicationUrl: "https://apply.workable.com/j/R1",
+    });
+  });
+
+  it("keeps every location and recognises Israel by country code", async () => {
+    const locations = [
+      { country: "France", countryCode: "FR", city: "Paris" },
+      { country: "Israel", countryCode: "IL", city: "Haifa" },
+    ];
+    const { client } = http(() => json({ jobs: [workableJob("L1", { locations })] }));
+    const { listings } = await collect(workableConnector, client);
+    expect(listings[0]?.location).toBe("Paris, France");
+    expect(listings[0]?.extraLocations).toEqual(["France", "Paris", "Israel", "Haifa", "Israel"]);
+  });
+
+  it("does not add Israel for other countries", async () => {
+    const locations = [{ country: "France", countryCode: "FR", city: "Paris" }];
+    const { client } = http(() => json({ jobs: [workableJob("L2", { locations })] }));
+    expect((await collect(workableConnector, client)).listings[0]?.extraLocations).toEqual(["France", "Paris"]);
+  });
+
+  it("sends the ETag and reports a 304 and a block", async () => {
+    const seen: Record<string, string>[] = [];
+    const { client } = http((_url, headers) => {
+      seen.push(headers);
+      return status(304);
+    });
+    expect((await collect(workableConnector, client, "v1")).outcome.kind).toBe("not_modified");
+    expect(seen[0]?.["if-none-match"]).toBe("v1");
+    expect((await collect(workableConnector, http(() => status(403)).client)).outcome.kind).toBe("blocked");
+  });
+
+  it("fails with the status on an unknown account", async () => {
+    expect((await collect(workableConnector, http(() => status(404)).client)).outcome).toMatchObject({ kind: "failed", httpStatus: 404 });
+  });
+
+  it("fails on a response that is not JSON or not the expected shape", async () => {
+    const notJson: TransportResponse = { status: 200, body: "<html>", headers: {} };
+    expect((await collect(workableConnector, http(() => notJson).client)).outcome.kind).toBe("failed");
+    expect((await collect(workableConnector, http(() => json({ positions: [] })).client)).outcome.kind).toBe("failed");
+  });
+
+  it("is partial on an invalid record but keeps the valid ones", async () => {
+    const { client } = http(() => json({ jobs: [workableJob("A"), { title: "No shortcode" }, workableJob("B", { url: null, shortlink: null })] }));
+    const { listings, outcome, pages } = await collect(workableConnector, client);
+    expect(listings.map((listing) => listing.providerJobId)).toEqual(["A"]);
+    expect(pages[0]?.invalidRecords).toBe(2);
+    expect(outcome.kind).toBe("partial");
+  });
+
+  it("keeps an empty board as complete for the sanity checks to judge", async () => {
+    expect((await collect(workableConnector, http(() => json({ name: "Acme", jobs: [] })).client)).outcome).toMatchObject({
+      kind: "complete",
+      listings: 0,
+    });
   });
 });

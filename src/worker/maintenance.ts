@@ -51,6 +51,14 @@ export interface Health {
   lastNotify: { status: string; finishedAt: Date | null } | null;
 }
 
+/**
+ * Discovery is stale when no crawl succeeded (fully or partially) within `staleHours`,
+ * or none ever did. Failed and still-running crawls never make it fresh.
+ */
+export function isDiscoveryStale(lastSuccessfulCrawl: Date | null, checkedAt: Date, staleHours: number): boolean {
+  return !lastSuccessfulCrawl || checkedAt.getTime() - lastSuccessfulCrawl.getTime() > staleHours * 3_600_000;
+}
+
 /** A partial crawl still reconciled the sources it reached, so it counts as discovery having run. */
 export async function readHealth(pool: Pool, configHash: string, staleHours: number): Promise<Health> {
   const { rows } = await retryTransient(() =>
@@ -74,7 +82,7 @@ export async function readHealth(pool: Pool, configHash: string, staleHours: num
     checkedAt: facts.checked_at,
     lastSuccessfulCrawl,
     lastCrawl: await latest("crawl_runs"),
-    discoveryStale: !lastSuccessfulCrawl || facts.checked_at.getTime() - lastSuccessfulCrawl.getTime() > staleHours * 3_600_000,
+    discoveryStale: isDiscoveryStale(lastSuccessfulCrawl, facts.checked_at, staleHours),
     staleSources: facts.stale_sources,
     activeJobs: facts.active_jobs,
     backlog: await readBacklogFor(pool, configHash),

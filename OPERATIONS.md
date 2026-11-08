@@ -4,8 +4,8 @@
 
 | Workflow | Trigger | Does | Timeout |
 | --- | --- | --- | --- |
-| `discovery` | `17 6 * * *` UTC (about 09:00 in Israel), manual | Crawl, evaluate, match, notify, health | 38 min |
-| `maintenance` | `17 7 * * *` UTC, an hour after discovery, manual | The same on the cheap ETag path with 2 AI jobs, then cleanup and a stale-discovery check | 30 min |
+| `discovery` | `17 6 * * *` UTC (about 09:00 in Israel), backup `43 11 * * *`, manual | Crawl, evaluate, match, notify, health | 38 min |
+| `maintenance` | `17 7 * * *` UTC, backup `43 13 * * *`, manual | The same on the cheap ETag path with 2 AI jobs, then cleanup and a stale-discovery check. Input `drill` instead runs the stale check against an empty throwaway database and must fail | 30 min |
 | `pipeline-smoke` | Pipeline changes on `mvp`, manual | The real pipeline against a throwaway Postgres | 25 min |
 | `ci` | Push, pull request | Type-check, unit, integration, E2E. No secrets | 10 min |
 | `compose-smoke` | Docker file changes, manual | Builds the image and checks the local setup | 15 min |
@@ -18,7 +18,7 @@
 | Input | Effect |
 | --- | --- |
 | `mode` | `full` ignores ETags. Unchanged jobs are still not rematched |
-| `provider`, `company` | Crawl a subset. Absence is not judged for sources outside it |
+| `provider`, `company` | Crawl a subset (`all` for every provider). Absence is not judged for sources outside it |
 | `retry-failed` | Reopens exhausted AI tasks |
 | `force-rematch` | Queues every eligible job, then works through it within caps. Starts an epoch |
 | `notify-dry-run` | Reports what would be sent without sending |
@@ -29,7 +29,7 @@
 
 Blank means the default. Workflows read only the names below, so other settings need a code change.
 
-`MAX_AI_JOBS_PER_RUN`, `AI_TIME_BUDGET_SECONDS`, `AI_MINUTES_PER_MONTH`, `INFERENCE_TIMEOUT_SECONDS`, `MAX_JOB_INPUT_TOKENS`, `CRAWL_TIME_BUDGET_SECONDS`, `MAX_ALERTS_PER_RUN`, `NOTIFY_TIME_BUDGET_SECONDS`, `STALE_DISCOVERY_HOURS`, `RETENTION_DAYS`
+`CRAWLER_CONTACT` (appended to the crawler's User-Agent; defaults to the repository URL), `MAX_AI_JOBS_PER_RUN`, `AI_TIME_BUDGET_SECONDS`, `AI_MINUTES_PER_MONTH`, `INFERENCE_TIMEOUT_SECONDS`, `MAX_JOB_INPUT_TOKENS`, `CRAWL_TIME_BUDGET_SECONDS`, `MAX_ALERTS_PER_RUN`, `NOTIFY_TIME_BUDGET_SECONDS`, `STALE_DISCOVERY_HOURS`, `RETENTION_DAYS`
 
 Before raising a time budget, check it against the job's `timeout-minutes`. `AI_TIME_BUDGET_SECONDS` must stay above `INFERENCE_TIMEOUT_SECONDS`, or no job starts. Discovery's 38 minutes covers the default 900 s budget and no more.
 
@@ -54,6 +54,11 @@ The dashboard's status page shows everything below. `worker health` prints the s
 - `PRODUCTION_ENABLED` is `true`.
 - Actions is not blocked for billing. Without a payment method, GitHub blocks Actions when the included amount is used.
 - The workflow is on `master`.
+- `gh run list --event schedule` shows any runs at all. A gated or replaced run still appears there, as skipped or cancelled. **No rows at all means GitHub never registered the schedule.** That happened to this repository after it was recreated on 2026-11-04 by pushing existing history and then force-pushing `master`: workflow_dispatch and push runs worked, but no scheduled run of any workflow appeared for four days. GitHub registers a cron when a push to the default branch changes the workflow's `schedule`. To re-register without a code change, run `gh workflow disable <file>` then `gh workflow enable <file>`.
+
+The stale check itself lives in a scheduled workflow, so it cannot report a scheduler that never fires. The dashboard's status page is the independent signal: it runs on Vercel and shows "Discovery is stale" whatever Actions does.
+
+To prove the check turns a run red without touching production, dispatch `maintenance` with `drill` set. It migrates an empty throwaway Postgres, so discovery has never run, and `health --fail-on-stale` must fail the job.
 
 ### Backlog
 
@@ -105,7 +110,7 @@ When compute or egress is used up, the project suspends until the next period. C
 
 To add a source, verify it live, then add it to `catalog/sources.json` with the verification URL and date. Never add an unverified endpoint. Open a sampled job link as well: Lemonade's Ashby API returns jobs, but its job pages return 404, so it is left out. The `seed` step applies the catalog on the next run, including `enabled: false` to pause a source.
 
-A catalog entry must respect the provider's terms and `robots.txt`. Lever declares `Crawl-delay: 1`, which the connector honors. Ashby's job board API is public and needs no key, but its docs describe it for a company's own careers page and state no terms for third parties, and its `robots.txt` could not be read.
+A catalog entry must respect the provider's terms and `robots.txt`. Lever declares `Crawl-delay: 1`, which the connector honors. Ashby's job board API is public and needs no key, but its docs describe it for a company's own careers page and state no terms for third parties, and its `robots.txt` could not be read. Workable is read through the public endpoint its help centre documents for building a careers page ([Using the Workable API to create a careers page](https://help.workable.com/hc/en-us/articles/115012771647), `www.workable.com/api/accounts/{subdomain}?details=true`), at the URL that redirects to (`apply.workable.com/api/v1/widget/accounts/{subdomain}`). `robots.txt` there allows it and signals `ai-train=no`; job text is never used for training. SmartRecruiters is not crawled: `api.smartrecruiters.com/robots.txt` disallows every agent except LinkedInBot (checked 2026-11-08).
 
 To change the model, see `OLLAMA_SETUP.md`. A new digest invalidates every result, so the whole eligible set is rematched over several runs.
 

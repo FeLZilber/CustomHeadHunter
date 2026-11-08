@@ -5,7 +5,7 @@ A single TypeScript package. The CLI worker runs on GitHub Actions and the Next.
 ## Data flow
 
 ```
-Greenhouse, Lever, Ashby
+Greenhouse, Lever, Ashby, Workable
       │  crawl: conditional requests, SSRF-safe client
       ▼
 source_snapshots ─► source_listings ─► canonical_jobs ─► job_events
@@ -31,7 +31,7 @@ Each stage commits before the next starts, so jobs are never lost to a later fai
 
 | Directory | Holds |
 | --- | --- |
-| `src/connectors` | Greenhouse, Lever and Ashby clients |
+| `src/connectors` | Greenhouse, Lever, Ashby and Workable clients, plus an opt-in generic `jsonld` reader |
 | `src/http` | Crawler HTTP client with DNS-aware SSRF protection |
 | `src/normalize` | Location, technology, seniority and text normalization |
 | `src/ingest` | Crawl, identity, lifecycle and events |
@@ -41,7 +41,7 @@ Each stage commits before the next starts, so jobs are never lost to a later fai
 | `src/notify` | Outbox, message rendering and Telegram client |
 | `src/worker` | CLI and maintenance |
 | `src/dashboard`, `src/app` | Server-side queries and auth, and Next.js pages |
-| `catalog/sources.json` | Verified sources. 37 entries: 30 Greenhouse, 3 Lever, 4 Ashby. Grown with `npm run catalog:add` |
+| `catalog/sources.json` | Verified sources. 67 entries: 47 Greenhouse, 4 Lever, 16 Ashby. Grown with `npm run catalog:add` and `npm run catalog:discover`; `jsonld` entries (key is an https URL) are added by hand |
 | `ollama/model-lock.json` | Pinned image, model and digest |
 
 ## Identity and lifecycle
@@ -83,6 +83,12 @@ The outbox is derived from committed match results and identified by a unique `e
 - **Relevance changes start an epoch.** Events from before it get no alert, which stops a profile edit from flooding the chat. Those jobs appear on the dashboard, and `--rematch-digest` sends one capped digest per epoch.
 - **Ambiguous delivery is held, not resent.** `send_started_at` commits before the request. Telegram has no idempotency key, so a lost acknowledgement stays `ambiguous` until the operator checks the chat. A missed alert is preferred to an unbounded duplicate.
 
+## JSON-LD connector
+
+`provider: "jsonld"` reads `schema.org/JobPosting` JSON-LD from a company's own careers page or job sitemap. It is opt-in: a catalog entry sets `providerKey` to the https URL, and `catalog:add` never guesses one. A URL ending in `.xml` is a sitemap: the connector takes same-host https `<loc>` entries (at most 150, beyond that the crawl is `partial`) and fetches each page, committing page by page. Any other URL is read as a single page. Everything goes through `HttpClient`, so the SSRF guard, pacing and (once merged) robots.txt apply.
+
+A page with zero JobPostings is a `failed` crawl, never a `complete` empty one, because a redesign that drops the markup must not expire every job. A malformed block, an unusable posting or a failed detail page makes the crawl `partial`. No ETag is stored and `not_modified` is never returned: these pages change on every request, so a 304 would not prove the board is unchanged, and an unconditional 304 is treated as a failure. Postings with a past `validThrough` are skipped as closed. A posting with no `identifier` or URL gets the page URL plus its title as id, which is weaker: a retitled posting looks like a new job.
+
 ## Dashboard
 
 Every page starts with `await requireOwner()` and so does every server action. A static test fails if one does not. Access requires the numeric GitHub id in `OWNER_GITHUB_ID`, which unlike a username cannot be reassigned. Signing in with any other account is refused at the callback and again on each request.
@@ -109,7 +115,7 @@ Workflows share the `job-hunter-worker` concurrency group, and migrate, evaluate
 
 ## Trade-offs
 
-- **Recall depends on the catalog.** The owner can add a company from `/search` by pasting a Greenhouse, Lever or Ashby link; the `adopt` step probes it and keeps it only if it lists Israeli jobs. These boards list few Israeli QA jobs. Comeet is left out on purpose, see `PROJECT_STATUS.md`. Other ATS connectors are roadmap work.
+- **Recall depends on the catalog.** The owner can add a company from `/search` by pasting a Greenhouse, Lever, Ashby or Workable link; the `adopt` step probes it and keeps it only if it lists Israeli jobs. These boards list few Israeli QA jobs. Comeet is left out on purpose, see `PROJECT_STATUS.md`. Other ATS connectors are roadmap work.
 - **Daily discovery is not real time.** GitHub can delay or drop scheduled runs, so a job can wait a day or more before it is seen.
 - **Scores vary across runners.** The same seed gave `mixed-sdet` 63 on one runner and 78 and 85 on others. Treat a score as a band, not a measurement.
 - **Single owner, single profile.** Multi-user support is out of scope.

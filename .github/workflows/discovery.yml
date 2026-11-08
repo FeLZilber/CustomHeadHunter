@@ -2,9 +2,16 @@ name: discovery
 
 # The repository variable PRODUCTION_ENABLED gates every run, so nothing spends
 # minutes or reaches the database until the operator has set the secrets.
+#
+# GitHub runs schedules on a best-effort basis and can drop one, so a second,
+# offset cron gives the day another chance. The shared concurrency group stops
+# the two from overlapping, and a second pass costs little: unchanged boards
+# answer 304, unchanged jobs are never rematched and alerts are deduplicated.
+# tests/unit/workflows.test.ts requires both triggers.
 on:
   schedule:
-    - cron: "17 6 * * *"
+    - cron: "17 6 * * *"   # about 09:00 in Israel
+    - cron: "43 11 * * *"  # backup pass
   workflow_dispatch:
     inputs:
       mode:
@@ -15,8 +22,8 @@ on:
       provider:
         description: Limit the crawl to one ATS
         type: choice
-        options: ["", greenhouse, lever, ashby]
-        default: ""
+        options: [all, greenhouse, lever, ashby, workable, jsonld]
+        default: all
       company:
         description: Limit the crawl to one company
         type: string
@@ -56,6 +63,7 @@ jobs:
     timeout-minutes: 38
     env:
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      CRAWLER_CONTACT: ${{ vars.CRAWLER_CONTACT || format('{0}/{1}', github.server_url, github.repository) }}
       TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
       TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
       CRAWL_TIME_BUDGET_SECONDS: ${{ vars.CRAWL_TIME_BUDGET_SECONDS }}
@@ -72,7 +80,7 @@ jobs:
         with:
           trigger: ${{ github.event_name }}
           mode: ${{ inputs.mode || 'incremental' }}
-          provider: ${{ inputs.provider }}
+          provider: ${{ inputs.provider != 'all' && inputs.provider || '' }}
           company: ${{ inputs.company }}
           retry-failed: ${{ inputs.retry-failed || false }}
           force-rematch: ${{ inputs.force-rematch || false }}
