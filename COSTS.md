@@ -111,9 +111,16 @@ The 1.5 minutes for a run without AI is an estimate, because no production run e
 
 ## Volume after catalog growth
 
-The deterministic filter passed 13 of 454 Israeli jobs (2.9%) across 37 sources, measured on 2026-11-08. If the catalog grows about 4x, expect roughly 50 eligible jobs at first. Assuming the pass rate holds and new eligible postings also scale 4x, that is about 20 new eligible jobs a week, or about 85 a month. This is an estimate, not a measurement.
+Measured on 2026-11-08 against live boards, same filter (`filter-v4`), no model run:
 
-Model time does not follow that number. Each run takes at most `MAX_AI_JOBS_PER_RUN` jobs inside `AI_TIME_BUDGET_SECONDS`, and `AI_MINUTES_PER_MONTH` keeps Ollama off once the month is spent, however many jobs are eligible. `AI_QUEUE_LIMIT` (default 40) bounds the backlog: `evaluate` ranks eligible jobs by the deterministic priority and queues only the best 40 that have no answer yet. The rest wait unqueued and enter as the queue drains, so a deeper catalog does not add model calls, it only decides which jobs get them first. At 85 jobs a month the expected case above would use roughly 830 to 970 minutes uncapped (estimate), so the 800 minute cap would bind late in the month and the lowest-ranked jobs would wait.
+| Catalog | Sources | Israeli jobs | Eligible after filter | Pass rate |
+| --- | --- | --- | --- | --- |
+| Before (37 sources) | 37 | 454 | 13 | 2.9% |
+| After `catalog:discover` (67 sources) | 67 | 596 | 14 | 2.3% |
+
+The catalog grew 1.8x and Israeli jobs 1.3x, but eligible jobs only from 13 to 14: the new companies list few QA roles. So the expected case above barely moves. Scaling the assumed 21 new eligible jobs a month by 14/13 gives about 23 (estimate), still well under the roughly 210 to 250 long postings a month the monthly cap allows.
+
+Model time does not follow the job count in any case. Each run takes at most `MAX_AI_JOBS_PER_RUN` jobs inside `AI_TIME_BUDGET_SECONDS`, and `AI_MINUTES_PER_MONTH` keeps Ollama off once the month is spent, however many jobs are eligible. `AI_QUEUE_LIMIT` (default 40) bounds the backlog: `evaluate` ranks eligible jobs by the deterministic priority and queues only the best 40 runnable tasks that have no answer yet. The rest wait unqueued, shown as pending, and enter as the queue drains. A deeper catalog therefore adds no model calls; it only decides which jobs get them first. `tests/integration/match.test.ts` ("queue limit") checks this with ten times more eligible jobs than the limit.
 
 ## Throughput
 
