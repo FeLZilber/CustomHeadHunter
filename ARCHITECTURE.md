@@ -41,7 +41,7 @@ Each stage commits before the next starts, so jobs are never lost to a later fai
 | `src/notify` | Outbox, message rendering and Telegram client |
 | `src/worker` | CLI and maintenance |
 | `src/dashboard`, `src/app` | Server-side queries and auth, and Next.js pages |
-| `catalog/sources.json` | Verified sources. 37 entries: 30 Greenhouse, 3 Lever, 4 Ashby. Grown with `npm run catalog:add` |
+| `catalog/sources.json` | Verified sources. 67 entries: 47 Greenhouse, 4 Lever, 16 Ashby. Grown with `npm run catalog:add` and `npm run catalog:discover` |
 | `ollama/model-lock.json` | Pinned image, model and digest |
 
 ## Identity and lifecycle

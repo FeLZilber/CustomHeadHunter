@@ -66,7 +66,7 @@ Everything left needs the operator's accounts. Tick these off here as they happe
 - [ ] Run the activation checks in order: dashboard as owner and as a stranger, edit the profile, set `PRODUCTION_ENABLED`, dry-run discovery, real discovery, first Telegram digest, scheduled run.
 - [ ] Set a $0 Actions budget if a payment method is on file. Compare real use with `COSTS.md` after a week.
 - [ ] Review the labels in `benchmarks/eval/dataset.json`. Until then quality is unconfirmed.
-- [ ] Optional: verify more company sources, because recall is the main risk.
+- [x] Verify more company sources. 2026-11-08: 781 candidate names probed with `catalog:discover`, 30 added (67 total). See Known limitations.
 
 ## Known limitations
 
@@ -77,10 +77,10 @@ Everything left needs the operator's accounts. Tick these off here as they happe
 
 **Product**
 
-- **Target-role recall is the main risk.** On 2026-11-02 the catalog held 377 Israeli jobs, and `filter-v2` kept 11. Six have test or automation titles (three at Island, one at Navan, two at Cato, one of those for network automation). Five are not QA roles. This is catalog coverage, not a filter bug: these boards list few Israeli QA jobs. Do not pad the catalog with unverified sources. New ATS connectors are roadmap work and need separate authorization.
+- **Target-role recall is the main risk.** On 2026-11-08 the 67-source catalog held 596 Israeli jobs (454 with the previous 37 sources the same day), and `filter-v4` kept 14 (13 before). More companies add few QA roles. On 2026-11-02 the catalog held 377 Israeli jobs, and `filter-v2` kept 11. Six have test or automation titles (three at Island, one at Navan, two at Cato, one of those for network automation). Five are not QA roles. This is catalog coverage, not a filter bug: these boards list few Israeli QA jobs. Do not pad the catalog with unverified sources. New ATS connectors are roadmap work and need separate authorization.
 - **Comeet is the largest known gap, and it is deliberately not crawled.** It holds most of the Israeli QA roles found: about 11 software QA titles among 383 Israeli jobs on the boards sampled, 2026-11-02. It has no public feed, so crawling means parsing hosted pages. [Spark Hire's job-seeker terms](https://www.sparkhire.com/terms/job-seeker) ban scraping but do not name Comeet, and Comeet's own terms pages returned 403 and are unread. The owner reaches it by hand through the `/search` page.
 - **AllJobs and Drushim are not crawled, checked 2026-11-02.** Drushim's `robots.txt` and sitemap allow access, but [its terms](https://www.drushim.co.il/article/2/) ban collecting information with automated software and limit use to personal job applications. AllJobs answers non-browser requests with a Radware block page and CAPTCHA, and [its terms](https://www.alljobs.co.il/UserAgreement.aspx) ban copying content without written permission. Both stay on the `/search` page.
-- **Catalog gap:** 25 Greenhouse, 2 Lever and 3 Ashby sources, few banks or government employers.
+- **Catalog gap:** 67 sources (47 Greenhouse, 4 Lever, 16 Ashby) after the 2026-11-08 discovery run, few banks or government employers. Of 781 candidate Israeli companies, 30 new ones had a Greenhouse, Lever or Ashby board with a job at a named Israeli location; 663 had no board found under any guessed slug and 55 had a board with no Israeli job. Nine more boards were rejected because their only "Israeli" jobs were remote-anywhere (e.g. a US company's board). The target of 150 sources is not reachable from these three providers: most Israeli employers use Comeet or their own sites.
 - **Human calibration is outstanding.** Evaluation labels are machine-proposed, so results measure agreement with a draft, not quality.
 - **Evidence is weak,** especially in Hebrew: about a third of quotes are literal on hosted runs. Evidence is stored and shown as verified or not.
 - **Scores vary across runners.** Same seed, 85 and 78 in one case, 15 and 23 in another, so a score near the threshold can flip.
