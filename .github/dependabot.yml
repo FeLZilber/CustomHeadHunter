@@ -36,6 +36,10 @@ updates:
       interval: weekly
     cooldown:
       default-days: 7
+    # Node majors move by hand, with package.json engines and .nvmrc (Node 24).
+    ignore:
+      - dependency-name: node
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: docker-compose
     directory: /
