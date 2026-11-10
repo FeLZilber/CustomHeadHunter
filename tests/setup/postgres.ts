@@ -11,7 +11,7 @@ declare module "vitest" {
   }
 }
 
-/** CI supplies TEST_DATABASE_URL from a service container. Elsewhere a throwaway server is started. */
+/** Uses TEST_DATABASE_URL when set. Otherwise, in CI too, a throwaway embedded server is started. */
 export default async function setup(project: TestProject) {
   const external = process.env.TEST_DATABASE_URL;
   let databaseUrl = external;
