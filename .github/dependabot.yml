@@ -29,6 +29,10 @@ updates:
     groups:
       npm-minor-and-patch:
         update-types: [minor, patch]
+    # The types follow the Node major in use (24), which moves by hand.
+    ignore:
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: docker
     directory: /
