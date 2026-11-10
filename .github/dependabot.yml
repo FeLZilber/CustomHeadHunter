@@ -1,0 +1,45 @@
+# Keeps the pinned versions moving. Actions are pinned by commit SHA and images
+# by digest, so without this nothing updates them, security fixes included.
+# Each update waits 7 days after release, so a compromised or broken release is
+# usually pulled before it reaches here.
+#
+# Not covered: the postgres service images in the workflows and the Ollama
+# image in ollama/model-lock.json, which follows OLLAMA_SETUP.md.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directories:
+      - /
+      - /.github/actions/pipeline
+      - /.github/actions/ollama-start
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    groups:
+      actions:
+        patterns: ["*"]
+
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    groups:
+      npm-minor-and-patch:
+        update-types: [minor, patch]
+
+  - package-ecosystem: docker
+    directory: /
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+
+  - package-ecosystem: docker-compose
+    directory: /
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
