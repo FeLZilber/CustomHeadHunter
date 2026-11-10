@@ -10,7 +10,7 @@ Matching runs Ollama in the official Docker container on a GitHub-hosted runner,
 | --- | --- |
 | `model` | `qwen2.5:3b` |
 | `modelDigest` | `357c53fb659c5076de1d65ccb0b397446227b71a42be9d1603d46168015c9e4b` |
-| `ollamaImage` | `ollama/ollama:0.40.13@sha256:b2f0122c476bc9fe7ce679d8bb4bd555351e25e2554eefb156f61cb0a89cf429` |
+| `ollamaImage` | `ollama/ollama:0.40.14@sha256:ebaef4f4c5d93660e1f25f8ad085a112f51ccfb0e8458073e71793959dba91c9` |
 | `cacheRevision` | `1` |
 
 `docker-compose.yml` repeats the image, so change both together.
@@ -33,6 +33,8 @@ The model is 1,929,912,432 bytes and the image about 5 GB. A hosted run peaked a
 The model runs with `temperature` 0, `seed` 42, and the response schema passed as `format`. It has no tools, secrets or network access, and posting text is treated as untrusted data.
 
 Measured on 2026-11-01 in run 41320394097: image pull 52 and 98 s, ready in about 1 s, model download 12 s, free disk about 6 GiB after start.
+
+Measured on 2026-11-10 with 0.40.14 in run 42877732908, on the public-repository runner (4 vCPU, 16 GB): image pull 55 and 35 s, ready in about 1 s, model download 7 s. All 18 inferences valid, none truncated or timed out. Median inference 30 s on the cache miss and 39 s on the cache hit, against 67 and 86 s on 2026-11-01, mostly because the runner is larger. Peak container memory 2385 MiB. Results in `benchmarks/results/hosted-ubuntu-24.04-2026-11-10-ollama-0.40.14.json`.
 
 ## Cache
 

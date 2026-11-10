@@ -132,3 +132,13 @@ describe("match budget", () => {
     expect(plan(5000, 100)).toBe("0 0");
   });
 });
+
+describe("pinned images", () => {
+  // Dependabot updates docker-compose.yml but not the lock, which Actions uses.
+  it("docker-compose runs the Ollama image in the model lock", () => {
+    const root = path.resolve(import.meta.dirname, "../..");
+    const lock = JSON.parse(readFileSync(path.join(root, "ollama/model-lock.json"), "utf8")) as { ollamaImage: string };
+    const compose = parse(readFileSync(path.join(root, "docker-compose.yml"), "utf8")) as { services: Record<string, { image?: string }> };
+    expect(compose.services.ollama?.image).toBe(lock.ollamaImage);
+  });
+});
