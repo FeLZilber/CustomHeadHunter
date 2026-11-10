@@ -1,11 +1,11 @@
 name: ollama-feasibility
 
-# Runs a cold cache miss then a cache hit on fresh runners. It costs real
-# Actions usage, so it runs only when the benchmark itself changes.
+# Runs a cold cache miss then a cache hit on fresh runners. It takes about 36
+# runner minutes, so it runs only when the benchmark itself changes.
 on:
   workflow_dispatch:
   push:
-    branches: [mvp]
+    branches: [master]
     paths:
       - benchmarks/ollama/**
       - src/config/budget.ts
@@ -35,3 +35,22 @@ jobs:
       phase: cache-hit
       key-suffix: -spike-${{ github.run_id }}-${{ github.run_attempt }}
       passes: 1
+
+  # Each run saves its own 1.9 GB model entry. Left behind, a few runs fill the
+  # repository's 10 GB cache and evict the entries production uses.
+  delete-cache:
+    needs: [cache-miss, cache-hit]
+    if: ${{ always() }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      actions: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      SUFFIX: -spike-${{ github.run_id }}-${{ github.run_attempt }}
+    steps:
+      - run: |
+          gh cache list --key ollama- --limit 100 --json key --jq '.[].key' |
+            { grep -- "$SUFFIX\$" || true; } |
+            while read -r key; do gh cache delete "$key"; echo "Deleted $key"; done

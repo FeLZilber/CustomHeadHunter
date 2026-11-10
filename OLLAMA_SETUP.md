@@ -85,10 +85,10 @@ Local:
 npx tsx benchmarks/ollama/run.ts --label local --passes 1
 ```
 
-Hosted: run `ollama-feasibility` by hand, or push a change to its inputs on `mvp`. It costs about 36 runner minutes, and uses a cold cache in one job and a cache hit in the next. Download the artifacts, then:
+Hosted: run `ollama-feasibility` by hand, or push a change to its inputs on `master`. It costs about 36 runner minutes, and uses a cold cache in one job and a cache hit in the next. Download the artifacts, then:
 
 1. Curate `result.json` and `ollama-start.json` into `benchmarks/results/`, with model outputs removed.
-2. Delete the `-spike-` cache.
+2. Check that the run's `delete-cache` job removed its `-spike-` cache entries.
 3. Update `COSTS.md`, and any default the result changes.
 
 `benchmarks/ollama/samples.json` holds 8 short synthetic postings and 2 at the input limit, in English, Hebrew and both. One carries embedded instructions. The full list of runs is in `COSTS.md`. Label the environment and sample size when quoting a result, and do not present a local figure as a hosted one.

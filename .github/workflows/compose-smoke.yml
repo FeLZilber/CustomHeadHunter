@@ -3,7 +3,7 @@ name: compose-smoke
 # Local development setup, checked here because it needs Docker. No production secrets, and it reads no live boards.
 on:
   push:
-    branches: [master, mvp]
+    branches: [master]
     paths:
       - .dockerignore
       - .github/workflows/compose-smoke.yml
