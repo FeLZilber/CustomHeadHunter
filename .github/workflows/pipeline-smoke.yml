@@ -1,11 +1,19 @@
 name: pipeline-smoke
 
 # Runs the real pipeline against public job boards and a throwaway database on a
-# hosted runner. It holds no secrets, so delivery ends as not_configured.
+# hosted runner. It holds no secrets, so delivery ends as not_configured, and it
+# can run on pull requests. Standard runners are free for this public repository.
 on:
   workflow_dispatch:
   push:
-    branches: [mvp]
+    branches: [master]
+    paths:
+      - .github/actions/**
+      - .github/workflows/pipeline-smoke.yml
+      - migrations/**
+      - src/config/**
+      - src/worker/**
+  pull_request:
     paths:
       - .github/actions/**
       - .github/workflows/pipeline-smoke.yml
@@ -45,6 +53,7 @@ jobs:
           persist-credentials: false
       - uses: ./.github/actions/pipeline
         with:
+          job-minutes: "25"
           trigger: smoke
           ai-jobs: "2"
           ai-seconds: "600"

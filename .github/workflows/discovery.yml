@@ -78,6 +78,7 @@ jobs:
           persist-credentials: false
       - uses: ./.github/actions/pipeline
         with:
+          job-minutes: "38"
           trigger: ${{ github.event_name }}
           mode: ${{ inputs.mode || 'incremental' }}
           provider: ${{ inputs.provider != 'all' && inputs.provider || '' }}

@@ -6,10 +6,10 @@
 | --- | --- | --- | --- |
 | `discovery` | `17 6 * * *` UTC (about 09:00 in Israel), backup `43 11 * * *`, manual | Crawl, evaluate, match, notify, health | 38 min |
 | `maintenance` | `17 7 * * *` UTC, backup `43 13 * * *`, manual | The same on the cheap ETag path with 2 AI jobs, then cleanup and a stale-discovery check. Input `drill` instead runs the stale check against an empty throwaway database and must fail | 30 min |
-| `pipeline-smoke` | Pipeline changes on `mvp`, manual | The real pipeline against a throwaway Postgres | 25 min |
+| `pipeline-smoke` | Pipeline changes on `master` or in a pull request, manual | The real pipeline against a throwaway Postgres | 25 min |
 | `ci` | Push, pull request | Type-check, unit, integration, E2E. No secrets | 10 min |
 | `compose-smoke` | Docker file changes, manual | Builds the image and checks the local setup | 15 min |
-| `ollama-feasibility` | Benchmark changes on `mvp`, manual | Hosted benchmark. It costs about 36 runner minutes | 35 min per job |
+| `ollama-feasibility` | Benchmark changes on `master`, manual | Hosted benchmark, about 36 runner minutes. Deletes its own model cache entries afterwards | 35 min per job |
 
 `discovery` and `maintenance` run only when the repository variable `PRODUCTION_ENABLED` is `true`.
 
@@ -31,7 +31,7 @@ Blank means the default. Workflows read only the names below, so other settings 
 
 `CRAWLER_CONTACT` (appended to the crawler's User-Agent; defaults to the repository URL), `MAX_AI_JOBS_PER_RUN`, `AI_TIME_BUDGET_SECONDS`, `AI_MINUTES_PER_MONTH`, `INFERENCE_TIMEOUT_SECONDS`, `MAX_JOB_INPUT_TOKENS`, `CRAWL_TIME_BUDGET_SECONDS`, `MAX_ALERTS_PER_RUN`, `NOTIFY_TIME_BUDGET_SECONDS`, `STALE_DISCOVERY_HOURS`, `RETENTION_DAYS`
 
-Before raising a time budget, check it against the job's `timeout-minutes`. `AI_TIME_BUDGET_SECONDS` must stay above `INFERENCE_TIMEOUT_SECONDS`, or no job starts. Discovery's 38 minutes covers the default 900 s budget and no more.
+Before raising a time budget, check it against the job's `timeout-minutes`. `AI_TIME_BUDGET_SECONDS` must stay above `INFERENCE_TIMEOUT_SECONDS`, or no job starts. The pipeline trims the AI budget to the time the job has left after setting aside notify, cleanup and health, and logs a notice when it does. A budget larger than the timeout allows therefore has no effect: raise the job's `timeout-minutes` and its `job-minutes` input together (a test keeps them equal). Crawl and preparation keep their own fixed deadlines.
 
 ## Daily check
 

@@ -48,6 +48,7 @@ jobs:
           persist-credentials: false
       - uses: ./.github/actions/pipeline
         with:
+          job-minutes: "30"
           trigger: maintenance
           ai-jobs: "2"
           ai-seconds: "600"
