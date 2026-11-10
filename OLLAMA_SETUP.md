@@ -34,6 +34,8 @@ The model runs with `temperature` 0, `seed` 42, and the response schema passed a
 
 Measured on 2026-11-01 in run 41320394097: image pull 52 and 98 s, ready in about 1 s, model download 12 s, free disk about 6 GiB after start.
 
+Measured on 2026-11-10 with 0.40.14 in run 42877732908, on the public-repository runner (4 vCPU, 16 GB): image pull 55 and 35 s, ready in about 1 s, model download 7 s. All 18 inferences valid, none truncated or timed out. Median inference 30 s on the cache miss and 39 s on the cache hit, against 67 and 86 s on 2026-11-01, mostly because the runner is larger. Peak container memory 2385 MiB. Results in `benchmarks/results/hosted-ubuntu-24.04-2026-11-10-ollama-0.40.14.json`.
+
 ## Cache
 
 The key is `ollama-<os>-<arch>-rev<cacheRevision>-<digest>`. Benchmarks add a `-spike-<run>-<attempt>` suffix, which forces a miss.
