@@ -7,7 +7,7 @@ import { createPool } from "../../src/db/pool";
 import { BASE_URL, NEXTAUTH_SECRET, OWNER_ID, PORT } from "./constants";
 import { seedFixtures } from "./seed";
 
-/** A throwaway database and the production build, with fixed test credentials. CI supplies its own Postgres. */
+/** A throwaway database and the production build, with fixed test credentials. TEST_DATABASE_URL replaces the database. */
 async function startDatabase() {
   if (process.env.TEST_DATABASE_URL) return { url: process.env.TEST_DATABASE_URL, stop: async () => {} };
   const root = path.resolve(".test-postgres");

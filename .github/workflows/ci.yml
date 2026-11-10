@@ -1,13 +1,22 @@
 name: ci
 
-# No secrets: this also runs on pull requests.
+# No secrets: this also runs on pull requests. No test reads the Markdown docs,
+# so a change to them alone skips the run. `master` has no required checks,
+# so a skipped run blocks nothing.
 on:
   push:
-    branches: [master, mvp]
+    branches: [master]
+    paths-ignore: ["**.md", LICENSE]
   pull_request:
+    paths-ignore: ["**.md", LICENSE]
 
 permissions:
   contents: read
+
+# A new push to a pull request cancels its older run. Runs on master all finish.
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   # Syntax of every workflow. tests/unit/workflows.test.ts (in `test`) checks that
@@ -30,23 +39,11 @@ jobs:
           tar -xzf "$RUNNER_TEMP/$archive" -C "$RUNNER_TEMP" actionlint
       - run: '"$RUNNER_TEMP/actionlint" -no-color -oneline'
 
+  # Both suites start embedded-postgres from node_modules, as they do locally: it
+  # is ready in seconds, where a service container held each job for 11 to 13 s.
   test:
     runs-on: ubuntu-24.04
     timeout-minutes: 10
-    services:
-      postgres:
-        image: postgres:18-alpine@sha256:10a5c69a83035ab5239f5620d708520e8b28f5aa1f2b20143e6024532edadfb5
-        env:
-          POSTGRES_PASSWORD: test
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U postgres"
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 10
-    env:
-      TEST_DATABASE_URL: postgres://postgres:test@localhost:5432/postgres
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -62,20 +59,7 @@ jobs:
   e2e:
     runs-on: ubuntu-24.04
     timeout-minutes: 10
-    services:
-      postgres:
-        image: postgres:18-alpine@sha256:10a5c69a83035ab5239f5620d708520e8b28f5aa1f2b20143e6024532edadfb5
-        env:
-          POSTGRES_PASSWORD: test
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U postgres"
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 10
     env:
-      TEST_DATABASE_URL: postgres://postgres:test@localhost:5432/postgres
       NEXT_TELEMETRY_DISABLED: 1
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -86,5 +70,10 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci
-      - run: npx playwright install --with-deps chromium
+      # Tests run headless, which uses only the headless shell, not full Chrome.
+      # The runner image already has Chrome's system libraries; --with-deps would
+      # only add fonts through apt, which no test needs (no screenshots) and which
+      # took 3 min 49 s from a slow mirror on 2026-11-10. If the image ever drops
+      # a library, the browser fails to launch and this job says so.
+      - run: npx playwright install --only-shell chromium
       - run: npm run test:e2e
