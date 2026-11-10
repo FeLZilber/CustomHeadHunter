@@ -19,7 +19,7 @@ npm run test:e2e    # production build, then Playwright
 
 `tests/setup/postgres.ts` uses `TEST_DATABASE_URL` when set. Otherwise it starts `embedded-postgres`, as CI does, so no Docker is needed. Tests truncate tables, so never point `TEST_DATABASE_URL` at a real database.
 
-E2E installs a browser once: `npx playwright install chromium`. CI installs only the headless shell (`--only-shell`), which is all a headless run needs.
+E2E installs a browser once: `npx playwright install chromium`. CI installs only the headless shell (`--only-shell`), which is all a headless run needs, and skips `--with-deps`: the runner image already has the system libraries, and the extra fonts serve no test.
 
 ### E2E authentication
 

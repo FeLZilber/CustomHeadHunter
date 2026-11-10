@@ -71,5 +71,9 @@ jobs:
           cache: npm
       - run: npm ci
       # Tests run headless, which uses only the headless shell, not full Chrome.
-      - run: npx playwright install --with-deps --only-shell chromium
+      # The runner image already has Chrome's system libraries; --with-deps would
+      # only add fonts through apt, which no test needs (no screenshots) and which
+      # took 3 min 49 s from a slow mirror on 2026-11-10. If the image ever drops
+      # a library, the browser fails to launch and this job says so.
+      - run: npx playwright install --only-shell chromium
       - run: npm run test:e2e
