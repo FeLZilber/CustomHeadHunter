@@ -2,6 +2,8 @@
 
 The system is built to run for free inside GitHub's included Actions usage, Neon Free and Vercel Hobby. This file separates what was measured from what is estimated. No production workload has run yet, so every monthly figure below is an estimate.
 
+**While the repository is public, Actions costs nothing.** GitHub does not bill standard hosted runners in public repositories, and that use does not draw on the included amount ([Actions billing](https://docs.github.com/en/billing/concepts/product-billing/github-actions), checked 2026-11-10). The minute figures below apply if the repository becomes private, and the monthly AI cap stays as a guard for that case. Larger runners are billed even in public repositories, so the workflows use only `ubuntu-24.04`.
+
 Provider facts were checked on 2026-11-01 and can change. Check the linked pages before relying on them.
 
 ## Summary
@@ -143,7 +145,7 @@ This is enough for the current 11 eligible jobs, which clear in a day. If more t
 - **Workflow limits:** every job has `timeout-minutes`. Concurrency groups stop overlapping runs.
 - **Gate:** `PRODUCTION_ENABLED` must be `true` before either production workflow does anything.
 - **Runners:** standard `ubuntu-24.04` only, no larger or self-hosted runners.
-- **Expensive checks:** `ollama-feasibility` and `pipeline-smoke` run only when their inputs change on `mvp`, or by hand.
+- **Expensive checks:** `ollama-feasibility` runs only when its inputs change on `master`, or by hand. `pipeline-smoke` also runs on pull requests that change the pipeline.
 - **No paid AI:** matching uses Ollama on the runner. There is no API key for any model provider.
 - **Other providers:** Neon Free and Vercel Hobby stop or wait at their limits. Do not upgrade either without deciding to pay.
 

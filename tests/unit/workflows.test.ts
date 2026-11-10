@@ -1,3 +1,4 @@
+import { execFileSync } from "node:child_process";
 import { readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
@@ -12,10 +13,15 @@ import { parse } from "yaml";
 const DIR = path.resolve(import.meta.dirname, "../../.github/workflows");
 const PRODUCTION = ["discovery.yml", "maintenance.yml"];
 
+interface Step {
+  uses?: string;
+  with?: Record<string, unknown>;
+}
+
 interface Workflow {
   on?: { schedule?: { cron: string }[]; workflow_dispatch?: unknown } & Record<string, unknown>;
   concurrency?: { group?: string };
-  jobs: Record<string, { if?: string }>;
+  jobs: Record<string, { if?: string; "timeout-minutes"?: number; steps?: Step[] }>;
 }
 
 const workflows = Object.fromEntries(
@@ -55,9 +61,74 @@ describe("workflow triggers", () => {
     expect(gated.length).toBe(1);
   });
 
+  // Two workflows once triggered on `mvp` after it was deleted, and silently stopped running.
+  it.each(Object.entries(workflows).filter(([, wf]) => wf.on?.push))("%s triggers on pushes to master only", (_file, wf) => {
+    const push = wf.on!.push as { branches?: string[] } | null;
+    expect(push?.branches).toEqual(["master"]);
+  });
+
   it("runs the staleness drill only on request, with no production secrets", () => {
     const drill = (workflows["maintenance.yml"]!.jobs["staleness-drill"] ?? {}) as { if?: string; env?: Record<string, string> };
     expect(drill.if).toContain("inputs.drill");
     expect(JSON.stringify(drill)).not.toContain("secrets.");
+  });
+});
+
+const jobs = Object.entries(workflows).flatMap(([file, wf]) => Object.entries(wf.jobs).map(([name, job]) => ({ file, name, job })));
+
+describe("workflow jobs", () => {
+  const pipelineJobs = jobs.filter(({ job }) => job.steps?.some((step) => step.uses === "./.github/actions/pipeline"));
+
+  it("finds the jobs that run the pipeline", () => {
+    expect(pipelineJobs.map(({ file }) => file).sort()).toEqual(["discovery.yml", "maintenance.yml", "pipeline-smoke.yml"]);
+  });
+
+  // The action sizes the match stage from job-minutes, so notify still runs before the job times out.
+  it.each(pipelineJobs.map(({ file, name, job }) => [`${file} ${name}`, job] as const))("%s passes its own timeout as job-minutes", (_label, job) => {
+    const step = job.steps!.find((entry) => entry.uses === "./.github/actions/pipeline")!;
+    expect(job["timeout-minutes"]).toBeGreaterThan(0);
+    expect(String(step.with?.["job-minutes"])).toBe(String(job["timeout-minutes"]));
+  });
+
+  // Install scripts and other steps must not find the token in .git/config.
+  it.each(jobs.filter(({ job }) => job.steps).map(({ file, name, job }) => [`${file} ${name}`, job] as const))(
+    "%s checks out without persisting credentials",
+    (_label, job) => {
+      for (const step of job.steps!.filter((entry) => entry.uses?.startsWith("actions/checkout@"))) {
+        expect(step.with?.["persist-credentials"]).toBe(false);
+      }
+    },
+  );
+});
+
+describe("match budget", () => {
+  const script = path.resolve(import.meta.dirname, "../../.github/actions/pipeline/match-budget.sh");
+  const NOW = 1_000_000;
+  const plan = (secondsLeft: number, aiSeconds: number, setAside = 0) =>
+    execFileSync("bash", [script, String(NOW + secondsLeft), String(aiSeconds), String(setAside)], {
+      env: { ...process.env, NOW: String(NOW), INFERENCE_TIMEOUT_SECONDS: "330" },
+      encoding: "utf8",
+    }).trim();
+
+  it("keeps the full budget and stage deadline when there is time", () => {
+    expect(plan(5000, 900)).toBe("900 1290");
+  });
+
+  it("trims the budget and stage deadline to the time left", () => {
+    expect(plan(700, 900)).toBe("640 700");
+  });
+
+  it("sets time aside for the model to start", () => {
+    expect(plan(700, 900, 180)).toBe("460 520");
+  });
+
+  it("skips matching when one inference no longer fits", () => {
+    expect(plan(389, 900)).toBe("0 0");
+    expect(plan(390, 900)).toBe("330 390");
+    expect(plan(-60, 900)).toBe("0 0");
+  });
+
+  it("skips matching when the configured budget is below one inference", () => {
+    expect(plan(5000, 100)).toBe("0 0");
   });
 });
