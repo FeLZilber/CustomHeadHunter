@@ -2,6 +2,8 @@
 
 ## Workflows
 
+A quick reference. [WORKFLOWS.md](WORKFLOWS.md) explains each workflow, the shared actions and Dependabot in detail.
+
 | Workflow | Trigger | Does | Timeout |
 | --- | --- | --- | --- |
 | `discovery` | `17 6 * * *` UTC (about 09:00 in Israel), backup `43 11 * * *`, manual | Crawl, evaluate, match, notify, health | 38 min |

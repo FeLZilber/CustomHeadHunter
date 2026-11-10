@@ -102,6 +102,7 @@ A company with its own careers page can be followed without an ATS if the page (
 | [ARCHITECTURE.md](ARCHITECTURE.md) | Data flow, lifecycle, queue and outbox guarantees, trade-offs |
 | [DEPLOYMENT.md](DEPLOYMENT.md) | Neon, Telegram, GitHub OAuth, Vercel, secrets, activation |
 | [OPERATIONS.md](OPERATIONS.md) | Workflows, manual inputs, runbook |
+| [WORKFLOWS.md](WORKFLOWS.md) | What each GitHub workflow and shared action does, step by step |
 | [OLLAMA_SETUP.md](OLLAMA_SETUP.md) | Model pinning, cache, limits, benchmarking |
 | [TESTING.md](TESTING.md) | Test commands, live checks, results |
 | [COSTS.md](COSTS.md) | Measured use, projections, free-tier limits |
