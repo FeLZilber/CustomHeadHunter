@@ -61,6 +61,12 @@ describe("workflow triggers", () => {
     expect(gated.length).toBe(1);
   });
 
+  // Two workflows once triggered on `mvp` after it was deleted, and silently stopped running.
+  it.each(Object.entries(workflows).filter(([, wf]) => wf.on?.push))("%s triggers on pushes to master only", (_file, wf) => {
+    const push = wf.on!.push as { branches?: string[] } | null;
+    expect(push?.branches).toEqual(["master"]);
+  });
+
   it("runs the staleness drill only on request, with no production secrets", () => {
     const drill = (workflows["maintenance.yml"]!.jobs["staleness-drill"] ?? {}) as { if?: string; env?: Record<string, string> };
     expect(drill.if).toContain("inputs.drill");
