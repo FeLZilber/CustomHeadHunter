@@ -80,7 +80,7 @@ Output is validated with Zod. Evidence quotes are checked against the posting an
 The outbox is derived from committed match results and identified by a unique `event_key`, so a replay cannot duplicate a row. This stands in for a transactional outbox because the match transaction has no external side effects.
 
 - **Rechecked before sending.** A queued event is judged against the database as it is then, and suppressed if the job closed or fell below the threshold.
-- **Baselines give one capped digest per source**, not one alert per job.
+- **Baselines give capped digests per source**, not one alert per job. While a source's first crawl is still being judged, each run sends one digest of the jobs that qualified since the last, so the best-ranked jobs arrive the day they are scored and not after the last unlikely one. A job is never listed twice. When every baseline job has a verdict, a closing row under the source's own key (the last digest, or a suppressed marker) ends it, and a later rematch cannot raise a digest for that source. An eligible job still waiting outside the capped AI queue keeps the baseline open.
 - **Relevance changes start an epoch.** Events from before it get no alert, which stops a profile edit from flooding the chat. Those jobs appear on the dashboard, and `--rematch-digest` sends one capped digest per epoch.
 - **Ambiguous delivery is held, not resent.** `send_started_at` commits before the request. Telegram has no idempotency key, so a lost acknowledgement stays `ambiguous` until the operator checks the chat. A missed alert is preferred to an unbounded duplicate.
 

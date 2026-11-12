@@ -8,7 +8,7 @@ The workflows fall into three groups.
 
 | Workflow | Group | Runs on | Secrets | Timeout |
 | --- | --- | --- | --- | --- |
-| [`discovery`](#discovery) | Production | Daily cron, backup cron, manual | Yes | 38 min |
+| [`discovery`](#discovery) | Production | Daily cron, backup cron, manual | Yes | 60 min |
 | [`maintenance`](#maintenance) | Production | Daily cron, backup cron, manual | Yes (not the drill) | 30 min, drill 10 min |
 | [`ci`](#ci) | Checks | Every push to `master`, every pull request | No | 5 to 10 min per job |
 | [`pipeline-smoke`](#pipeline-smoke) | Checks | Worker, migration or action changes, manual | No | 25 min |

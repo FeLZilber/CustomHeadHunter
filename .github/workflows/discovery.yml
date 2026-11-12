@@ -60,7 +60,7 @@ jobs:
   discover:
     if: ${{ vars.PRODUCTION_ENABLED == 'true' }}
     runs-on: ubuntu-24.04
-    timeout-minutes: 38
+    timeout-minutes: 60
     env:
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
       CRAWLER_CONTACT: ${{ vars.CRAWLER_CONTACT || format('{0}/{1}', github.server_url, github.repository) }}
@@ -78,7 +78,7 @@ jobs:
           persist-credentials: false
       - uses: ./.github/actions/pipeline
         with:
-          job-minutes: "38"
+          job-minutes: "60"
           trigger: ${{ github.event_name }}
           mode: ${{ inputs.mode || 'incremental' }}
           provider: ${{ inputs.provider != 'all' && inputs.provider || '' }}
