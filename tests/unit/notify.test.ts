@@ -5,7 +5,7 @@ import { BudgetSchema, loadBudget, withoutBlanks } from "../../src/config/budget
 import { loadWorkerEnv } from "../../src/config/env";
 import { buildMatchConfig } from "../../src/match/config";
 import { escapeHtml, MAX_MESSAGE_CHARS, renderAlert, renderDigest, visibleLength, type JobCard } from "../../src/notify/message";
-import { TelegramClient } from "../../src/notify/telegram";
+import { isQuietHour, TelegramClient } from "../../src/notify/telegram";
 
 const TOKEN = "123456:SECRET-token";
 
@@ -28,7 +28,8 @@ function reply(status: number, body: unknown) {
   return async () => new Response(text, { status });
 }
 
-const client = (fetcher: () => Promise<Response>) => new TelegramClient(TOKEN, "42", fetcher as unknown as typeof fetch);
+const NOON = () => new Date("2026-11-12T10:00:00Z"); // 12:00 in Israel
+const client = (fetcher: () => Promise<Response>) => new TelegramClient(TOKEN, "42", fetcher as unknown as typeof fetch, NOON);
 
 function connectionError(code: string) {
   return async () => {
@@ -45,10 +46,28 @@ describe("telegram client", () => {
       body = JSON.parse(String(init.body));
       return new Response(JSON.stringify({ ok: true, result: { message_id: 7 } }));
     };
-    const outcome = await new TelegramClient(TOKEN, "42", fetcher as unknown as typeof fetch).send("<b>x</b>");
+    const outcome = await new TelegramClient(TOKEN, "42", fetcher as unknown as typeof fetch, NOON).send("<b>x</b>");
     expect(outcome).toEqual({ kind: "sent", messageId: "7" });
     expect(url).toBe(`https://api.telegram.org/bot${TOKEN}/sendMessage`);
     expect(body).toEqual({ chat_id: "42", text: "<b>x</b>", parse_mode: "HTML", link_preview_options: { is_disabled: true } });
+  });
+
+  it("delivers silently at night in Israel, in winter and summer time", async () => {
+    let body: Record<string, any> = {};
+    const fetcher = async (_input: string, init: RequestInit) => {
+      body = JSON.parse(String(init.body));
+      return new Response(JSON.stringify({ ok: true, result: { message_id: 7 } }));
+    };
+    const night = () => new Date("2026-11-12T22:17:00Z"); // 00:17 in Israel
+    await new TelegramClient(TOKEN, "42", fetcher as unknown as typeof fetch, night).send("x");
+    expect(body.disable_notification).toBe(true);
+
+    expect(isQuietHour(new Date("2026-11-12T04:59:00Z"))).toBe(true); // 06:59, winter
+    expect(isQuietHour(new Date("2026-11-12T05:00:00Z"))).toBe(false); // 07:00, winter
+    expect(isQuietHour(new Date("2026-07-12T03:59:00Z"))).toBe(true); // 06:59, summer
+    expect(isQuietHour(new Date("2026-07-12T04:00:00Z"))).toBe(false); // 07:00, summer
+    expect(isQuietHour(new Date("2026-07-12T18:59:00Z"))).toBe(false); // 21:59, summer
+    expect(isQuietHour(new Date("2026-07-12T19:00:00Z"))).toBe(true); // 22:00, summer
   });
 
   it("reports flood control with Telegram's wait", async () => {

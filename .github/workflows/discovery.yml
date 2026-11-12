@@ -3,14 +3,20 @@ name: discovery
 # The repository variable PRODUCTION_ENABLED gates every run, so nothing spends
 # minutes or reaches the database until the operator has set the secrets.
 #
-# GitHub runs schedules on a best-effort basis and can drop one, so a second,
-# offset cron gives the day another chance. The shared concurrency group stops
-# the two from overlapping, and a second pass costs little: unchanged boards
-# answer 304, unchanged jobs are never rematched and alerts are deduplicated.
-# tests/unit/workflows.test.ts requires both triggers.
+# GitHub runs schedules on a best-effort basis. It can drop one, and in this
+# repository it started them 7 to 10 hours late on every day measured (9 to 11
+# November 2026: the 06:17 cron ran between 14:29 and 16:30 UTC). So there are
+# four spread through the day: with that lag the two early ones land in the
+# Israeli morning and midday, and without it the two late ones do. A run that
+# lands at night still delivers, silently (see isQuietHour). The shared
+# concurrency group stops runs from overlapping, and an extra pass costs little:
+# unchanged boards answer 304, unchanged jobs are never rematched and alerts
+# are deduplicated. tests/unit/workflows.test.ts requires at least two.
 on:
   schedule:
-    - cron: "17 6 * * *"   # about 09:00 in Israel
+    - cron: "17 22 * * *"  # about 08:00 in Israel when started 8 hours late
+    - cron: "17 3 * * *"   # about 13:00 in Israel when started 8 hours late
+    - cron: "17 6 * * *"   # about 09:00 in Israel when started on time
     - cron: "43 11 * * *"  # backup pass
   workflow_dispatch:
     inputs:
