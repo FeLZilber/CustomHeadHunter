@@ -1225,6 +1225,19 @@
       "enabled": true,
       "verifiedAt": "2026-11-12T13:14:21Z",
       "verificationSourceUrl": "https://stryker.wd1.myworkdayjobs.com/wday/cxs/stryker/StrykerCareers/jobs"
+    },
+    {
+      "company": "Playtika",
+      "industry": "gaming",
+      "provider": "greenhouse",
+      "providerKey": "playtikaltd",
+      "careerUrl": "https://boards.greenhouse.io/playtikaltd",
+      "countryCoverage": [
+        "IL"
+      ],
+      "enabled": true,
+      "verifiedAt": "2026-11-12T13:54:43Z",
+      "verificationSourceUrl": "https://boards-api.greenhouse.io/v1/boards/playtikaltd/jobs"
     }
   ]
 }

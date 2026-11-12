@@ -41,7 +41,7 @@ Each stage commits before the next starts, so jobs are never lost to a later fai
 | `src/notify` | Outbox, message rendering and Telegram client |
 | `src/worker` | CLI and maintenance |
 | `src/dashboard`, `src/app` | Server-side queries and auth, and Next.js pages |
-| `catalog/sources.json` | Verified sources. 94 entries: 47 Greenhouse, 4 Lever, 16 Ashby, 27 Workday. Grown with `npm run catalog:add` and `npm run catalog:discover`; Workday sites are added by link (`catalog:add --url`); `jsonld` entries (key is an https URL) are added by hand |
+| `catalog/sources.json` | Verified sources. 95 entries: 48 Greenhouse, 4 Lever, 16 Ashby, 27 Workday. Grown with `npm run catalog:add` and `npm run catalog:discover`; Workday sites are added by link (`catalog:add --url`); `jsonld` entries (key is an https URL) are added by hand |
 | `ollama/model-lock.json` | Pinned image, model and digest |
 
 ## Identity and lifecycle
