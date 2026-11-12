@@ -59,6 +59,7 @@ A job moves between `active` and `expired`:
 
 `evaluate` applies the filter and queues work without a model. Every evaluation stores the filter's deterministic priority. After evaluating, a fill step tops the queue up to `AI_QUEUE_LIMIT` open tasks with the best-ranked eligible jobs that have no result and no task (a superseded task may reopen, an exhausted one never does); the rest are deferred and picked up as the queue drains. A task's input key combines the content hash, the profile matching hash and the match config hash (model digest, prompt, schema, rubric, inference options and input limit).
 
+- The queue order is the filter's priority, lowered by 35 for a posting published more than 30 days ago and by 100 for a company the owner has dismissed as "wrong company". Neither rejects anything: a stale QA title still outranks a fresh ambiguous one, and every eligible job gets its turn. A job the owner dismissed is not queued or claimed at all, and is again once restored.
 - An unchanged key is never rematched, so a full crawl does not re-run AI.
 - A changed key queues new work and marks the old result stale. Stale results stay readable and labelled.
 - A filter version is left out of the key on purpose: a filter release re-evaluates and reuses existing answers.
