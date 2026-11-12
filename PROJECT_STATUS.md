@@ -92,7 +92,7 @@ Everything left needs the operator's accounts. Tick these off here as they happe
 
 - **Runner speed spreads about threefold** (4.1 to 13 output tokens/s). `COSTS.md` plans for the slow end.
 - **One 176 s outlier** on local GPU has no known cause. It predates the current limits.
-- **Backlog runs newest first** within a priority, so old tasks wait longest.
+- **Backlog runs newest first** within a priority, so old tasks wait longest. Postings older than 30 days and companies dismissed as wrong are ranked lower still, and dismissed jobs get no model time.
 - **The monthly cap blocks manual runs too,** and a killed run that records no finish is not counted against it.
 - **Pending runs are replaced.** GitHub keeps only one pending run per concurrency group, so a queued run can be dropped.
 - **Only variables listed in the workflows are honored.** `MAX_OUTPUT_TOKENS` and `OLLAMA_NUM_CTX` need a code change on Actions.

@@ -4,7 +4,7 @@ import type { Pool } from "../../src/db/pool";
 import { createLogger } from "../../src/logger";
 import { buildMatchConfig, hashMatchConfig } from "../../src/match/config";
 import { OllamaError, type ChatRequest, type ChatResult } from "../../src/match/ollama-client";
-import { getJob } from "../../src/dashboard/queries";
+import { getJob, setDismissed } from "../../src/dashboard/queries";
 import { claimTask, countAffordable, evaluateJobs, forceRematch, readBacklog, recoverAbandoned, retryFailedTasks } from "../../src/match/queue";
 import { runMatch, type MatchDeps, type MatchOptions } from "../../src/match/runner";
 import { ensureProfile, saveProfile } from "../../src/profile/store";
@@ -244,6 +244,60 @@ describe("matching", () => {
       expect(runnable.map((task) => task.priority)).toEqual([48, 47, 46, 45, 44]);
     });
 
+    const jobId = async (n: number) =>
+      (await pool.query(`SELECT id FROM canonical_jobs WHERE title = $1`, [titleOf(n)])).rows[0].id as string;
+    const queuedTitles = async () => (await open()).map((task) => Number(/job-(\d+)$/.exec(task.title)![1]));
+
+    it("ranks a posting older than 30 days behind fresh ones, without rejecting it", async () => {
+      const profile = await seedRanked();
+      await pool.query(
+        `UPDATE source_listings l SET published_at = now() - interval '40 days'
+           FROM canonical_jobs j WHERE j.id = l.canonical_job_id AND j.title = $1`,
+        [titleOf(50)],
+      );
+      await pool.query(
+        `UPDATE source_listings l SET published_at = now() - interval '20 days'
+           FROM canonical_jobs j WHERE j.id = l.canonical_job_id AND j.title = $1`,
+        [titleOf(49)],
+      );
+      await evaluateJobs(pool, config, profile, LIMIT);
+      expect((await queuedTitles()).sort((a, b) => b - a)).toEqual([49, 48, 47, 46, 45]);
+      // It still gets its turn: 50 - 35 = 15 ranks it between job-15 and job-14.
+      await evaluateJobs(pool, config, profile, JOBS - 14);
+      expect(await queuedTitles()).toContain(50);
+      expect(await queuedTitles()).not.toContain(14);
+    });
+
+    it("spends no model time on a dismissed job, and moves a company dismissed as wrong to the back", async () => {
+      const profile = await seedRanked();
+      const other = await pool.query(`INSERT INTO companies (name) VALUES ('Other Co') RETURNING id`);
+      await pool.query(`UPDATE canonical_jobs SET company_id = $1 WHERE title IN ($2, $3)`, [other.rows[0].id, titleOf(50), titleOf(49)]);
+      await setDismissed(pool, profile.profileId, await jobId(49), "wrong_company");
+      // Any other reason is about that one job only.
+      await setDismissed(pool, profile.profileId, await jobId(48), "wrong_role");
+
+      expect(await evaluateJobs(pool, config, profile, LIMIT)).toMatchObject({ queued: LIMIT, deferred: JOBS - 2 - LIMIT });
+      expect((await queuedTitles()).sort((a, b) => b - a)).toEqual([47, 46, 45, 44, 43]);
+    });
+
+    it("leaves a queued job alone once it is dismissed, and picks it up again when restored", async () => {
+      const profile = await seedRanked();
+      await evaluateJobs(pool, config, profile, LIMIT);
+      await setDismissed(pool, profile.profileId, await jobId(50), "other");
+
+      const model = fakeModel([output(), output()]);
+      expect(await runMatch(deps(model.model), options({ maxJobs: 1 }))).toMatchObject({ succeeded: 1 });
+      const scored = await pool.query(`SELECT j.title FROM match_results r JOIN canonical_jobs j ON j.id = r.canonical_job_id`);
+      expect(scored.rows.map((row) => row.title)).toEqual([titleOf(49)]);
+      // Its slot goes to the next job instead of being held.
+      expect(await evaluateJobs(pool, config, profile, LIMIT)).toMatchObject({ queued: 2 });
+
+      await setDismissed(pool, profile.profileId, await jobId(50), null);
+      expect(await runMatch(deps(model.model), options({ maxJobs: 1 }))).toMatchObject({ succeeded: 1 });
+      const after = await pool.query(`SELECT j.title FROM match_results r JOIN canonical_jobs j ON j.id = r.canonical_job_id ORDER BY r.id`);
+      expect(after.rows.map((row) => row.title)).toEqual([titleOf(49), titleOf(50)]);
+    });
+
     it("lists a deferred job as pending on the dashboard", async () => {
       const profile = await seedRanked();
       await evaluateJobs(pool, config, profile, LIMIT);
@@ -418,13 +472,14 @@ describe("matching", () => {
     });
 
     it("claims the most recently posted job first within a priority", async () => {
-      const posted = (date: string) => ({ publishedAt: new Date(date) });
+      // Relative dates inside the 30-day window, so staleness ranking plays no part here.
+      const posted = (daysAgo: number) => ({ publishedAt: new Date(Date.now() - daysAgo * 86_400_000) });
       await crawlJobs([
         snapshot([
-          rawListing("older", posted("2026-01-01")),
+          rawListing("older", posted(20)),
           rawListing("undated"),
-          rawListing("newer", posted("2026-10-01")),
-          rawListing("low", { ...posted("2026-10-30"), title: "Software Engineer", descriptionText: `${"Build things for people. ".repeat(12)} Playwright.` }),
+          rawListing("newer", posted(5)),
+          rawListing("low", { ...posted(1), title: "Software Engineer", descriptionText: `${"Build things for people. ".repeat(12)} Playwright.` }),
         ]),
       ]);
       await evaluateJobs(pool, config, await ensureProfile(pool), 1000);

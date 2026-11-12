@@ -123,6 +123,27 @@ async function evaluateBatch(db: Queryable, profile: Profile, hashes: Hashes): P
   return summary;
 }
 
+/** A posting older than this is ranked behind fresh ones of its title tier: it is the likeliest to be filled already. */
+export const STALE_POSTING_DAYS = 30;
+/** Less than the gap between title tiers left by fact fit (100 against at most 60), so a stale QA title still outranks a fresh ambiguous one. */
+const STALE_PENALTY = 35;
+/** A whole title tier: the owner said the company itself is wrong. */
+const WRONG_COMPANY_PENALTY = 100;
+
+/** The owner marked the job "not relevant", so it gets no model time. Restoring it makes it runnable again. */
+const notDismissed = (jobId: string) => `NOT EXISTS (SELECT 1 FROM dismissed_jobs d WHERE d.canonical_job_id = ${jobId})`;
+
+/**
+ * Queue order: the filter's priority, lowered for a stale posting and for a company the owner has
+ * dismissed as wrong. Deterministic and free, and it only orders work: nothing is rejected here.
+ */
+const QUEUE_RANK = `(
+  e.priority
+  - CASE WHEN l.published_at < now() - make_interval(days => ${STALE_POSTING_DAYS}) THEN ${STALE_PENALTY} ELSE 0 END
+  - CASE WHEN EXISTS (SELECT 1 FROM dismissed_jobs d JOIN canonical_jobs dc ON dc.id = d.canonical_job_id
+                       WHERE d.reason = 'wrong_company' AND dc.company_id = c.company_id)
+         THEN ${WRONG_COMPANY_PENALTY} ELSE 0 END)`;
+
 /**
  * Tops the queue up with the best-ranked eligible jobs that have no answer and no
  * task yet. Ranking is the deterministic priority stored at evaluation, so a deep
@@ -139,7 +160,8 @@ async function fillQueue(db: Queryable, profile: Profile, hashes: Hashes, limit:
         AND EXISTS (SELECT 1 FROM canonical_jobs c WHERE c.id = t.canonical_job_id AND c.status = 'active')
         AND EXISTS (SELECT 1 FROM job_evaluations e WHERE e.canonical_job_id = t.canonical_job_id AND e.input_key = t.input_key)
         AND EXISTS (SELECT 1 FROM source_listings l WHERE l.id = t.source_listing_id AND l.status = 'active'
-                     AND l.content_hash = t.content_hash)`,
+                     AND l.content_hash = t.content_hash)
+        AND ${notDismissed("t.canonical_job_id")}`,
     [hashes.configHash, hashes.profileHash],
   );
   const room = Math.max(0, limit - open[0].n);
@@ -149,6 +171,7 @@ async function fillQueue(db: Queryable, profile: Profile, hashes: Hashes, limit:
       JOIN source_listings l ON l.id = e.source_listing_id AND l.status = 'active' AND l.content_hash = e.content_hash
      WHERE e.decision = 'eligible' AND e.input_key IS NOT NULL
        AND e.profile_hash = $1 AND e.config_hash = $2 AND e.filter_version = $3
+       AND ${notDismissed("e.canonical_job_id")}
        AND NOT EXISTS (SELECT 1 FROM match_results r WHERE r.canonical_job_id = e.canonical_job_id AND r.input_key = e.input_key)
        AND NOT EXISTS (SELECT 1 FROM match_tasks t WHERE t.canonical_job_id = e.canonical_job_id AND t.input_key = e.input_key
                         AND t.status <> 'superseded')`;
@@ -156,12 +179,12 @@ async function fillQueue(db: Queryable, profile: Profile, hashes: Hashes, limit:
   let queued = 0;
   if (room > 0) {
     const { rows } = await db.query(
-      `SELECT e.canonical_job_id, l.id AS listing_id, l.content_hash, e.input_key, e.priority ${unqueued}
-        ORDER BY e.priority DESC, l.published_at DESC NULLS LAST, e.canonical_job_id DESC
+      `SELECT e.canonical_job_id, l.id AS listing_id, l.content_hash, e.input_key, ${QUEUE_RANK} AS rank ${unqueued}
+        ORDER BY rank DESC, l.published_at DESC NULLS LAST, e.canonical_job_id DESC
         LIMIT $4`,
       [...params, room],
     );
-    for (const row of rows) await queueTask(db, row, profile, hashes, row.input_key, row.priority);
+    for (const row of rows) await queueTask(db, row, profile, hashes, row.input_key, row.rank);
     queued = rows.length;
   }
   const { rows: left } = await db.query(`SELECT count(*)::int AS n ${unqueued}`, params);
@@ -197,6 +220,7 @@ const RUNNABLE = `
   AND EXISTS (SELECT 1 FROM canonical_jobs c WHERE c.id = t.canonical_job_id AND c.status = 'active')
   AND EXISTS (SELECT 1 FROM job_evaluations e WHERE e.canonical_job_id = t.canonical_job_id AND e.input_key = t.input_key)
   AND EXISTS (SELECT 1 FROM source_listings l WHERE l.id = t.source_listing_id AND l.status = 'active' AND l.content_hash = t.content_hash)
+  AND ${notDismissed("t.canonical_job_id")}
   AND EXISTS (SELECT 1 FROM profiles p JOIN profile_revisions r ON r.id = p.current_revision_id
                WHERE p.owner_key = '${OWNER_KEY}' AND r.matching_hash = t.profile_hash)`;
 
