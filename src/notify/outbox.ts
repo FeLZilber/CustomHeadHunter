@@ -122,22 +122,41 @@ async function planAlerts(db: Queryable, relevance: Relevance, epoch: Epoch): Pr
   return planned;
 }
 
-/** A baseline is judged once, when every job in it has a verdict, so the digest really holds the top matches. */
+/**
+ * True while a job found in the source's baseline still awaits a verdict: not evaluated under the present
+ * profile and model, or eligible with neither a result nor an exhausted task. An eligible job waiting
+ * outside the capped AI queue has no task at all, so an open task alone is not the test.
+ */
+const BASELINE_UNRESOLVED = `
+  EXISTS (
+    SELECT 1 FROM job_events ev
+      JOIN source_listings l ON l.id = ev.source_listing_id
+      JOIN canonical_jobs c ON c.id = ev.canonical_job_id
+      LEFT JOIN job_evaluations e ON e.canonical_job_id = c.id
+       AND e.profile_hash = $1 AND e.config_hash = $2 AND e.filter_version = $3
+     WHERE l.source_id = s.id AND ev.during_baseline AND ev.event_type = 'discovered' AND c.status = 'active'
+       AND (e.canonical_job_id IS NULL
+            OR EXISTS (SELECT 1 FROM match_tasks t WHERE t.canonical_job_id = c.id AND t.status IN ('pending', 'claimed'))
+            OR (e.decision = 'eligible'
+                AND NOT EXISTS (SELECT 1 FROM match_results r WHERE r.canonical_job_id = c.id AND r.input_key = e.input_key)
+                AND NOT EXISTS (SELECT 1 FROM match_tasks t
+                                 WHERE t.canonical_job_id = c.id AND t.input_key = e.input_key AND t.status = 'exhausted'))))`;
+
+/**
+ * Baseline jobs never alert one by one. While a source's baseline is still being judged, each run sends
+ * one capped digest of the jobs that qualified since the last one: the AI queue is ranked, so the likeliest
+ * jobs are judged first and reach the owner the same day, not after the last unlikely one. When every
+ * baseline job has a verdict, a closing row is written under the source's own key. It is the last digest,
+ * or a suppressed marker, and it stops a later rematch from raising a digest for an old source.
+ * A job is never listed twice: one already named in any notification is left out.
+ */
 async function planBaselineDigests(db: Queryable, relevance: Relevance, digestSize: number): Promise<number> {
   const { rows: sources } = await db.query(
-    `SELECT s.id FROM job_sources s
+    `SELECT s.id, ${BASELINE_UNRESOLVED} AS unresolved
+       FROM job_sources s
       WHERE s.baseline_established_at IS NOT NULL
         AND NOT EXISTS (SELECT 1 FROM notifications n
-                         WHERE n.profile_id = $4 AND n.channel = $5 AND n.event_key = 'baseline:source:' || s.id)
-        AND NOT EXISTS (
-          SELECT 1 FROM job_events ev
-            JOIN source_listings l ON l.id = ev.source_listing_id
-            JOIN canonical_jobs c ON c.id = ev.canonical_job_id
-            LEFT JOIN job_evaluations e ON e.canonical_job_id = c.id
-             AND e.profile_hash = $1 AND e.config_hash = $2 AND e.filter_version = $3
-           WHERE l.source_id = s.id AND ev.during_baseline AND ev.event_type = 'discovered' AND c.status = 'active'
-             AND (e.canonical_job_id IS NULL OR EXISTS (
-               SELECT 1 FROM match_tasks t WHERE t.canonical_job_id = c.id AND t.status IN ('pending', 'claimed'))))`,
+                         WHERE n.profile_id = $4 AND n.channel = $5 AND n.event_key = 'baseline:source:' || s.id)`,
     [...currentParams(relevance), relevance.profileId, CHANNEL],
   );
   let planned = 0;
@@ -148,12 +167,28 @@ async function planBaselineDigests(db: Queryable, relevance: Relevance, digestSi
          JOIN job_events ev ON ev.canonical_job_id = c.id AND ev.during_baseline AND ev.event_type = 'discovered'
          JOIN source_listings origin ON origin.id = ev.source_listing_id AND origin.source_id = $4
         WHERE c.status = 'active' AND r.score >= $5
+          AND NOT EXISTS (SELECT 1 FROM notifications n
+                           WHERE n.profile_id = $6 AND n.channel = $7
+                             AND (n.canonical_job_id = c.id OR c.id = ANY (n.job_ids)))
         ORDER BY r.score DESC, c.id`,
-      [...currentParams(relevance), source.id, relevance.threshold],
+      [...currentParams(relevance), source.id, relevance.threshold, relevance.profileId, CHANNEL],
     );
     const members = jobs.slice(0, digestSize);
-    // An empty baseline still leaves a row, so a later rematch cannot raise a digest for an old source.
-    await db.query(
+    if (source.unresolved && members.length === 0) continue;
+
+    let key = `baseline:source:${source.id}`;
+    let suppressedReason: string | null = null;
+    if (source.unresolved) {
+      // No job in this batch was ever in a notification, so its first id names the batch uniquely.
+      key = `${key}:batch:${members[0].id}`;
+    } else if (members.length === 0) {
+      const { rowCount } = await db.query(
+        `SELECT 1 FROM notifications WHERE profile_id = $1 AND channel = $2 AND source_id = $3 AND event_key LIKE 'baseline:source:%' LIMIT 1`,
+        [relevance.profileId, CHANNEL, source.id],
+      );
+      suppressedReason = rowCount ? "delivered_in_batches" : "no_qualifying_jobs";
+    }
+    const { rowCount } = await db.query(
       `INSERT INTO notifications (profile_id, channel, kind, event_key, source_id, job_ids, more_count, score,
                                   status, suppressed_reason)
        VALUES ($1, $2, 'digest', $3, $4, $5, $6, $7, $8, $9)
@@ -161,16 +196,16 @@ async function planBaselineDigests(db: Queryable, relevance: Relevance, digestSi
       [
         relevance.profileId,
         CHANNEL,
-        `baseline:source:${source.id}`,
+        key,
         source.id,
         members.map((job) => job.id),
         jobs.length - members.length,
         members[0]?.score ?? null,
         members.length ? "pending" : "suppressed",
-        members.length ? null : "no_qualifying_jobs",
+        suppressedReason,
       ],
     );
-    if (members.length) planned += 1;
+    if (members.length) planned += rowCount ?? 0;
   }
   return planned;
 }

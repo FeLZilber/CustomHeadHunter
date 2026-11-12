@@ -159,12 +159,60 @@ describe("notifications", () => {
       expect(row.job_ids).toHaveLength(5);
     });
 
-    it("waits until every baseline job has a verdict", async () => {
-      await crawlOnce(snapshot([rawListing("a"), rawListing("b")]));
+    it("sends the jobs judged so far, then the rest, and never lists a job twice", async () => {
+      await crawlOnce(snapshot([rawListing("a"), rawListing("b"), rawListing("c")]));
       await match(() => modelReply(HIGH), 1);
-      expect((await notify(fakeSender().sender)).digests).toBe(0);
+      const first = fakeSender();
+      expect(await notify(first.sender)).toMatchObject({ alerts: 0, digests: 1, sent: 1 });
+      expect(first.sent[0]!.match(/80\/100/g)).toHaveLength(1);
+
+      // Nothing new was judged, so there is nothing to say.
+      expect(await notify(fakeSender().sender)).toMatchObject({ digests: 0, sent: 0 });
+
       await match();
-      expect((await notify(fakeSender().sender)).digests).toBe(1);
+      const second = fakeSender();
+      expect(await notify(second.sender)).toMatchObject({ alerts: 0, digests: 1, sent: 1 });
+      expect(second.sent[0]!.match(/80\/100/g)).toHaveLength(2);
+
+      const digests = await rows();
+      expect(digests.map((row) => row.status)).toEqual(["sent", "sent"]);
+      expect(digests[0].event_key).toMatch(/^baseline:source:\d+:batch:\d+$/);
+      expect(digests[1].event_key).toMatch(/^baseline:source:\d+$/);
+      const listed = digests.flatMap((row) => row.job_ids);
+      expect(new Set(listed).size).toBe(3);
+
+      expect(await notify(fakeSender().sender)).toMatchObject({ digests: 0, sent: 0 });
+      expect(await rows()).toHaveLength(2);
+    });
+
+    it("closes a baseline delivered in batches with a marker, not another message", async () => {
+      await crawlOnce(snapshot([rawListing("a"), rawListing("b")]));
+      await match((() => {
+        const replies = [modelReply(HIGH), modelReply(LOW)];
+        return () => replies.shift()!;
+      })(), 1);
+      expect(await notify(fakeSender().sender)).toMatchObject({ digests: 1, sent: 1 });
+      await match(() => modelReply(LOW));
+      const { sender, sent } = fakeSender();
+      expect(await notify(sender)).toMatchObject({ digests: 0, sent: 0 });
+      expect(sent).toHaveLength(0);
+      expect((await rows()).at(-1)).toMatchObject({ status: "suppressed", suppressed_reason: "delivered_in_batches" });
+    });
+
+    it("keeps a baseline open while an eligible job waits outside the AI queue", async () => {
+      await crawlOnce(snapshot([rawListing("a"), rawListing("b")]));
+      // A queue of one: the second job is eligible but has no task yet.
+      await evaluateJobs(pool, config, await ensureProfile(pool), 1);
+      await runMatch(
+        { pool, model: fakeModel(() => modelReply(HIGH)), log, scoreFacts: facts.scoreFacts },
+        { trigger: "test", config, maxJobs: 50, timeBudgetSeconds: 600, inferenceTimeoutSeconds: 180, maxAttempts: 3, retryBaseSeconds: 0 },
+      );
+      expect(await notify(fakeSender().sender)).toMatchObject({ digests: 1, sent: 1 });
+      expect((await rows())[0].event_key).toMatch(/:batch:\d+$/);
+
+      await match();
+      expect(await notify(fakeSender().sender)).toMatchObject({ digests: 1, sent: 1 });
+      expect((await rows()).map((row) => row.job_ids.length)).toEqual([1, 1]);
     });
 
     it("records a baseline with no matches so a later rematch cannot raise a digest", async () => {
