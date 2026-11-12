@@ -28,7 +28,7 @@ jobs:
   maintain:
     if: ${{ vars.PRODUCTION_ENABLED == 'true' && !inputs.drill }}
     runs-on: ubuntu-24.04
-    timeout-minutes: 30
+    timeout-minutes: 45
     env:
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
       CRAWLER_CONTACT: ${{ vars.CRAWLER_CONTACT || format('{0}/{1}', github.server_url, github.repository) }}
@@ -48,7 +48,7 @@ jobs:
           persist-credentials: false
       - uses: ./.github/actions/pipeline
         with:
-          job-minutes: "30"
+          job-minutes: "45"
           trigger: maintenance
           ai-jobs: "2"
           ai-seconds: "600"

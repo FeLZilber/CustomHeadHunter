@@ -189,8 +189,28 @@ describe("workday connector", () => {
     expect(failing.listings).toHaveLength(2);
 
     const malformed = await collect(site(3, { detail: (n) => (n === 2 ? json({ nope: true }) : json(detail(n))) }).client);
-    expect(malformed.outcome).toMatchObject({ kind: "partial", reason: "1 invalid records" });
+    expect(malformed.outcome).toMatchObject({
+      kind: "partial",
+      reason: "1 postings unreadable (first /job/Israel-Tel-Aviv/Job-2_JR2: unexpected shape at jobPostingInfo)",
+    });
     expect(malformed.pages[0]?.invalidRecords).toBe(1);
+
+    const notJson = await collect(site(2, { detail: (n) => (n === 1 ? { status: 200, body: "<html>", headers: {} } : json(detail(n))) }).client);
+    expect(notJson.outcome).toMatchObject({ kind: "partial", reason: expect.stringContaining("not JSON") });
+  });
+
+  it("asks once more for a posting whose first answer is unusable", async () => {
+    const asked = new Map<number, number>();
+    const flaky = (n: number) => {
+      asked.set(n, (asked.get(n) ?? 0) + 1);
+      if (n === 2 && asked.get(n) === 1) return { status: 200, body: "<html>busy</html>", headers: {} };
+      if (n === 3 && asked.get(n) === 1) return status(503);
+      return json(detail(n));
+    };
+    const { outcome, listings } = await collect(site(3, { detail: flaky }).client);
+    expect(outcome).toMatchObject({ kind: "complete", listings: 3 });
+    expect(listings).toHaveLength(3);
+    expect([...asked.values()]).toEqual([1, 2, 2]);
   });
 
   it("is partial when fewer postings arrive than the site announced", async () => {

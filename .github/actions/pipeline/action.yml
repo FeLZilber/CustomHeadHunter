@@ -95,7 +95,7 @@ runs:
         args=(--trigger "$TRIGGER" --mode "$MODE")
         if [[ -n "$PROVIDER" ]]; then args+=(--provider "$PROVIDER"); fi
         if [[ -n "$COMPANY" ]]; then args+=(--company "$COMPANY"); fi
-        "$GITHUB_ACTION_PATH/worker.sh" $(( ${CRAWL_TIME_BUDGET_SECONDS:-300} + 120 )) crawl "${args[@]}"
+        "$GITHUB_ACTION_PATH/worker.sh" $(( ${CRAWL_TIME_BUDGET_SECONDS:-600} + 120 )) crawl "${args[@]}"
 
     - id: queue
       if: ${{ !cancelled() && steps.prepare.outcome == 'success' }}
@@ -104,7 +104,9 @@ runs:
         RETRY_FAILED: ${{ inputs.retry-failed }}
         FORCE_REMATCH: ${{ inputs.force-rematch }}
       run: |
-        "$GITHUB_ACTION_PATH/worker.sh" 120 evaluate
+        # A filter release or a large new source re-evaluates every job. It took more than 120 s for
+        # about 1,400 jobs against the hosted database (2026-11-12). Batches commit as they go.
+        "$GITHUB_ACTION_PATH/worker.sh" 600 evaluate
         args=()
         if [[ "$RETRY_FAILED" == "true" ]]; then args+=(--retry-failed); fi
         if [[ "$FORCE_REMATCH" == "true" ]]; then args+=(--force-rematch); fi

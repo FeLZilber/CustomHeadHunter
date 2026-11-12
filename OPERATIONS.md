@@ -7,7 +7,7 @@ A quick reference. [WORKFLOWS.md](WORKFLOWS.md) explains each workflow, the shar
 | Workflow | Trigger | Does | Timeout |
 | --- | --- | --- | --- |
 | `discovery` | `17 6 * * *` UTC (about 09:00 in Israel), backup `43 11 * * *`, manual | Crawl, evaluate, match, notify, health | 60 min |
-| `maintenance` | `17 7 * * *` UTC, backup `43 13 * * *`, manual | The same on the cheap ETag path with 2 AI jobs, then cleanup and a stale-discovery check. Input `drill` instead runs the stale check against an empty throwaway database and must fail | 30 min |
+| `maintenance` | `17 7 * * *` UTC, backup `43 13 * * *`, manual | The same on the cheap ETag path with 2 AI jobs, then cleanup and a stale-discovery check. Input `drill` instead runs the stale check against an empty throwaway database and must fail | 45 min |
 | `pipeline-smoke` | Pipeline changes on `master` or in a pull request, manual | The real pipeline against a throwaway Postgres | 25 min |
 | `ci` | Push, pull request | Type-check, unit, integration, E2E. No secrets | 10 min |
 | `compose-smoke` | Docker file changes, manual | Builds the image and checks the local setup | 15 min |

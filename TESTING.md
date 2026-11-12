@@ -52,7 +52,7 @@ These use real services or runner minutes, so they run only when chosen.
 
 ### Workday sources, 2026-11-12, real boards, throwaway database, `ingest/workday`
 
-Crawl, then `evaluate`; no model ran. Default budgets (`CRAWL_TIME_BUDGET_SECONDS` 300, `AI_QUEUE_LIMIT` 40).
+Crawl, then `evaluate`; no model ran. Budgets of that day (`CRAWL_TIME_BUDGET_SECONDS` 300, `AI_QUEUE_LIMIT` 40).
 
 | Catalog | Sources (complete) | Listings seen | Israeli jobs | Eligible after filter | Queued |
 | --- | --- | --- | --- | --- | --- |

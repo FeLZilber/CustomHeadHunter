@@ -92,7 +92,7 @@ A tenant can list thousands of jobs worldwide, so the first request reads the lo
 
 - A failed or malformed description, a page limit, or fewer postings than the first page announced makes the crawl `partial`, so nothing expires.
 - A site with location facets and no Israeli value is a `complete` empty snapshot. Reconciliation still holds back a sudden mass disappearance as `suspicious`. A response with no location facet at all is `failed`.
-- No ETag is stored: the listing is a POST, so every crawl reads every Israeli posting again. NVIDIA, the largest site in the catalog, took 160 to 216 s for 408 postings (2026-11-12). New and previously incomplete sources are crawled first, so a source cut off by `CRAWL_TIME_BUDGET_SECONDS` goes to the front of the next run.
+- No ETag is stored: the listing is a POST, so every crawl reads every Israeli posting again. NVIDIA, the largest site in the catalog, took 160 to 216 s for 408 postings locally (2026-11-12) and did not finish inside 300 s on a hosted runner, which is why the crawl budget defaults to 600 s. A posting whose description cannot be read is requested once more before it counts against the crawl, and the snapshot error names the first one. New and previously incomplete sources are crawled first, so a source cut off by `CRAWL_TIME_BUDGET_SECONDS` goes to the front of the next run.
 - The posting id is Workday's own id, not the URL path, because the path contains the title.
 
 ## JSON-LD connector
