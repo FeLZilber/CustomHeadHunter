@@ -67,6 +67,24 @@ describe("applyFilter", () => {
     expect(software.priority).toBeGreaterThan(applyFilter(job({ title }), profile).priority);
   });
 
+  it("rejects chip, board and factory roles that share QA words", () => {
+    for (const title of [
+      "Senior Chip Design Verification Engineer", "IC Test Engineer", "Hardware Validation Engineer", "Senior NPI Hardware Quality Engineer",
+      "Manufacturing Quality Engineer", "Supplier Quality Engineer", "Senior Post-Silicon Test Engineer", "DFT Verification Engineer",
+    ]) {
+      expect(applyFilter(job({ title }), profile), title).toMatchObject({ decision: "rejected", reasons: ["hardware_discipline"] });
+    }
+  });
+
+  it("keeps a software test role at a hardware company", () => {
+    const text = `${LONG_TEXT} Build our test automation framework in Python.`;
+    expect(applyFilter(job({ title: "Senior QA Automation Engineer, ASIC Simulation", descriptionText: text }), profile).reasons)
+      .toContain("title_relevant");
+    for (const title of ["Software Verification Engineer", "Senior Software Engineer, Network System Validation", "Software QA Automation Engineer"]) {
+      expect(applyFilter(job({ title }), profile).decision, title).toBe("eligible");
+    }
+  });
+
   it("keeps an ambiguous title that shows no clear signal either way", () => {
     expect(applyFilter(job({ title: "Automation Engineer" }), profile).reasons).toContain("title_ambiguous");
   });

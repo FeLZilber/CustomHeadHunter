@@ -23,7 +23,7 @@ const run = () =>
   crawl(
     testDeps(pool, jsonldConnector, {
       http: new HttpClient({ transport, sleep: async () => {}, random: () => 0, hostIntervalMs: {}, maxRetries: 0 }),
-      connectors: { greenhouse: jsonldConnector, lever: jsonldConnector, ashby: jsonldConnector, workable: jsonldConnector, jsonld: jsonldConnector },
+      connectors: { greenhouse: jsonldConnector, lever: jsonldConnector, ashby: jsonldConnector, workable: jsonldConnector, jsonld: jsonldConnector, workday: jsonldConnector },
     }),
     crawlOptions(),
   );

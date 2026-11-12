@@ -3,7 +3,7 @@ import type { EmploymentType, ExperienceRequirement, Seniority, TechnologyMentio
 import type { MatchingProfile } from "../profile/schema";
 import { scoreExperience, scoreLocation, scoreSeniority, scoreSkills } from "../match/facts";
 
-export const FILTER_VERSION = "filter-v4";
+export const FILTER_VERSION = "filter-v5";
 
 export interface FilterJob {
   title: string;
@@ -57,6 +57,13 @@ const INDUSTRIAL_SIGNAL = word(
     "mechatronics|בקרים|מכטרוניקה|קו ייצור",
 );
 
+// Chip, board and factory roles share the words "verification", "validation", "test" and "quality" with software QA.
+const HARDWARE_TITLE = word(
+  "hardware|chip|chips|ic|asic|soc|vlsi|fpga|rtl|dft|silicon|post silicon|physical verification|formal verification|" +
+    "design verification|phy|serdes|electrical|analog|layout|board design|ate|cad|manufacturing|production|npi|supplier|" +
+    "process engineer|materials|mechanical|optics|optical|packaging|חומרה|ייצור",
+);
+
 /** One title tier outranks any amount of fact fit: facts add at most 60 points. */
 const TIER = 100;
 
@@ -81,6 +88,8 @@ export const includesTerm = (text: string, term: string) => word(foldText(term).
 function classifyTitle(title: string, description: string, profile: MatchingProfile) {
   const hasSignal = SOFTWARE_TEST_SIGNAL.test(description);
   const isIndustrial = INDUSTRIAL_SIGNAL.test(description);
+  // Checked before the QA titles: "IC Test Engineer" and "Hardware Quality Engineer" are not software roles.
+  if (HARDWARE_TITLE.test(title) && !hasSignal) return { reject: "hardware_discipline", reason: "", priority: 0 };
   if (QA_TITLE.test(title)) return { reject: null, reason: "title_relevant", priority: 3 };
   if (OTHER_DISCIPLINE_TITLE.test(title)) return { reject: "title_other_discipline", reason: "", priority: 0 };
   // "Automation Engineer" alone cannot separate software QA from factory controls.

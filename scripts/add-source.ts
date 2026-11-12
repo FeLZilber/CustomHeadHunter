@@ -3,16 +3,18 @@
  *
  *   npm run catalog:add -- "Check Point" --industry cybersecurity
  *   npm run catalog:add -- "Acme" --provider greenhouse --key acme-inc --industry fintech
+ *   npm run catalog:add -- "Acme" --url https://acme.wd5.myworkdayjobs.com/Careers --industry hardware
  *   npm run catalog:add -- --file candidates.txt --industry fintech --dry-run
  *
  * A source is added only when its board answers and holds at least one Israeli listing
  * (the catalog's stated bar). Without --provider/--key it guesses slugs on every provider.
+ * --url takes a careers or job link instead; it is the only way to add a Workday site, whose address cannot be guessed.
  * Reads public APIs only, through the same rate-limited client as the crawler.
  */
 import { readFile, writeFile } from "node:fs/promises";
 import { parseArgs } from "node:util";
 import { HttpClient } from "../src/http/client";
-import { careerUrl } from "../src/ingest/board-url";
+import { careerUrl, parseBoardUrl } from "../src/ingest/board-url";
 import { CATALOG_PATH } from "../src/ingest/seed";
 import { discoverBoards, PROVIDERS, probeBoard, verificationUrl, type ProbeResult } from "../src/ingest/probe";
 import type { Provider } from "../src/connectors/types";
@@ -35,6 +37,7 @@ const { values, positionals } = parseArgs({
     industry: { type: "string" },
     provider: { type: "string" },
     key: { type: "string" },
+    url: { type: "string" },
     "career-url": { type: "string" },
     file: { type: "string" },
     "dry-run": { type: "boolean", default: false },
@@ -47,10 +50,18 @@ if (values.file) {
   names.push(...lines);
 }
 if (names.length === 0 || !values.industry) {
-  console.error('usage: catalog:add "Company" [...] --industry <industry> [--provider p --key k] [--file list.txt] [--dry-run]');
+  console.error('usage: catalog:add "Company" [...] --industry <industry> [--provider p --key k | --url link] [--file list.txt] [--dry-run]');
   process.exit(2);
 }
-if (values.provider && !PROVIDERS.includes(values.provider as Provider)) {
+if (values.url) {
+  const board = parseBoardUrl(values.url);
+  if (!board || values.provider || values.key) {
+    console.error(board ? "--url replaces --provider/--key" : "--url must be a Greenhouse, Lever, Ashby, Workable or Workday link");
+    process.exit(2);
+  }
+  values.provider = board.provider;
+  values.key = board.providerKey;
+} else if (values.provider && !PROVIDERS.includes(values.provider as Provider)) {
   console.error(`--provider must be one of ${PROVIDERS.join(", ")}`);
   process.exit(2);
 }

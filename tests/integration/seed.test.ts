@@ -30,7 +30,7 @@ describe("catalog", () => {
     await seedCatalog(pool);
     const ashby = await listEnabledSources(pool, { provider: "ashby" });
     expect(ashby.length).toBeGreaterThan(0);
-    await expect(addSource(pool, "Unknown Co", "unknown", "workday" as never)).rejects.toThrow(/job_sources_provider_check/);
+    await expect(addSource(pool, "Unknown Co", "unknown", "smartrecruiters" as never)).rejects.toThrow(/job_sources_provider_check/);
   });
 
   it("contains no synthetic companies", async () => {

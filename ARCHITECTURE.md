@@ -31,7 +31,7 @@ Each stage commits before the next starts, so jobs are never lost to a later fai
 
 | Directory | Holds |
 | --- | --- |
-| `src/connectors` | Greenhouse, Lever, Ashby and Workable clients, plus an opt-in generic `jsonld` reader |
+| `src/connectors` | Greenhouse, Lever, Ashby, Workable and Workday clients, plus an opt-in generic `jsonld` reader |
 | `src/http` | Crawler HTTP client with DNS-aware SSRF protection |
 | `src/normalize` | Location, technology, seniority and text normalization |
 | `src/ingest` | Crawl, identity, lifecycle and events |
@@ -41,7 +41,7 @@ Each stage commits before the next starts, so jobs are never lost to a later fai
 | `src/notify` | Outbox, message rendering and Telegram client |
 | `src/worker` | CLI and maintenance |
 | `src/dashboard`, `src/app` | Server-side queries and auth, and Next.js pages |
-| `catalog/sources.json` | Verified sources. 67 entries: 47 Greenhouse, 4 Lever, 16 Ashby. Grown with `npm run catalog:add` and `npm run catalog:discover`; `jsonld` entries (key is an https URL) are added by hand |
+| `catalog/sources.json` | Verified sources. 94 entries: 47 Greenhouse, 4 Lever, 16 Ashby, 27 Workday. Grown with `npm run catalog:add` and `npm run catalog:discover`; Workday sites are added by link (`catalog:add --url`); `jsonld` entries (key is an https URL) are added by hand |
 | `ollama/model-lock.json` | Pinned image, model and digest |
 
 ## Identity and lifecycle
@@ -62,9 +62,10 @@ A job moves between `active` and `expired`:
 - An unchanged key is never rematched, so a full crawl does not re-run AI.
 - A changed key queues new work and marks the old result stale. Stale results stay readable and labelled.
 - A filter version is left out of the key on purpose: a filter release re-evaluates and reuses existing answers.
+- A chip, board or factory title ("Chip Design Verification Engineer", "IC Test Engineer", "Manufacturing Quality Engineer") is rejected as `hardware_discipline` unless the description names software test tools. These roles share "verification", "validation", "test" and "quality" with software QA, and hardware employers list them by the dozen.
 - A job can pass on its description alone when the title does not rule it out. Other engineering disciplines (DevOps, backend, data and similar) are rejected on the title, because they mention test tools as part of their own stack. A plain "Software Engineer" is not, because it can hide an SDET role.
 
-**Two tiers: strict and adjacent.** The filter's own verdict is the strict tier, and it alone is queued for the model and alerted. The adjacent tier is roles near the target (DevOps, SRE, support and solutions engineering, release and build engineering) that the filter rejects only for being a different role. It is shown on the Filtered out page and nowhere else: never queued, never scored, never alerted. `src/filter/tiers.ts` computes the tier at display time from the stored decision. A job is adjacent when every rejection reason is role-only (`no_qa_signal`, `title_other_discipline`, `title_other_engineering`, `industrial_automation`), so a hard rule such as location, seniority or an excluded term still excludes it, and its title contains one of the owner's `adjacentTitles` as a whole word or phrase. The terms live in preferences, not the matching profile, because the matching hash is part of every task's input key: changing the terms re-queues nothing and starts no notification epoch. The tier is not stored, so editing the terms takes effect immediately and `applyFilter`, `FILTER_VERSION` and the queue are untouched, which keeps the alert set unchanged by construction. The integration test runs the pipeline with no terms and with the defaults and compares evaluations, tasks and notifications.
+**Two tiers: strict and adjacent.** The filter's own verdict is the strict tier, and it alone is queued for the model and alerted. The adjacent tier is roles near the target (DevOps, SRE, support and solutions engineering, release and build engineering) that the filter rejects only for being a different role. It is shown on the Filtered out page and nowhere else: never queued, never scored, never alerted. `src/filter/tiers.ts` computes the tier at display time from the stored decision. A job is adjacent when every rejection reason is role-only (`no_qa_signal`, `title_other_discipline`, `title_other_engineering`, `industrial_automation`, `hardware_discipline`), so a hard rule such as location, seniority or an excluded term still excludes it, and its title contains one of the owner's `adjacentTitles` as a whole word or phrase. The terms live in preferences, not the matching profile, because the matching hash is part of every task's input key: changing the terms re-queues nothing and starts no notification epoch. The tier is not stored, so editing the terms takes effect immediately and `applyFilter`, `FILTER_VERSION` and the queue are untouched, which keeps the alert set unchanged by construction. The integration test runs the pipeline with no terms and with the defaults and compares evaluations, tasks and notifications.
 
 **The model judges language and the code scores the facts.** The plan's contract has the model return `score` and `recommendation`. Here the model returns only a role category, the requirements it found, evidence quotes and an explanation. Code computes every point under `rubric-v2` (`src/match/facts.ts`): role 35 from the model's category, then skills 25, experience 15, seniority 10, location 10 and industry 5 from the structured facts the pipeline already extracted. Missing facts score neutral, not zero. A small CPU model counts and compares unreliably (the same input scored 85 on one runner and 78 on another), and a posting cannot talk code into a higher score. It also shortens the model's output. This is a deliberate deviation.
 
@@ -82,6 +83,17 @@ The outbox is derived from committed match results and identified by a unique `e
 - **Baselines give one capped digest per source**, not one alert per job.
 - **Relevance changes start an epoch.** Events from before it get no alert, which stops a profile edit from flooding the chat. Those jobs appear on the dashboard, and `--rematch-digest` sends one capped digest per epoch.
 - **Ambiguous delivery is held, not resent.** `send_started_at` commits before the request. Telegram has no idempotency key, so a lost acknowledgement stays `ambiguous` until the operator checks the chat. A missed alert is preferred to an unbounded duplicate.
+
+## Workday connector
+
+`provider: "workday"` reads a Workday career site. `providerKey` is the site's address, `https://{tenant}.wd{N}.myworkdayjobs.com/{site}`, taken from any link on it. The site's own search endpoint lists postings (`POST /wday/cxs/{tenant}/{site}/jobs`, 20 a page) and a second request per posting returns the description. Both go through `HttpClient`, so the tenant's `robots.txt`, the SSRF guard and pacing apply; `HttpClient.postJson` exists for this connector and gets the same checks as a GET.
+
+A tenant can list thousands of jobs worldwide, so the first request reads the location facets and every later one is narrowed to Israel: the country value when the tenant has one, otherwise every site whose name mentions Israel. Postings are yielded page by page with their descriptions, at most 50 pages (1000 Israeli postings).
+
+- A failed or malformed description, a page limit, or fewer postings than the first page announced makes the crawl `partial`, so nothing expires.
+- A site with location facets and no Israeli value is a `complete` empty snapshot. Reconciliation still holds back a sudden mass disappearance as `suspicious`. A response with no location facet at all is `failed`.
+- No ETag is stored: the listing is a POST, so every crawl reads every Israeli posting again. NVIDIA, the largest site in the catalog, took 160 to 216 s for 408 postings (2026-11-12). New and previously incomplete sources are crawled first, so a source cut off by `CRAWL_TIME_BUDGET_SECONDS` goes to the front of the next run.
+- The posting id is Workday's own id, not the URL path, because the path contains the title.
 
 ## JSON-LD connector
 
@@ -116,7 +128,7 @@ Workflows share the `job-hunter-worker` concurrency group, and migrate, evaluate
 
 ## Trade-offs
 
-- **Recall depends on the catalog.** The owner can add a company from `/search` by pasting a Greenhouse, Lever, Ashby or Workable link; the `adopt` step probes it and keeps it only if it lists Israeli jobs. These boards list few Israeli QA jobs. Comeet is left out on purpose, see `PROJECT_STATUS.md`. Other ATS connectors are roadmap work.
+- **Recall depends on the catalog.** The owner can add a company from `/search` by pasting a Greenhouse, Lever, Ashby, Workable or Workday link; the `adopt` step probes it and keeps it only if it lists Israeli jobs. These boards list few Israeli QA jobs. Comeet is left out on purpose, see `PROJECT_STATUS.md`. Other ATS connectors are roadmap work.
 - **Daily discovery is not real time.** GitHub can delay or drop scheduled runs, so a job can wait a day or more before it is seen.
 - **Scores vary across runners.** The same seed gave `mixed-sdet` 63 on one runner and 78 and 85 on others. Treat a score as a band, not a measurement.
 - **Single owner, single profile.** Multi-user support is out of scope.

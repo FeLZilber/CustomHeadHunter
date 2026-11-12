@@ -37,7 +37,7 @@ import { cleanup, healthAlerts, readHealth, renderAlerts, renderHealth } from ".
 const ArgsSchema = z.object({
   trigger: z.string().min(1).default("manual"),
   mode: z.enum(["incremental", "full"]).default("incremental"),
-  provider: z.enum(["greenhouse", "lever", "ashby", "workable", "jsonld"]).optional(),
+  provider: z.enum(["greenhouse", "lever", "ashby", "workable", "jsonld", "workday"]).optional(),
   company: z.string().min(1).optional(),
   "dry-run": z.boolean().default(false),
   "retry-failed": z.boolean().default(false),
