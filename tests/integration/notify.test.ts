@@ -215,6 +215,18 @@ describe("notifications", () => {
       expect((await rows()).map((row) => row.job_ids.length)).toEqual([1, 1]);
     });
 
+    it("does not wait for a job the owner dismissed", async () => {
+      await crawlOnce(snapshot([rawListing("a"), rawListing("b")]));
+      const profile = await ensureProfile(pool);
+      const { rows: jobs } = await pool.query(`SELECT id FROM canonical_jobs ORDER BY id`);
+      await pool.query(`INSERT INTO dismissed_jobs (profile_id, canonical_job_id, reason) VALUES ($1, $2, 'other')`, [profile.profileId, jobs[1].id]);
+      await match();
+      expect(await notify(fakeSender().sender)).toMatchObject({ digests: 1, sent: 1 });
+      const [row] = await rows();
+      expect(row.event_key).toMatch(/^baseline:source:\d+$/);
+      expect(row.job_ids).toEqual([jobs[0].id]);
+    });
+
     it("records a baseline with no matches so a later rematch cannot raise a digest", async () => {
       await crawlOnce(snapshot([rawListing("a")]));
       await match(() => modelReply(LOW));

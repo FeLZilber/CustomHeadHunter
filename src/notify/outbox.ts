@@ -125,7 +125,8 @@ async function planAlerts(db: Queryable, relevance: Relevance, epoch: Epoch): Pr
 /**
  * True while a job found in the source's baseline still awaits a verdict: not evaluated under the present
  * profile and model, or eligible with neither a result nor an exhausted task. An eligible job waiting
- * outside the capped AI queue has no task at all, so an open task alone is not the test.
+ * outside the capped AI queue has no task at all, so an open task alone is not the test. A job the owner
+ * dismissed is never judged, so it does not hold the baseline open.
  */
 const BASELINE_UNRESOLVED = `
   EXISTS (
@@ -135,6 +136,7 @@ const BASELINE_UNRESOLVED = `
       LEFT JOIN job_evaluations e ON e.canonical_job_id = c.id
        AND e.profile_hash = $1 AND e.config_hash = $2 AND e.filter_version = $3
      WHERE l.source_id = s.id AND ev.during_baseline AND ev.event_type = 'discovered' AND c.status = 'active'
+       AND NOT EXISTS (SELECT 1 FROM dismissed_jobs d WHERE d.canonical_job_id = c.id)
        AND (e.canonical_job_id IS NULL
             OR EXISTS (SELECT 1 FROM match_tasks t WHERE t.canonical_job_id = c.id AND t.status IN ('pending', 'claimed'))
             OR (e.decision = 'eligible'
