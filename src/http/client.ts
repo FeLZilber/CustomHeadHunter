@@ -21,7 +21,7 @@ export interface TransportResponse {
 export type Transport = (
   url: URL,
   headers: Record<string, string>,
-  options: { timeoutMs: number; maxBytes: number },
+  options: { timeoutMs: number; maxBytes: number; method?: "GET" | "POST"; body?: string },
 ) => Promise<TransportResponse>;
 
 export class ResponseTooLargeError extends Error {
@@ -38,11 +38,11 @@ function firstHeader(value: string | string[] | undefined): string | undefined {
 }
 
 /** Production transport. Redirects are handled by HttpClient so each hop is revalidated. */
-export const guardedTransport: Transport = (url, headers, { timeoutMs, maxBytes }) =>
+export const guardedTransport: Transport = (url, headers, { timeoutMs, maxBytes, method = "GET", body }) =>
   new Promise((resolve, reject) => {
     const request = https.request(
       url,
-      { method: "GET", headers, lookup: guardedLookup as never, timeout: timeoutMs },
+      { method, headers, lookup: guardedLookup as never, timeout: timeoutMs },
       (response) => {
         const encoding = firstHeader(response.headers["content-encoding"]);
         const stream =
@@ -78,7 +78,7 @@ export const guardedTransport: Transport = (url, headers, { timeoutMs, maxBytes 
     request.on("timeout", () => request.destroy(new Error(`Socket idle for ${timeoutMs}ms`)));
     request.on("error", reject);
     request.on("close", () => clearTimeout(deadline));
-    request.end();
+    request.end(body);
   });
 
 export interface HttpClientOptions {
@@ -109,7 +109,7 @@ export type FetchResult =
 const RETRYABLE_STATUS = new Set([408, 425, 429, 500, 502, 503, 504]);
 const BLOCKED_STATUS = new Set([401, 403, 451]);
 
-/** Bounded GET client for crawling: revalidated redirects, per-host pacing, and capped retries. */
+/** Bounded client for crawling: revalidated redirects, per-host pacing, and capped retries. */
 export class HttpClient {
   private readonly transport: Transport;
   private readonly sleep: (ms: number) => Promise<void>;
@@ -218,7 +218,22 @@ export class HttpClient {
     return DISALLOW_ALL; // Redirect loop.
   }
 
-  async get(input: string, conditional: { etag?: string | null; accept?: string } = {}): Promise<FetchResult> {
+  get(input: string, conditional: { etag?: string | null; accept?: string } = {}): Promise<FetchResult> {
+    return this.request(input, conditional);
+  }
+
+  /**
+   * A JSON POST that only reads: some career sites serve their job search this way. It gets the same
+   * robots.txt check, pacing and retries as a GET. A redirect is followed with the same method and body.
+   */
+  postJson(input: string, payload: unknown): Promise<FetchResult> {
+    return this.request(input, { body: JSON.stringify(payload) });
+  }
+
+  private async request(
+    input: string,
+    conditional: { etag?: string | null; accept?: string; body?: string },
+  ): Promise<FetchResult> {
     let url = new URL(input);
     let redirects = 0;
     let lastStatus: number | null = null;
@@ -246,8 +261,11 @@ export class HttpClient {
             accept: conditional.accept ?? "application/json",
             "accept-encoding": "gzip, br",
             ...(conditional.etag ? { "if-none-match": conditional.etag } : {}),
+            ...(conditional.body === undefined ? {} : { "content-type": "application/json" }),
           },
-          { timeoutMs: this.options.timeoutMs, maxBytes: this.options.maxBytes },
+          conditional.body === undefined
+            ? { timeoutMs: this.options.timeoutMs, maxBytes: this.options.maxBytes }
+            : { timeoutMs: this.options.timeoutMs, maxBytes: this.options.maxBytes, method: "POST", body: conditional.body },
         );
       } catch (error) {
         if (error instanceof BlockedDestinationError) return { kind: "blocked", status: 0, error: String(error) };

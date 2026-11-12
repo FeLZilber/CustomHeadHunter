@@ -9,6 +9,7 @@ export const TITLE_ONLY_REJECTIONS: readonly string[] = [
   "title_other_discipline",
   "title_other_engineering",
   "industrial_automation",
+  "hardware_discipline",
 ];
 
 /**

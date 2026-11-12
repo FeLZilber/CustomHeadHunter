@@ -1,6 +1,6 @@
 import type { HttpClient } from "../http/client";
 
-export type Provider = "greenhouse" | "lever" | "ashby" | "workable" | "jsonld";
+export type Provider = "greenhouse" | "lever" | "ashby" | "workable" | "jsonld" | "workday";
 
 export interface Salary {
   min: number | null;

@@ -81,6 +81,25 @@ describe("HttpClient", () => {
     expect(await client.get(url)).toEqual({ kind: "ok", status: 200, body: "ok", etag: '"v1"' });
   });
 
+  it("posts JSON with the same checks as a GET", async () => {
+    const sent: Array<{ method?: string; body?: string; type?: string }> = [];
+    const responses = [respond(503), respond(200, '{"ok":true}')];
+    const client = new HttpClient({
+      transport: async (_url, headers, options) => {
+        sent.push({ method: options.method, body: options.body, type: headers["content-type"] });
+        return responses.shift()!;
+      },
+      sleep: async () => {},
+      random: () => 0,
+      hostIntervalMs: {},
+    });
+    expect(await client.postJson("https://api.example.com/jobs", { limit: 20 })).toMatchObject({ kind: "ok", body: '{"ok":true}' });
+    expect(sent).toEqual([
+      { method: "POST", body: '{"limit":20}', type: "application/json" },
+      { method: "POST", body: '{"limit":20}', type: "application/json" },
+    ]);
+  });
+
   it("sends If-None-Match and reports 304", async () => {
     const { client, requests } = scripted([respond(304)]);
     expect((await client.get(url, { etag: '"v1"' })).kind).toBe("not_modified");
@@ -200,6 +219,12 @@ describe("HttpClient robots.txt", () => {
     });
     expect(requests.map((r) => r.url)).toEqual([ROBOTS]);
     expect((await client.get("https://example.test/public")).kind).toBe("ok");
+  });
+
+  it("applies robots.txt to a POST as well", async () => {
+    const { client, requests } = site(respond(200, "User-agent: *\nDisallow: /private/"));
+    expect(await client.postJson("https://example.test/private/jobs", {})).toMatchObject({ kind: "blocked", error: "Disallowed by robots.txt" });
+    expect(requests.map((r) => r.url)).toEqual([ROBOTS]);
   });
 
   it("treats a 404 robots.txt as allow-all", async () => {

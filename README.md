@@ -1,6 +1,6 @@
 # CustomHeadHunter
 
-A private job discovery system for one person in Israel. It watches Greenhouse, Lever, Ashby and Workable boards, scores shortlisted postings against a profile with a small local model, sends Telegram alerts, and shows everything on an owner-only dashboard.
+A private job discovery system for one person in Israel. It watches Greenhouse, Lever, Ashby and Workable boards and Workday career sites, scores shortlisted postings against a profile with a small local model, sends Telegram alerts, and shows everything on an owner-only dashboard.
 
 It needs no always-on computer, paid AI API or self-hosted runner. Scheduled work runs on GitHub Actions, the model runs in Docker on the same runner, and data lives in PostgreSQL.
 
@@ -8,7 +8,7 @@ It needs no always-on computer, paid AI API or self-hosted runner. Scheduled wor
 
 ## What it does
 
-- Crawls 67 verified company boards once a day, around 09:00 Israel time, using conditional requests where the provider supports them.
+- Crawls 94 verified company boards and career sites once a day, around 09:00 Israel time, using conditional requests where the provider supports them.
 - Stores every job before any AI runs, and expires a job only after repeated, complete evidence that it closed.
 - Filters deterministically, then matches shortlisted jobs with `qwen2.5:3b` on the runner's CPU, within per-job, per-run and monthly limits.
 - Sends each alert once through a database outbox, and holds any delivery it cannot confirm.
@@ -92,6 +92,14 @@ npm run catalog:discover -- --file catalog/candidates.txt --write          # add
 Workable is left out of bulk discovery unless named with `--providers workable`: it answers 429 to bulk lookups and then asks for waits over a minute.
 
 [catalog/candidates.txt](catalog/candidates.txt) holds 781 names with where each came from. On 2026-11-08 it yielded 30 new sources; most Israeli employers in it use Comeet or a board this project does not read.
+
+A Workday career site (`{company}.wd{N}.myworkdayjobs.com/{site}`) cannot be guessed from a name, so it is added by link:
+
+```sh
+npm run catalog:add -- "Acme" --url https://acme.wd5.myworkdayjobs.com/Careers --industry semiconductors
+```
+
+Any link from the site works, including a job link. The crawler reads only the site's Israeli postings, and a link pasted on the dashboard's Search page is followed the same way.
 
 A company with its own careers page can be followed without an ATS if the page (or a job sitemap) embeds `schema.org/JobPosting` JSON-LD. `catalog:add` does not guess these. Add an entry to `catalog/sources.json` by hand with `"provider": "jsonld"` and `"providerKey"` set to the full https URL of the careers page or sitemap `.xml`, fill in the other fields as for any entry, and check the page's robots.txt allows it. A crawl that finds no JobPosting fails rather than expiring jobs.
 

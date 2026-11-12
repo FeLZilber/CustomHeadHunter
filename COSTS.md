@@ -122,6 +122,15 @@ Measured on 2026-11-08 against live boards, same filter (`filter-v4`), no model 
 
 The catalog grew 1.8x and Israeli jobs 1.3x, but eligible jobs only from 13 to 14: the new companies list few QA roles. So the expected case above barely moves. Scaling the assumed 21 new eligible jobs a month by 14/13 gives about 23 (estimate), still well under the roughly 210 to 250 long postings a month the monthly cap allows.
 
+Measured on 2026-11-12 against live boards, no model run, after adding 27 Workday career sites and `filter-v5`:
+
+| Catalog | Sources | Israeli jobs | Eligible after filter | Pass rate |
+| --- | --- | --- | --- | --- |
+| Before (67 sources, `filter-v4`) | 67 | 586 | 10 | 1.7% |
+| With Workday (94 sources, `filter-v5`) | 94 | 1,397 | 104 | 7.4% |
+
+The eligible set grew tenfold, so the assumption of about 21 new eligible jobs a month no longer holds, and the first weeks work through a backlog: 40 queued, 8 a run. The caps below keep model minutes where they were. The crawl itself grew from about 100 s to 211 s a run, because a Workday site needs one request per posting (NVIDIA alone is 408) and cannot use conditional requests. That is about 2 more runner minutes per discovery run.
+
 Model time does not follow the job count in any case. Each run takes at most `MAX_AI_JOBS_PER_RUN` jobs inside `AI_TIME_BUDGET_SECONDS`, and `AI_MINUTES_PER_MONTH` keeps Ollama off once the month is spent, however many jobs are eligible. `AI_QUEUE_LIMIT` (default 40) bounds the backlog: `evaluate` ranks eligible jobs by the deterministic priority and queues only the best 40 runnable tasks that have no answer yet. The rest wait unqueued, shown as pending, and enter as the queue drains. A deeper catalog therefore adds no model calls; it only decides which jobs get them first. `tests/integration/match.test.ts` ("queue limit") checks this with ten times more eligible jobs than the limit.
 
 ## Throughput

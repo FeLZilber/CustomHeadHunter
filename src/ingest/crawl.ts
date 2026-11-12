@@ -4,6 +4,7 @@ import { greenhouseConnector } from "../connectors/greenhouse";
 import { jsonldConnector } from "../connectors/jsonld";
 import { leverConnector } from "../connectors/lever";
 import { workableConnector } from "../connectors/workable";
+import { workdayConnector } from "../connectors/workday";
 import type { Connector, CrawlOutcome, CrawlPage, Provider } from "../connectors/types";
 import { retryTransient, withTransaction, type Pool } from "../db/pool";
 import type { HttpClient } from "../http/client";
@@ -27,6 +28,7 @@ export const defaultConnectors: Record<Provider, Connector> = {
   ashby: ashbyConnector,
   workable: workableConnector,
   jsonld: jsonldConnector,
+  workday: workdayConnector,
 };
 
 const TRANSACTION_BATCH = 50;

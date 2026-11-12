@@ -93,7 +93,7 @@ export async function seedFixtures(pool: Pool) {
         "You will own monitoring, incident response and capacity planning across several regions for a growing product team.",
     }),
   ];
-  const deps = { pool, http: new HttpClient(), log, connectors: { greenhouse: connectorFor(listings), lever: connectorFor(listings), ashby: connectorFor(listings), workable: connectorFor(listings), jsonld: connectorFor(listings) } };
+  const deps = { pool, http: new HttpClient(), log, connectors: { greenhouse: connectorFor(listings), lever: connectorFor(listings), ashby: connectorFor(listings), workable: connectorFor(listings), jsonld: connectorFor(listings), workday: connectorFor(listings) } };
   await crawl(deps, crawlOptions);
 
   const profile = await ensureProfile(pool);
@@ -136,7 +136,7 @@ export async function seedFixtures(pool: Pool) {
 
   // Arrives after the match run, so it stays pending.
   await crawl(
-    { ...deps, connectors: { greenhouse: connectorFor([...listings, listing("pending", TITLES.pending)]), lever: deps.connectors.lever, ashby: deps.connectors.ashby, workable: deps.connectors.workable, jsonld: deps.connectors.jsonld } },
+    { ...deps, connectors: { greenhouse: connectorFor([...listings, listing("pending", TITLES.pending)]), lever: deps.connectors.lever, ashby: deps.connectors.ashby, workable: deps.connectors.workable, jsonld: deps.connectors.jsonld, workday: deps.connectors.workday } },
     crawlOptions,
   );
   await evaluateJobs(pool, config, profile, 1000);

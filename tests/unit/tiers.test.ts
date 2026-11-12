@@ -57,7 +57,7 @@ describe("classifyTier", () => {
   });
 
   it("only treats role-only rejections as adjacent candidates", () => {
-    expect(TITLE_ONLY_REJECTIONS).toEqual(["no_qa_signal", "title_other_discipline", "title_other_engineering", "industrial_automation"]);
+    expect(TITLE_ONLY_REJECTIONS).toEqual(["no_qa_signal", "title_other_discipline", "title_other_engineering", "industrial_automation", "hardware_discipline"]);
   });
 });
 

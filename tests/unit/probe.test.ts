@@ -79,5 +79,6 @@ describe("verificationUrl", () => {
     expect(verificationUrl("lever", "acme")).toBe("https://api.lever.co/v0/postings/acme");
     expect(verificationUrl("ashby", "acme")).toBe("https://api.ashbyhq.com/posting-api/job-board/acme");
     expect(verificationUrl("workable", "acme")).toBe("https://apply.workable.com/api/v1/widget/accounts/acme?details=true");
+    expect(verificationUrl("workday", "https://acme.wd5.myworkdayjobs.com/Careers")).toBe("https://acme.wd5.myworkdayjobs.com/wday/cxs/acme/Careers/jobs");
   });
 });

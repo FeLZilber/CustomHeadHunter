@@ -874,6 +874,357 @@
       "enabled": true,
       "verifiedAt": "2026-11-08T12:37:04Z",
       "verificationSourceUrl": "https://api.ashbyhq.com/posting-api/job-board/stigg"
+    },
+    {
+      "company": "NVIDIA",
+      "industry": "semiconductors",
+      "provider": "workday",
+      "providerKey": "https://nvidia.wd5.myworkdayjobs.com/NVIDIAExternalCareerSite",
+      "careerUrl": "https://nvidia.wd5.myworkdayjobs.com/NVIDIAExternalCareerSite",
+      "countryCoverage": [
+        "IL"
+      ],
+      "enabled": true,
+      "verifiedAt": "2026-11-12T13:00:56Z",
+      "verificationSourceUrl": "https://nvidia.wd5.myworkdayjobs.com/wday/cxs/nvidia/NVIDIAExternalCareerSite/jobs"
+    },
+    {
+      "company": "Medtronic",
+      "industry": "medical devices",
+      "provider": "workday",
+      "providerKey": "https://medtronic.wd1.myworkdayjobs.com/MedtronicCareers",
+      "careerUrl": "https://medtronic.wd1.myworkdayjobs.com/MedtronicCareers",
+      "countryCoverage": [
+        "IL"
+      ],
+      "enabled": true,
+      "verifiedAt": "2026-11-12T13:01:13Z",
+      "verificationSourceUrl": "https://medtronic.wd1.myworkdayjobs.com/wday/cxs/medtronic/MedtronicCareers/jobs"
+    },
+    {
+      "company": "Intel",
+      "industry": "semiconductors",
+      "provider": "workday",
+      "providerKey": "https://intel.wd1.myworkdayjobs.com/External",
+      "careerUrl": "https://intel.wd1.myworkdayjobs.com/External",
+      "countryCoverage": [
+        "IL"
+      ],
+      "enabled": true,
+      "verifiedAt": "2026-11-12T13:01:23Z",
+      "verificationSourceUrl": "https://intel.wd1.myworkdayjobs.com/wday/cxs/intel/External/jobs"
+    },
+    {
+      "company": "Applied Materials",
+      "industry": "semiconductors",
+      "provider": "workday",
+      "providerKey": "https://amat.wd1.myworkdayjobs.com/External",
+      "careerUrl": "https://amat.wd1.myworkdayjobs.com/External",
+      "countryCoverage": [
+        "IL"
+      ],
+      "enabled": true,
+      "verifiedAt": "2026-11-12T13:01:57Z",
+      "verificationSourceUrl": "https://amat.wd1.myworkdayjobs.com/wday/cxs/amat/External/jobs"
+    },
+    {
+      "company": "KLA",
+      "industry": "semiconductors",
+      "provider": "workday",
+      "providerKey": "https://kla.wd1.myworkdayjobs.com/Search",
+      "careerUrl": "https://kla.wd1.myworkdayjobs.com/Search",
+      "countryCoverage": [
+        "IL"
+      ],
+      "enabled": true,
+      "verifiedAt": "2026-11-12T13:02:38Z",
+      "verificationSourceUrl": "https://kla.wd1.myworkdayjobs.com/wday/cxs/kla/Search/jobs"
+    },
+    {
+      "company": "Motorola Solutions",
+      "industry": "technology",
+      "provider": "workday",
+      "providerKey": "https://motorolasolutions.wd5.myworkdayjobs.com/Careers",
+      "careerUrl": "https://motorolasolutions.wd5.myworkdayjobs.com/Careers",
+      "countryCoverage": [
+        "IL"
+      ],
+      "enabled": true,
+      "verifiedAt": "2026-11-12T13:02:48Z",
+      "verificationSourceUrl": "https://motorolasolutions.wd5.myworkdayjobs.com/wday/cxs/motorolasolutions/Careers/jobs"
+    },
+    {
+      "company": "Salesforce",
+      "industry": "enterprise software",
+      "provider": "workday",
+      "providerKey": "https://salesforce.wd12.myworkdayjobs.com/External_Career_Site",
+      "careerUrl": "https://salesforce.wd12.myworkdayjobs.com/External_Career_Site",
+      "countryCoverage": [
+        "IL"
+      ],
+      "enabled": true,
+      "verifiedAt": "2026-11-12T13:02:57Z",
+      "verificationSourceUrl": "https://salesforce.wd12.myworkdayjobs.com/wday/cxs/salesforce/External_Career_Site/jobs"
+    },
+    {
+      "company": "Marvell",
+      "industry": "semiconductors",
+      "provider": "workday",
+      "providerKey": "https://marvell.wd1.myworkdayjobs.com/MarvellCareers",
+      "careerUrl": "https://marvell.wd1.myworkdayjobs.com/MarvellCareers",
+      "countryCoverage": [
+        "IL"
+      ],
+      "enabled": true,
+      "verifiedAt": "2026-11-12T13:03:03Z",
+      "verificationSourceUrl": "https://marvell.wd1.myworkdayjobs.com/wday/cxs/marvell/MarvellCareers/jobs"
+    },
+    {
+      "company": "HP",
+      "industry": "technology",
+      "provider": "workday",
+      "providerKey": "https://hp.wd5.myworkdayjobs.com/ExternalCareerSite",
+      "careerUrl": "https://hp.wd5.myworkdayjobs.com/ExternalCareerSite",
+      "countryCoverage": [
+        "IL"
+      ],
+      "enabled": true,
+      "verifiedAt": "2026-11-12T13:03:18Z",
+      "verificationSourceUrl": "https://hp.wd5.myworkdayjobs.com/wday/cxs/hp/ExternalCareerSite/jobs"
+    },
+    {
+      "company": "Philips",
+      "industry": "medical devices",
+      "provider": "workday",
+      "providerKey": "https://philips.wd3.myworkdayjobs.com/jobs-and-careers",
+      "careerUrl": "https://philips.wd3.myworkdayjobs.com/jobs-and-careers",
+      "countryCoverage": [
+        "IL"
+      ],
+      "enabled": true,
+      "verifiedAt": "2026-11-12T13:03:27Z",
+      "verificationSourceUrl": "https://philips.wd3.myworkdayjobs.com/wday/cxs/philips/jobs-and-careers/jobs"
+    },
+    {
+      "company": "CrowdStrike",
+      "industry": "cybersecurity",
+      "provider": "workday",
+      "providerKey": "https://crowdstrike.wd5.myworkdayjobs.com/crowdstrikecareers",
+      "careerUrl": "https://crowdstrike.wd5.myworkdayjobs.com/crowdstrikecareers",
+      "countryCoverage": [
+        "IL"
+      ],
+      "enabled": true,
+      "verifiedAt": "2026-11-12T13:03:34Z",
+      "verificationSourceUrl": "https://crowdstrike.wd5.myworkdayjobs.com/wday/cxs/crowdstrike/crowdstrikecareers/jobs"
+    },
+    {
+      "company": "Red Hat",
+      "industry": "enterprise software",
+      "provider": "workday",
+      "providerKey": "https://redhat.wd5.myworkdayjobs.com/jobs",
+      "careerUrl": "https://redhat.wd5.myworkdayjobs.com/jobs",
+      "countryCoverage": [
+        "IL"
+      ],
+      "enabled": true,
+      "verifiedAt": "2026-11-12T13:03:38Z",
+      "verificationSourceUrl": "https://redhat.wd5.myworkdayjobs.com/wday/cxs/redhat/jobs/jobs"
+    },
+    {
+      "company": "Citi",
+      "industry": "banking",
+      "provider": "workday",
+      "providerKey": "https://citi.wd5.myworkdayjobs.com/2",
+      "careerUrl": "https://citi.wd5.myworkdayjobs.com/2",
+      "countryCoverage": [
+        "IL"
+      ],
+      "enabled": true,
+      "verifiedAt": "2026-11-12T13:03:44Z",
+      "verificationSourceUrl": "https://citi.wd5.myworkdayjobs.com/wday/cxs/citi/2/jobs"
+    },
+    {
+      "company": "General Motors",
+      "industry": "automotive",
+      "provider": "workday",
+      "providerKey": "https://generalmotors.wd5.myworkdayjobs.com/Careers_GM",
+      "careerUrl": "https://generalmotors.wd5.myworkdayjobs.com/Careers_GM",
+      "countryCoverage": [
+        "IL"
+      ],
+      "enabled": true,
+      "verifiedAt": "2026-11-12T13:03:49Z",
+      "verificationSourceUrl": "https://generalmotors.wd5.myworkdayjobs.com/wday/cxs/generalmotors/Careers_GM/jobs"
+    },
+    {
+      "company": "Cadence",
+      "industry": "semiconductors",
+      "provider": "workday",
+      "providerKey": "https://cadence.wd1.myworkdayjobs.com/External_Careers",
+      "careerUrl": "https://cadence.wd1.myworkdayjobs.com/External_Careers",
+      "countryCoverage": [
+        "IL"
+      ],
+      "enabled": true,
+      "verifiedAt": "2026-11-12T13:03:53Z",
+      "verificationSourceUrl": "https://cadence.wd1.myworkdayjobs.com/wday/cxs/cadence/External_Careers/jobs"
+    },
+    {
+      "company": "Samsung",
+      "industry": "technology",
+      "provider": "workday",
+      "providerKey": "https://sec.wd3.myworkdayjobs.com/Samsung_Careers",
+      "careerUrl": "https://sec.wd3.myworkdayjobs.com/Samsung_Careers",
+      "countryCoverage": [
+        "IL"
+      ],
+      "enabled": true,
+      "verifiedAt": "2026-11-12T13:03:58Z",
+      "verificationSourceUrl": "https://sec.wd3.myworkdayjobs.com/wday/cxs/sec/Samsung_Careers/jobs"
+    },
+    {
+      "company": "Workday",
+      "industry": "enterprise software",
+      "provider": "workday",
+      "providerKey": "https://workday.wd5.myworkdayjobs.com/Workday",
+      "careerUrl": "https://workday.wd5.myworkdayjobs.com/Workday",
+      "countryCoverage": [
+        "IL"
+      ],
+      "enabled": true,
+      "verifiedAt": "2026-11-12T13:04:08Z",
+      "verificationSourceUrl": "https://workday.wd5.myworkdayjobs.com/wday/cxs/workday/Workday/jobs"
+    },
+    {
+      "company": "Autodesk",
+      "industry": "enterprise software",
+      "provider": "workday",
+      "providerKey": "https://autodesk.wd1.myworkdayjobs.com/Ext",
+      "careerUrl": "https://autodesk.wd1.myworkdayjobs.com/Ext",
+      "countryCoverage": [
+        "IL"
+      ],
+      "enabled": true,
+      "verifiedAt": "2026-11-12T13:04:12Z",
+      "verificationSourceUrl": "https://autodesk.wd1.myworkdayjobs.com/wday/cxs/autodesk/Ext/jobs"
+    },
+    {
+      "company": "GSK",
+      "industry": "pharmaceuticals",
+      "provider": "workday",
+      "providerKey": "https://gsk.wd5.myworkdayjobs.com/GSKCareers",
+      "careerUrl": "https://gsk.wd5.myworkdayjobs.com/GSKCareers",
+      "countryCoverage": [
+        "IL"
+      ],
+      "enabled": true,
+      "verifiedAt": "2026-11-12T13:04:16Z",
+      "verificationSourceUrl": "https://gsk.wd5.myworkdayjobs.com/wday/cxs/gsk/GSKCareers/jobs"
+    },
+    {
+      "company": "Cisco",
+      "industry": "technology",
+      "provider": "workday",
+      "providerKey": "https://cisco.wd5.myworkdayjobs.com/Cisco_Careers",
+      "careerUrl": "https://cisco.wd5.myworkdayjobs.com/Cisco_Careers",
+      "countryCoverage": [
+        "IL"
+      ],
+      "enabled": true,
+      "verifiedAt": "2026-11-12T13:13:37Z",
+      "verificationSourceUrl": "https://cisco.wd5.myworkdayjobs.com/wday/cxs/cisco/Cisco_Careers/jobs"
+    },
+    {
+      "company": "Johnson & Johnson",
+      "industry": "medical devices",
+      "provider": "workday",
+      "providerKey": "https://jj.wd5.myworkdayjobs.com/JJ",
+      "careerUrl": "https://jj.wd5.myworkdayjobs.com/JJ",
+      "countryCoverage": [
+        "IL"
+      ],
+      "enabled": true,
+      "verifiedAt": "2026-11-12T13:13:53Z",
+      "verificationSourceUrl": "https://jj.wd5.myworkdayjobs.com/wday/cxs/jj/JJ/jobs"
+    },
+    {
+      "company": "Abbott",
+      "industry": "medical devices",
+      "provider": "workday",
+      "providerKey": "https://abbott.wd5.myworkdayjobs.com/abbottcareers",
+      "careerUrl": "https://abbott.wd5.myworkdayjobs.com/abbottcareers",
+      "countryCoverage": [
+        "IL"
+      ],
+      "enabled": true,
+      "verifiedAt": "2026-11-12T13:14:01Z",
+      "verificationSourceUrl": "https://abbott.wd5.myworkdayjobs.com/wday/cxs/abbott/abbottcareers/jobs"
+    },
+    {
+      "company": "Mastercard",
+      "industry": "fintech",
+      "provider": "workday",
+      "providerKey": "https://mastercard.wd1.myworkdayjobs.com/CorporateCareers",
+      "careerUrl": "https://mastercard.wd1.myworkdayjobs.com/CorporateCareers",
+      "countryCoverage": [
+        "IL"
+      ],
+      "enabled": true,
+      "verifiedAt": "2026-11-12T13:14:06Z",
+      "verificationSourceUrl": "https://mastercard.wd1.myworkdayjobs.com/wday/cxs/mastercard/CorporateCareers/jobs"
+    },
+    {
+      "company": "PayPal",
+      "industry": "fintech",
+      "provider": "workday",
+      "providerKey": "https://paypal.wd1.myworkdayjobs.com/jobs",
+      "careerUrl": "https://paypal.wd1.myworkdayjobs.com/jobs",
+      "countryCoverage": [
+        "IL"
+      ],
+      "enabled": true,
+      "verifiedAt": "2026-11-12T13:14:10Z",
+      "verificationSourceUrl": "https://paypal.wd1.myworkdayjobs.com/wday/cxs/paypal/jobs/jobs"
+    },
+    {
+      "company": "Micron",
+      "industry": "semiconductors",
+      "provider": "workday",
+      "providerKey": "https://micron.wd1.myworkdayjobs.com/External",
+      "careerUrl": "https://micron.wd1.myworkdayjobs.com/External",
+      "countryCoverage": [
+        "IL"
+      ],
+      "enabled": true,
+      "verifiedAt": "2026-11-12T13:14:14Z",
+      "verificationSourceUrl": "https://micron.wd1.myworkdayjobs.com/wday/cxs/micron/External/jobs"
+    },
+    {
+      "company": "Lumentum",
+      "industry": "semiconductors",
+      "provider": "workday",
+      "providerKey": "https://lumentum.wd5.myworkdayjobs.com/LITE",
+      "careerUrl": "https://lumentum.wd5.myworkdayjobs.com/LITE",
+      "countryCoverage": [
+        "IL"
+      ],
+      "enabled": true,
+      "verifiedAt": "2026-11-12T13:14:18Z",
+      "verificationSourceUrl": "https://lumentum.wd5.myworkdayjobs.com/wday/cxs/lumentum/LITE/jobs"
+    },
+    {
+      "company": "Stryker",
+      "industry": "medical devices",
+      "provider": "workday",
+      "providerKey": "https://stryker.wd1.myworkdayjobs.com/StrykerCareers",
+      "careerUrl": "https://stryker.wd1.myworkdayjobs.com/StrykerCareers",
+      "countryCoverage": [
+        "IL"
+      ],
+      "enabled": true,
+      "verifiedAt": "2026-11-12T13:14:21Z",
+      "verificationSourceUrl": "https://stryker.wd1.myworkdayjobs.com/wday/cxs/stryker/StrykerCareers/jobs"
     }
   ]
 }

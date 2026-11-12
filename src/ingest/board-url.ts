@@ -1,4 +1,5 @@
 import type { Provider } from "../connectors/types";
+import { parseWorkdayUrl, workdayKey } from "../connectors/workday";
 
 export interface BoardRef {
   provider: Provider;
@@ -18,6 +19,7 @@ const WORKABLE_RESERVED = new Set(["www", "apply", "resources", "help", "support
 
 /** The public careers page of a board, which is also what the owner would paste. */
 export const careerUrl = ({ provider, providerKey }: BoardRef): string => {
+  if (provider === "workday" || provider === "jsonld") return providerKey;
   const key = encodeURIComponent(providerKey);
   if (provider === "greenhouse") return `https://boards.greenhouse.io/${key}`;
   if (provider === "lever") return `https://jobs.lever.co/${key}`;
@@ -27,8 +29,8 @@ export const careerUrl = ({ provider, providerKey }: BoardRef): string => {
 
 /**
  * Reads the board out of a job or careers link on a supported ATS. The first path segment
- * is the company's key on all three. Anything else (a company's own site, LinkedIn) is null:
- * those pages are not read, only the three public ATS APIs are.
+ * is the company's key, except on Workday, where the key is the career site's address.
+ * Anything else (a company's own site, LinkedIn) is null: those pages are not read.
  */
 export function parseBoardUrl(input: string): BoardRef | null {
   let url: URL;
@@ -39,6 +41,8 @@ export function parseBoardUrl(input: string): BoardRef | null {
   }
   if (url.protocol !== "https:" && url.protocol !== "http:") return null;
   const hostname = url.hostname.toLowerCase();
+  const workday = parseWorkdayUrl(url.toString());
+  if (workday) return { provider: "workday", providerKey: workdayKey(workday) };
   const subdomain = WORKABLE_SUBDOMAIN.exec(hostname)?.[1];
   if (subdomain && !WORKABLE_RESERVED.has(subdomain)) return { provider: "workable", providerKey: subdomain };
   const match = HOSTS.find(([host]) => host.test(hostname));
@@ -53,6 +57,6 @@ export function parseBoardUrl(input: string): BoardRef | null {
   return { provider: match[1], providerKey: key };
 }
 
-/** "acme-labs" -> "Acme Labs", used only when the owner gives no company name. */
+/** "acme-labs" -> "Acme Labs", used only when the owner gives no company name. A Workday key is named after its tenant. */
 export const nameFromKey = (key: string): string =>
-  key.split(/[-_.]+/).filter(Boolean).map((part) => part[0]!.toUpperCase() + part.slice(1)).join(" ") || key;
+  (parseWorkdayUrl(key)?.tenant ?? key).split(/[-_.]+/).filter(Boolean).map((part) => part[0]!.toUpperCase() + part.slice(1)).join(" ") || key;

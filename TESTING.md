@@ -14,7 +14,7 @@ npm run test:e2e    # production build, then Playwright
 
 | Suite | Tests | Runs against |
 | --- | --- | --- |
-| Unit and integration | 407 in 17 files | Isolated PostgreSQL, mocked providers, scripted model |
+| Unit and integration | 599 in 31 files | Isolated PostgreSQL, mocked providers, scripted model |
 | Dashboard E2E | 33 | The production build in Chromium, a seeded database and signed test sessions |
 
 `tests/setup/postgres.ts` uses `TEST_DATABASE_URL` when set. Otherwise it starts `embedded-postgres`, as CI does, so no Docker is needed. Tests truncate tables, so never point `TEST_DATABASE_URL` at a real database.
@@ -49,6 +49,17 @@ These use real services or runner minutes, so they run only when chosen.
 | Local Docker setup | `compose-smoke` workflow | About 1 runner minute |
 
 ## Live results
+
+### Workday sources, 2026-11-12, real boards, throwaway database, `ingest/workday`
+
+Crawl, then `evaluate`; no model ran. Default budgets (`CRAWL_TIME_BUDGET_SECONDS` 300, `AI_QUEUE_LIMIT` 40).
+
+| Catalog | Sources (complete) | Listings seen | Israeli jobs | Eligible after filter | Queued |
+| --- | --- | --- | --- | --- | --- |
+| `master`, 67 sources, `filter-v4` | 67 (66) | not recorded | 586 | 10 | 10 |
+| This branch, 94 sources, `filter-v5` | 94 (93) | 4,550 | 1,397 | 104 | 40 |
+
+The 27 Workday sites returned 811 postings, every one in Israel scope, in a crawl of 211 s. The one snapshot that was not complete in either run is an existing Greenhouse source (`capitolis` reported an empty board, held as `suspicious`; `elastic` was suspicious in the earlier run). `filter-v5` rejected 246 jobs as `hardware_discipline`. Of the 104 eligible, 13 have a QA title, 54 an ambiguous one and 37 pass on the description.
 
 ### Catalog growth, 2026-11-08, real boards, throwaway database, `catalog/discover-sources`
 
