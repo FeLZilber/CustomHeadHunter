@@ -52,12 +52,24 @@ function transportCode(error: unknown): string | null {
   return typeof cause?.code === "string" ? cause.code : null;
 }
 
+const ISRAEL_HOUR = new Intl.DateTimeFormat("en-GB", { timeZone: "Asia/Jerusalem", hour: "2-digit", hourCycle: "h23" });
+
+/**
+ * 22:00 to 07:00 in Israel. Schedules start hours late or early, so a run can land at night;
+ * the message is still delivered then, without sound.
+ */
+export function isQuietHour(at: Date): boolean {
+  const hour = Number(ISRAEL_HOUR.format(at));
+  return hour >= 22 || hour < 7;
+}
+
 /** Sends through the Bot API. The token sits in the URL, so errors never carry the request or its URL. */
 export class TelegramClient implements MessageSender {
   constructor(
     private readonly token: string,
     private readonly chatId: string,
     private readonly fetcher: typeof fetch = fetch,
+    private readonly now: () => Date = () => new Date(),
   ) {}
 
   async send(html: string): Promise<SendOutcome> {
@@ -74,6 +86,7 @@ export class TelegramClient implements MessageSender {
           text: html,
           parse_mode: "HTML",
           link_preview_options: { is_disabled: true },
+          ...(isQuietHour(this.now()) ? { disable_notification: true } : {}),
         }),
       });
       body = await response.text();

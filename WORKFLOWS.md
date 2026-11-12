@@ -42,7 +42,7 @@ These hold across the directory. Several are enforced by `tests/unit/workflows.t
 
 The main daily run: find new jobs, score them and send alerts.
 
-**When.** Cron `17 6 * * *` UTC (08:17 in Israel in winter, 09:17 in summer), with a backup at `43 11 * * *` UTC. GitHub runs schedules on a best-effort basis and can start them hours late or drop them. The backup gives the day a second chance, and costs little when the first pass already ran: unchanged boards answer `304`, unchanged jobs are not rematched and alerts are deduplicated. It can also be started by hand with the inputs listed in [OPERATIONS.md](OPERATIONS.md#manual-discovery-inputs).
+**When.** Four crons, `17 22`, `17 3`, `17 6` and `43 11` UTC. From 9 to 11 November 2026 GitHub started every scheduled run 7 to 10 hours late, so the two early ones are there to land in the Israeli morning and midday; if the lag goes away, the two later ones do. A message sent between 22:00 and 07:00 in Israel is delivered without sound. GitHub runs schedules on a best-effort basis and can start them hours late or drop them. The backup gives the day a second chance, and costs little when the first pass already ran: unchanged boards answer `304`, unchanged jobs are not rematched and alerts are deduplicated. It can also be started by hand with the inputs listed in [OPERATIONS.md](OPERATIONS.md#manual-discovery-inputs).
 
 **Gate.** The job runs only when the repository variable `PRODUCTION_ENABLED` is `true`. Until then every run shows as skipped, spends no minutes and never touches the database. *Tested.*
 
