@@ -27,7 +27,7 @@ export const BudgetSchema = z.object({
   OLLAMA_NUM_CTX: int(3200, 512, 32768),
   MAX_HTTP_CONCURRENCY: int(4, 1, 32),
   MAX_BROWSER_PAGES_PER_RUN: int(0, 0, 200),
-  CRAWL_TIME_BUDGET_SECONDS: int(300, 10, 3600),
+  CRAWL_TIME_BUDGET_SECONDS: int(600, 10, 3600),
 });
 
 export type Budget = z.infer<typeof BudgetSchema>;

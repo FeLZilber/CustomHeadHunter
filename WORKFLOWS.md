@@ -9,7 +9,7 @@ The workflows fall into three groups.
 | Workflow | Group | Runs on | Secrets | Timeout |
 | --- | --- | --- | --- | --- |
 | [`discovery`](#discovery) | Production | Daily cron, backup cron, manual | Yes | 60 min |
-| [`maintenance`](#maintenance) | Production | Daily cron, backup cron, manual | Yes (not the drill) | 30 min, drill 10 min |
+| [`maintenance`](#maintenance) | Production | Daily cron, backup cron, manual | Yes (not the drill) | 45 min, drill 10 min |
 | [`ci`](#ci) | Checks | Every push to `master`, every pull request | No | 5 to 10 min per job |
 | [`pipeline-smoke`](#pipeline-smoke) | Checks | Worker, migration or action changes, manual | No | 25 min |
 | [`compose-smoke`](#compose-smoke) | Checks | Docker file changes, manual | No | 15 min |
@@ -159,7 +159,7 @@ flowchart LR
 | --- | --- | --- | --- |
 | prepare | `migrate`, `seed`, `adopt` | 120 s, 60 s, 120 s | Always |
 | crawl | `crawl --trigger --mode [--provider] [--company]` | `CRAWL_TIME_BUDGET_SECONDS` + 120 s | prepare succeeded |
-| queue | `evaluate`, optional `requeue`, `pending` | 120 s, 60 s, 60 s | prepare succeeded (even if crawl failed) |
+| queue | `evaluate`, optional `requeue`, `pending` | 600 s, 60 s, 60 s | prepare succeeded (even if crawl failed) |
 | budget | `match-budget.sh` | | Work is pending and the AI job cap is not 0 |
 | ollama | [`ollama-start`](#the-ollama-start-action) | | The budget leaves time for at least one inference |
 | match | `match --trigger` | Computed | Ollama started |

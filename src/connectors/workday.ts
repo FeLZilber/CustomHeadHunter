@@ -15,8 +15,6 @@ import type { Connector, CrawlOutcome, CrawlPage, CrawlSource, RawListing } from
 export const WORKDAY_PAGE_SIZE = 20;
 /** 1000 Israeli postings on one career site. More than that ends the crawl as partial, which never expires a job. */
 export const WORKDAY_MAX_PAGES = 50;
-/** Descriptions are fetched a few at a time; HttpClient still spaces the requests per host. */
-const DETAIL_CONCURRENCY = 4;
 
 const HOST = /^([a-z0-9][a-z0-9-]*)\.wd\d+\.myworkdayjobs\.com$/;
 const LOCALE = /^[a-z]{2}-[A-Z]{2}$/;
@@ -197,6 +195,9 @@ export const workdayConnector: Connector = {
     let total: number | null = null;
     let problem: string | null = null;
     let listed = 0;
+    let malformedRows = 0;
+    let unreadable = 0;
+    let firstFault: string | null = null;
 
     for (let page = 0; ; page += 1) {
       if (page >= WORKDAY_MAX_PAGES) {
@@ -215,29 +216,44 @@ export const workdayConnector: Connector = {
       const summaries: Array<z.infer<typeof SummarySchema>> = [];
       for (const entry of result.data.jobPostings) {
         const summary = SummarySchema.safeParse(entry);
-        if (!summary.success) invalidRecords += 1;
-        else if (!seen.has(summary.data.externalPath)) {
+        if (!summary.success) {
+          invalidRecords += 1;
+          malformedRows += 1;
+        } else if (!seen.has(summary.data.externalPath)) {
           seen.add(summary.data.externalPath);
           summaries.push(summary.data);
         }
       }
 
-      const listings: RawListing[] = [];
-      for (let start = 0; start < summaries.length; start += DETAIL_CONCURRENCY) {
-        const batch = summaries.slice(start, start + DETAIL_CONCURRENCY);
-        const details = await Promise.all(batch.map((summary) => http.get(`${base}${summary.externalPath}`)));
-        details.forEach((detail, index) => {
-          const { externalPath } = batch[index]!;
+      // The whole page is requested at once: HttpClient spaces the requests per host, so this only stops
+      // one slow answer from holding the others back. A posting whose answer is unusable is asked for once
+      // more, because a hosted runner now and then gets a page that is not the posting.
+      const read = async (externalPath: string): Promise<RawListing | string> => {
+        let fault = "";
+        for (let attempt = 0; attempt < 2; attempt += 1) {
+          const detail = await http.get(`${base}${externalPath}`);
           if (detail.kind !== "ok") {
-            problem ??= `Job detail failed: ${detail.kind === "not_modified" ? "HTTP 304" : detail.error}`;
-            return;
+            fault = `${detail.kind === "not_modified" ? "HTTP 304" : detail.error}`;
+            continue;
           }
-          const parsed = DetailSchema.safeParse(parseJson(detail.body));
-          if (parsed.success) listings.push(toListing(parsed.data, externalPath, site));
-          else invalidRecords += 1;
-        });
-      }
-      if (invalidRecords > 0) problem ??= `${invalidRecords} invalid records`;
+          const body = parseJson(detail.body);
+          const parsed = DetailSchema.safeParse(body);
+          if (parsed.success) return toListing(parsed.data, externalPath, site);
+          fault = body === undefined ? "not JSON" : `unexpected shape at ${parsed.error.issues[0]?.path.join(".") || "root"}`;
+        }
+        return fault;
+      };
+      const listings: RawListing[] = [];
+      const results = await Promise.all(summaries.map((summary) => read(summary.externalPath)));
+      results.forEach((result, index) => {
+        if (typeof result !== "string") {
+          listings.push(result);
+          return;
+        }
+        invalidRecords += 1;
+        unreadable += 1;
+        firstFault ??= `${summaries[index]!.externalPath}: ${result}`;
+      });
 
       pages += 1;
       listed += result.data.jobPostings.length;
@@ -247,6 +263,8 @@ export const workdayConnector: Connector = {
       if (total !== null && listed >= total) break;
     }
 
+    if (unreadable > 0) problem ??= `${unreadable} postings unreadable (first ${firstFault})`;
+    if (malformedRows > 0) problem ??= `${malformedRows} malformed search rows`;
     if (problem) return { kind: "partial", pages, reason: problem, httpStatus: lastStatus };
     // Fewer rows than the site announced means postings moved between pages mid-crawl; not a full snapshot.
     if (total !== null && listed < total) {
