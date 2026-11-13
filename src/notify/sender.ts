@@ -115,9 +115,16 @@ async function prepareDigest(db: Queryable, item: Notification, relevance: Relev
   const heading = item.eventKey.startsWith("baseline:")
     ? `Top current matches at ${jobs[0]!.company}`
     : "Older jobs that now match";
+  // Jobs arrive best first, so each role is shown by its best posting and links the others.
+  const roles = new Map<string, CurrentJob[]>();
+  for (const job of jobs) roles.set(job.siblingKey, [...(roles.get(job.siblingKey) ?? []), job]);
+  const cards = [...roles.values()].map(([best, ...others]) => ({
+    ...toCard(best!),
+    otherPostings: others.map((job) => ({ location: job.location, url: job.applicationUrl })),
+  }));
   return {
     action: "send",
-    html: renderDigest(heading, jobs.map(toCard), item.moreCount),
+    html: renderDigest(heading, cards, item.moreCount),
     inputKey: null,
     jobIds: jobs.map((job) => job.id),
   };

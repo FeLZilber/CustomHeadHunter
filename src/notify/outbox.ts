@@ -45,6 +45,28 @@ const CURRENT_JOBS = `
 
 const currentParams = (relevance: Relevance) => [relevance.profileHash, relevance.configHash, FILTER_VERSION];
 
+/**
+ * Companies post one role several times, one requisition per opening or city, with
+ * near-identical text. To the owner those are one job, so jobs of one company with
+ * the same title share this key and are reported once.
+ */
+const siblingKey = (alias: string) => `${alias}.company_id || ':' || lower(regexp_replace(btrim(${alias}.title), '\\s+', ' ', 'g'))`;
+
+/** True when an active job sharing c's key, other than c, is in a notification matching `status`. */
+const siblingNamed = (profile: string, channel: string, status: string) => `
+  EXISTS (SELECT 1 FROM canonical_jobs sib JOIN notifications sn ON sn.canonical_job_id = sib.id OR sib.id = ANY (sn.job_ids)
+           WHERE sib.company_id = c.company_id AND sib.id <> c.id AND sib.status = 'active'
+             AND ${siblingKey("sib")} = ${siblingKey("c")}
+             AND sn.profile_id = ${profile} AND sn.channel = ${channel} AND ${status})`;
+
+/** Takes whole sibling groups, best first, so a digest names each role once and holds every posting of it. */
+function takeGroups<T extends { id: string; score: number; sibling_key: string }>(jobs: T[], size: number) {
+  const groups = new Map<string, T[]>();
+  for (const job of jobs) groups.set(job.sibling_key, [...(groups.get(job.sibling_key) ?? []), job]);
+  const ordered = [...groups.values()];
+  return { members: ordered.slice(0, size).flat(), more: Math.max(0, ordered.length - size) };
+}
+
 interface Epoch {
   id: string;
   startedAt: Date;
@@ -87,18 +109,26 @@ export async function startEpoch(db: Queryable, relevance: Relevance, reason: st
  */
 async function planAlerts(db: Queryable, relevance: Relevance, epoch: Epoch): Promise<number> {
   const { rows } = await db.query(
-    `SELECT DISTINCT ON (c.id) c.id AS job_id, ev.id AS event_id, ev.event_type, ev.lifecycle_cycle, ev.revision, r.score
+    `SELECT DISTINCT ON (c.id) c.id AS job_id, ev.id AS event_id, ev.event_type, ev.lifecycle_cycle, ev.revision, r.score,
+            ${siblingKey("c")} AS sibling_key
        FROM ${CURRENT_JOBS}
        JOIN job_events ev ON ev.canonical_job_id = c.id
       WHERE c.status = 'active' AND r.score >= $4 AND NOT ev.during_baseline AND ev.created_at >= $5
         AND (ev.event_type IN ('discovered', 'reopened') OR (ev.event_type = 'changed' AND ev.significant))
         AND NOT EXISTS (SELECT 1 FROM notifications n
                          WHERE n.profile_id = $6 AND n.channel = $7 AND n.canonical_job_id = c.id AND n.job_event_id >= ev.id)
+        -- A second posting of a role already reported is not news; a job already reported keeps its own alerts.
+        AND (EXISTS (SELECT 1 FROM notifications n
+                      WHERE n.profile_id = $6 AND n.channel = $7 AND (n.canonical_job_id = c.id OR c.id = ANY (n.job_ids)))
+             OR NOT ${siblingNamed("$6", "$7", "sn.status <> 'suppressed'")})
       ORDER BY c.id, ev.id DESC`,
     [...currentParams(relevance), relevance.threshold, epoch.startedAt, relevance.profileId, CHANNEL],
   );
   let planned = 0;
-  for (const row of rows) {
+  const roles = new Set<string>();
+  for (const row of rows.sort((a, b) => b.score - a.score || Number(a.job_id) - Number(b.job_id))) {
+    if (roles.has(row.sibling_key)) continue;
+    roles.add(row.sibling_key);
     await db.query(
       `UPDATE notifications SET status = 'suppressed', suppressed_reason = 'superseded_by_newer_event', updated_at = now()
         WHERE profile_id = $1 AND channel = $2 AND canonical_job_id = $3 AND status IN ('pending', 'retry')`,
@@ -150,7 +180,8 @@ const BASELINE_UNRESOLVED = `
  * jobs are judged first and reach the owner the same day, not after the last unlikely one. When every
  * baseline job has a verdict, a closing row is written under the source's own key. It is the last digest,
  * or a suppressed marker, and it stops a later rematch from raising a digest for an old source.
- * A job is never listed twice: one already named in any notification is left out.
+ * A job is never listed twice: one already named in any notification is left out, and so is one whose
+ * role (`siblingKey`) was already reported through another posting.
  */
 async function planBaselineDigests(db: Queryable, relevance: Relevance, digestSize: number): Promise<number> {
   const { rows: sources } = await db.query(
@@ -164,7 +195,7 @@ async function planBaselineDigests(db: Queryable, relevance: Relevance, digestSi
   let planned = 0;
   for (const source of sources) {
     const { rows: jobs } = await db.query(
-      `SELECT DISTINCT c.id, r.score
+      `SELECT DISTINCT c.id, r.score, ${siblingKey("c")} AS sibling_key
          FROM ${CURRENT_JOBS}
          JOIN job_events ev ON ev.canonical_job_id = c.id AND ev.during_baseline AND ev.event_type = 'discovered'
          JOIN source_listings origin ON origin.id = ev.source_listing_id AND origin.source_id = $4
@@ -172,10 +203,12 @@ async function planBaselineDigests(db: Queryable, relevance: Relevance, digestSi
           AND NOT EXISTS (SELECT 1 FROM notifications n
                            WHERE n.profile_id = $6 AND n.channel = $7
                              AND (n.canonical_job_id = c.id OR c.id = ANY (n.job_ids)))
+          -- Postings are judged a few per run, so a second posting of a role can qualify after the first was sent.
+          AND NOT ${siblingNamed("$6", "$7", "sn.status <> 'suppressed'")}
         ORDER BY r.score DESC, c.id`,
       [...currentParams(relevance), source.id, relevance.threshold, relevance.profileId, CHANNEL],
     );
-    const members = jobs.slice(0, digestSize);
+    const { members, more } = takeGroups(jobs, digestSize);
     if (source.unresolved && members.length === 0) continue;
 
     let key = `baseline:source:${source.id}`;
@@ -201,7 +234,7 @@ async function planBaselineDigests(db: Queryable, relevance: Relevance, digestSi
         key,
         source.id,
         members.map((job) => job.id),
-        jobs.length - members.length,
+        more,
         members[0]?.score ?? null,
         members.length ? "pending" : "suppressed",
         suppressedReason,
@@ -232,17 +265,18 @@ export async function planRematchDigest(db: Queryable, relevance: Relevance, dig
   await db.query(`SELECT pg_advisory_xact_lock($1)`, [PLAN_LOCK_ID]);
   const epoch = await ensureEpoch(db, relevance);
   const { rows: jobs } = await db.query(
-    `SELECT c.id, r.score
+    `SELECT c.id, r.score, ${siblingKey("c")} AS sibling_key
        FROM ${CURRENT_JOBS}
       WHERE c.status = 'active' AND r.score >= $4
         AND NOT EXISTS (SELECT 1 FROM notifications n
                          WHERE n.profile_id = $5 AND n.channel = $6 AND n.status = 'sent'
                            AND (n.canonical_job_id = c.id OR c.id = ANY (n.job_ids)))
+        AND NOT ${siblingNamed("$5", "$6", "sn.status = 'sent'")}
       ORDER BY r.score DESC, c.id`,
     [...currentParams(relevance), relevance.threshold, relevance.profileId, CHANNEL],
   );
   if (jobs.length === 0) return 0;
-  const members = jobs.slice(0, digestSize);
+  const { members, more } = takeGroups(jobs, digestSize);
   const { rowCount } = await db.query(
     `INSERT INTO notifications (profile_id, channel, kind, event_key, job_ids, more_count, score)
      VALUES ($1, $2, 'digest', $3, $4, $5, $6)
@@ -252,8 +286,8 @@ export async function planRematchDigest(db: Queryable, relevance: Relevance, dig
       CHANNEL,
       `rematch:epoch:${epoch.id}`,
       members.map((job) => job.id),
-      jobs.length - members.length,
-      members[0].score,
+      more,
+      members[0]!.score,
     ],
   );
   return rowCount ?? 0;
@@ -426,13 +460,15 @@ export interface CurrentJob {
   evidenceUnverified: string[];
   discoveredAt: Date;
   applicationUrl: string;
+  /** Equal for postings of one role; see `siblingKey`. */
+  siblingKey: string;
 }
 
 /** Best first, so a digest reads in score order whatever order it was planned in. */
 export async function loadCurrentJobs(db: Queryable, jobIds: string[], relevance: Relevance): Promise<CurrentJob[]> {
   const { rows } = await db.query(
     `SELECT c.id, l.title, co.name AS company, l.original_location, r.score, r.input_key, l.technologies, r.response,
-            r.evidence_unverified, c.first_discovered_at, l.application_url
+            r.evidence_unverified, c.first_discovered_at, l.application_url, ${siblingKey("c")} AS sibling_key
        FROM ${CURRENT_JOBS}
       WHERE c.id = ANY ($4::bigint[]) AND c.status = 'active'
       ORDER BY r.score DESC, c.id`,
@@ -450,6 +486,7 @@ export async function loadCurrentJobs(db: Queryable, jobIds: string[], relevance
     evidenceUnverified: row.evidence_unverified,
     discoveredAt: row.first_discovered_at,
     applicationUrl: row.application_url,
+    siblingKey: row.sibling_key,
   }));
 }
 

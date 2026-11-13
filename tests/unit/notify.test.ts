@@ -185,6 +185,16 @@ describe("message rendering", () => {
     expect(html.indexOf("85/100")).toBeLessThan(html.indexOf("80/100"));
   });
 
+  it("links other postings of a role inside its entry", () => {
+    const html = renderDigest(
+      "Top",
+      [card({ otherPostings: [{ location: "Yokneam", url: "https://example.test/jobs/2" }, { location: null, url: null }] })],
+      0,
+    );
+    expect(html.match(/QA Automation Engineer/g)).toHaveLength(1);
+    expect(html).toContain('Also posted: <a href="https://example.test/jobs/2">#2 Yokneam</a> · #3 Location not stated');
+  });
+
   it("drops whole digest entries instead of breaking the limit", () => {
     const big = "x".repeat(2000);
     const cards = Array.from({ length: 10 }, () => card({ gaps: [big, big, big, big], title: big, company: big, location: big, explanation: big, technologies: Array(8).fill(big) }));

@@ -227,6 +227,43 @@ describe("notifications", () => {
       expect(row.job_ids).toEqual([jobs[0].id]);
     });
 
+    it("lists postings of one role as one entry, counting it once against the cap", async () => {
+      const role = { title: "QA Automation Engineer", descriptionText: "Test automation." };
+      await crawlOnce(
+        snapshot([
+          rawListing("a", { ...role, location: "Yokneam, Israel" }),
+          rawListing("b", { ...role, title: "  qa automation  engineer " }),
+          ...["c", "d", "e", "f", "g"].map((id) => rawListing(id)),
+        ]),
+      );
+      await match();
+      const { sender, sent } = fakeSender();
+      expect(await notify(sender)).toMatchObject({ digests: 1, sent: 1 });
+
+      expect(sent[0]!.match(/80\/100/g)).toHaveLength(5);
+      expect(sent[0]).toContain("1 more on the dashboard");
+      expect(sent[0]).toMatch(/Also posted: <a href="https:\/\/example\.test\/jobs\/b">#2 Tel Aviv, Israel<\/a>/);
+      const [row] = await rows();
+      expect(row).toMatchObject({ more_count: 1 });
+      expect(row.job_ids).toHaveLength(6);
+    });
+
+    it("does not report a role again when its second posting is judged later", async () => {
+      const role = { title: "QA Automation Engineer", descriptionText: "Test automation." };
+      await crawlOnce(snapshot([rawListing("a", role), rawListing("b", role), rawListing("c")]));
+      await match(() => modelReply(HIGH), 1);
+      const first = fakeSender();
+      expect(await notify(first.sender)).toMatchObject({ digests: 1, sent: 1 });
+      expect(first.sent[0]).toContain("QA Automation Engineer<");
+
+      await match();
+      const second = fakeSender();
+      expect(await notify(second.sender)).toMatchObject({ digests: 1, sent: 1 });
+      expect(second.sent[0]).toContain("QA Automation Engineer c");
+      expect(second.sent[0]).not.toContain("QA Automation Engineer<");
+      expect((await rows()).flatMap((row) => row.job_ids)).toHaveLength(2);
+    });
+
     it("records a baseline with no matches so a later rematch cannot raise a digest", async () => {
       await crawlOnce(snapshot([rawListing("a")]));
       await match(() => modelReply(LOW));
@@ -265,6 +302,25 @@ describe("notifications", () => {
       const replay = async () => withTransaction(pool, async (client) => planNotifications(client, await relevance(), 5));
       await Promise.all([replay(), replay(), replay()]);
       expect((await rows()).filter((row) => row.kind === "alert")).toHaveLength(2);
+    });
+
+    it("alerts once per role, not once per posting", async () => {
+      const role = { title: "QA Automation Engineer", descriptionText: "Test automation." };
+      await establishBaseline();
+      await crawlOnce(snapshot([OFFICE_JOB, rawListing("a", role), rawListing("b", role)]));
+      await match();
+      const first = fakeSender();
+      expect(await notify(first.sender)).toMatchObject({ alerts: 1, sent: 1 });
+
+      // A third opening of the same role later is not news either.
+      await crawlOnce(snapshot([OFFICE_JOB, rawListing("a", role), rawListing("b", role), rawListing("c", role)]));
+      await match();
+      expect(await notify(fakeSender().sender)).toMatchObject({ alerts: 0, sent: 0 });
+
+      // A different role still alerts.
+      await crawlOnce(snapshot([OFFICE_JOB, rawListing("a", role), rawListing("b", role), rawListing("c", role), rawListing("d")]));
+      await match();
+      expect(await notify(fakeSender().sender)).toMatchObject({ alerts: 1, sent: 1 });
     });
 
     it("lets the database refuse a duplicate identity", async () => {

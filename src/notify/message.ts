@@ -16,6 +16,8 @@ export interface JobCard {
   explanation: string;
   discoveredAt: Date;
   url: string | null;
+  /** Other postings of the same role, shown as links in a digest instead of as entries of their own. */
+  otherPostings?: Array<{ location: string | null; url: string | null }>;
 }
 
 export type AlertEvent = "discovered" | "changed" | "reopened";
@@ -73,10 +75,24 @@ export function renderAlert(event: AlertEvent, card: JobCard): string {
   ].join("\n");
 }
 
+const MAX_OTHER_POSTINGS = 5;
+
+function otherPostingsLine(card: JobCard): string[] {
+  const others = card.otherPostings ?? [];
+  if (others.length === 0) return [];
+  // Openings of one role often share a city, so each label is told apart by its posting number.
+  const links = others
+    .slice(0, MAX_OTHER_POSTINGS)
+    .map((posting, index) => link(posting.url, `#${index + 2} ${cut(posting.location ?? "Location not stated", 60)}`));
+  const rest = others.length - MAX_OTHER_POSTINGS;
+  return [`Also posted: ${links.join(" · ")}${rest > 0 ? ` and ${rest} more` : ""}`];
+}
+
 function digestEntry(position: number, card: JobCard): string {
   return [
     `${position}. <b>${card.score}/100</b> ${link(card.url, cut(card.title, 120))}`,
     `${escapeHtml(cut(card.company, 80))}, ${place(card)}, discovered ${card.discoveredAt.toISOString().slice(0, 10)}`,
+    ...otherPostingsLine(card),
     ...techLine(card),
     ...gapLine(card),
     escapeHtml(cut(card.explanation, 160)),
