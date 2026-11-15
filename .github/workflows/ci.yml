@@ -70,6 +70,21 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci
+      # Next.js reuses compiled output and its webpack/SWC cache between builds.
+      # The key changes with dependencies or source; restore-keys falls back to
+      # the latest cache for the same dependencies, which Next revalidates.
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: .next/cache
+          key: nextjs-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-${{ hashFiles('src/**', 'next.config.ts') }}
+          restore-keys: |
+            nextjs-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-
+      # The browser build is fixed by the Playwright version, which the lockfile
+      # pins. On a hit, the install below finds the browser and downloads nothing.
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
       # Tests run headless, which uses only the headless shell, not full Chrome.
       # The runner image already has Chrome's system libraries; --with-deps would
       # only add fonts through apt, which no test needs (no screenshots) and which
