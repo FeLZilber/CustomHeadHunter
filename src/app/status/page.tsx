@@ -1,7 +1,7 @@
 import { requireOwner } from "../../dashboard/auth";
 import { dashboardPool } from "../../dashboard/db";
 import { loadDashboardEnv } from "../../dashboard/env";
-import { loadContext, readStatus } from "../../dashboard/queries";
+import { loadContext, readSourceYield, readStatus } from "../../dashboard/queries";
 import { formatDateTime, humanize } from "../_components/format";
 
 const DEFERRED_STOPS = new Set(["job_cap", "time_budget"]);
@@ -9,11 +9,11 @@ const DEFERRED_STOPS = new Set(["job_cap", "time_budget"]);
 export default async function StatusPage() {
   await requireOwner();
   const pool = dashboardPool();
-  const { health, sourceProblems, deliveryProblems, latestMatch, lastSent } = await readStatus(
-    pool,
-    await loadContext(pool),
-    loadDashboardEnv().STALE_DISCOVERY_HOURS,
-  );
+  const context = await loadContext(pool);
+  const [{ health, sourceProblems, deliveryProblems, latestMatch, lastSent }, yields] = await Promise.all([
+    readStatus(pool, context, loadDashboardEnv().STALE_DISCOVERY_HOURS),
+    readSourceYield(pool, context),
+  ]);
   const { backlog, outbox } = health;
   return (
     <>
@@ -72,6 +72,36 @@ export default async function StatusPage() {
         </ul>
       ) : (
         <p className="empty">No source failed its latest crawl.</p>
+      )}
+
+      <h2>Which companies produce matches</h2>
+      {yields.length ? (
+        <table>
+          <thead>
+            <tr>
+              <th>Company</th>
+              <th>Active</th>
+              <th>Kept by filter</th>
+              <th>Strong matches</th>
+              <th>Dismissed</th>
+              <th>Flagged missed</th>
+            </tr>
+          </thead>
+          <tbody>
+            {yields.map((row) => (
+              <tr key={row.company}>
+                <td dir="auto">{row.company}</td>
+                <td>{row.active}</td>
+                <td>{row.kept}</td>
+                <td>{row.strong}</td>
+                <td>{row.dismissed}</td>
+                <td>{row.missed}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      ) : (
+        <p className="empty">No active jobs yet.</p>
       )}
 
       <h2>Deliveries that need you</h2>

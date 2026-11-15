@@ -1,5 +1,5 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
-import { loadContext, getJob, parseFilters, PAGE_SIZE, readStatus, readDismissals, readRejections, setMissed, searchJobs, setApplied, setDismissed, setSaved, type ViewContext } from "../../src/dashboard/queries";
+import { loadContext, getJob, readSourceYield, parseFilters, PAGE_SIZE, readStatus, readDismissals, readRejections, setMissed, searchJobs, setApplied, setDismissed, setSaved, type ViewContext } from "../../src/dashboard/queries";
 import { migrate } from "../../src/db/migrate";
 import type { Pool } from "../../src/db/pool";
 import { createLogger } from "../../src/logger";
@@ -480,6 +480,12 @@ describe("dashboard queries", () => {
       expect(status.latestMatch).toMatchObject({ status: "succeeded", stopReason: "queue_empty", succeeded: 1 });
       expect(status.health.activeJobs).toBe(2);
       expect(status.lastSent).toEqual({ at: null, sentLast24h: 0 });
+
+      const yields = await readSourceYield(pool, await context());
+      const total = yields.reduce((sum, row) => sum + row.active, 0);
+      expect(total).toBe(2);
+      expect(yields.every((row) => row.kept <= row.active && row.strong <= row.kept)).toBe(true);
+      expect(yields.reduce((sum, row) => sum + row.kept, 0)).toBeGreaterThan(0);
     });
 
     it("works on an empty database", async () => {
