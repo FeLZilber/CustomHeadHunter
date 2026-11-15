@@ -479,11 +479,12 @@ describe("dashboard queries", () => {
       expect(status.deliveryProblems).toEqual([expect.objectContaining({ status: "ambiguous", kind: "digest", error: "Connection lost" })]);
       expect(status.latestMatch).toMatchObject({ status: "succeeded", stopReason: "queue_empty", succeeded: 1 });
       expect(status.health.activeJobs).toBe(2);
+      expect(status.lastSent).toEqual({ at: null, sentLast24h: 0 });
     });
 
     it("works on an empty database", async () => {
       const status = await readStatus(pool, await loadContext(pool), 14);
-      expect(status).toMatchObject({ sourceProblems: [], deliveryProblems: [], latestMatch: null });
+      expect(status).toMatchObject({ sourceProblems: [], deliveryProblems: [], latestMatch: null, lastSent: { at: null, sentLast24h: 0 } });
       expect(status.health.discoveryStale).toBe(true);
     });
   });

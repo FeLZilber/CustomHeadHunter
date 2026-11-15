@@ -9,7 +9,7 @@ const DEFERRED_STOPS = new Set(["job_cap", "time_budget"]);
 export default async function StatusPage() {
   await requireOwner();
   const pool = dashboardPool();
-  const { health, sourceProblems, deliveryProblems, latestMatch } = await readStatus(
+  const { health, sourceProblems, deliveryProblems, latestMatch, lastSent } = await readStatus(
     pool,
     await loadContext(pool),
     loadDashboardEnv().STALE_DISCOVERY_HOURS,
@@ -51,6 +51,10 @@ export default async function StatusPage() {
         <dt>Notifications</dt>
         <dd>
           {outbox.pending ?? 0} pending, {outbox.retry ?? 0} retrying, {outbox.sent ?? 0} sent, {outbox.suppressed ?? 0} suppressed
+        </dd>
+        <dt>Last message Telegram confirmed</dt>
+        <dd>
+          {lastSent.at ? `${formatDateTime(lastSent.at)}, ${lastSent.sentLast24h} in the last 24 hours` : "None yet"}
         </dd>
         <dt>Latest delivery</dt>
         <dd>{health.lastNotify ? humanize(health.lastNotify.status) : "None"}</dd>

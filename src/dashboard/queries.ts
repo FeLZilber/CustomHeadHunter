@@ -463,10 +463,12 @@ export interface OperationsStatus {
   sourceProblems: SourceProblem[];
   deliveryProblems: DeliveryProblem[];
   latestMatch: LatestMatchRun | null;
+  /** The newest message Telegram confirmed, and how many were confirmed in the last 24 hours. */
+  lastSent: { at: Date | null; sentLast24h: number };
 }
 
 export async function readStatus(pool: Pool, context: ViewContext, staleHours: number): Promise<OperationsStatus> {
-  const [health, sources, deliveries, matches] = await Promise.all([
+  const [health, sources, deliveries, matches, sent] = await Promise.all([
     readHealth(pool, context.configHash, staleHours),
     pool.query(
       `SELECT * FROM (
@@ -487,6 +489,10 @@ export async function readStatus(pool: Pool, context: ViewContext, staleHours: n
         ORDER BY n.updated_at DESC LIMIT 50`,
     ),
     pool.query(`SELECT status, finished_at, summary FROM match_runs ORDER BY id DESC LIMIT 1`),
+    pool.query(
+      `SELECT max(sent_at) AS last, count(*) FILTER (WHERE sent_at > now() - interval '24 hours')::int AS recent
+         FROM notifications WHERE status = 'sent'`,
+    ),
   ]);
   const match = matches.rows[0];
   return {
@@ -506,6 +512,7 @@ export async function readStatus(pool: Pool, context: ViewContext, staleHours: n
       error: row.last_error,
       updatedAt: row.updated_at,
     })),
+    lastSent: { at: sent.rows[0]?.last ?? null, sentLast24h: sent.rows[0]?.recent ?? 0 },
     latestMatch: match
       ? {
           status: match.status,
