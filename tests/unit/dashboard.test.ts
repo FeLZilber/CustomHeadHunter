@@ -44,6 +44,12 @@ describe("job filters", () => {
     expect(parseFilters({ q: [" בודק תוכנה ", "ignored"] }).q).toBe("בודק תוכנה");
   });
 
+  it("reads the distance limit and nearest sort, falling back on unknown values", () => {
+    expect(parseFilters({ maxKm: "35", sort: "nearest" })).toMatchObject({ maxKm: "35", sort: "nearest" });
+    expect(parseFilters({ maxKm: "7" }).maxKm).toBe("any");
+    expect(parseFilters({}).maxKm).toBe("any");
+  });
+
   it("treats blank fields from an empty form as absent", () => {
     expect(parseFilters({ q: "", company: "", minScore: "" })).toMatchObject({ q: undefined, company: undefined, minScore: undefined });
   });

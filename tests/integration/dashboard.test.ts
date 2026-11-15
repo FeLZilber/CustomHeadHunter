@@ -139,6 +139,25 @@ describe("dashboard queries", () => {
       expect((await titles({ sort: "latest" }))[0]).toBe("QA Automation Engineer new");
     });
 
+    it("shows distance from home, filters by it keeping remote jobs, and sorts nearest first", async () => {
+      await crawlListings(
+        rawListing("modiin", { location: "Modi'in, Israel" }),
+        rawListing("telaviv", { location: "Tel Aviv, Israel" }),
+        rawListing("haifa", { location: "Haifa, Israel" }),
+        rawListing("remote", { location: "Remote - Israel" }),
+        rawListing("central", { location: "Central Israel" }),
+      );
+      const short = (list: string[]) => list.map((title) => title.replace("QA Automation Engineer ", ""));
+      const { jobs } = await search({ sort: "nearest" });
+      expect(short(jobs.map((job) => job.title)).slice(0, 3)).toEqual(["modiin", "telaviv", "haifa"]);
+      const distance = Object.fromEntries(jobs.map((job) => [job.title.replace("QA Automation Engineer ", ""), job.distanceKm]));
+      expect(distance).toMatchObject({ modiin: 0, remote: null, central: null });
+      expect(distance.haifa).toBeGreaterThan(90);
+      expect(short(await titles({ maxKm: "50" })).sort()).toEqual(["modiin", "remote", "telaviv"]);
+      expect(short(await titles({ maxKm: "80" })).sort()).toEqual(["modiin", "remote", "telaviv"]);
+      expect(await titles({ maxKm: "any" })).toHaveLength(5);
+    });
+
     it("shows and filters by posting date, using the found date when none is given", async () => {
       const daysAgo = (days: number) => new Date(Date.now() - days * 86_400_000);
       await crawlListings(

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isInIsraelScope, normalizeLocation } from "../../src/normalize/location";
+import { CITY_DISTANCES_KM, distanceFromHome, isInIsraelScope, normalizeLocation } from "../../src/normalize/location";
 
 const cities = (value: string) => normalizeLocation([value]).places.map((place) => place.city);
 
@@ -63,5 +63,45 @@ describe("location normalization", () => {
     expect(inScope("Remote, Germany")).toBe(false);
     expect(inScope("New York, NY")).toBe(false);
     expect(inScope("")).toBe(false);
+  });
+});
+
+describe("distance from home", () => {
+  const km = (value: string) => distanceFromHome(normalizeLocation([value]).places);
+
+  it("knows a plausible distance for every city", () => {
+    for (const [city, distance] of CITY_DISTANCES_KM) {
+      expect(distance, city).toBeGreaterThanOrEqual(0);
+      expect(distance, city).toBeLessThan(300); // Eilat is the farthest.
+    }
+  });
+
+  it("measures straight-line km from Modi'in-Maccabim-Re'ut", () => {
+    expect(km("Modiin Maccabim Reut")).toBe(0);
+    expect(km("Tel Aviv, Israel")).toBeGreaterThanOrEqual(27);
+    expect(km("Tel Aviv, Israel")).toBeLessThanOrEqual(33);
+    expect(km("Haifa")).toBeGreaterThanOrEqual(95);
+    expect(km("Haifa")).toBeLessThanOrEqual(105);
+  });
+
+  it("recognizes towns outside the big cities, in English and Hebrew", () => {
+    expect(cities("Rosh Ha'Ayin, Israel")).toEqual(["Rosh HaAyin"]);
+    expect(cities("Yehud-Monosson")).toEqual(["Yehud"]);
+    expect(cities("Or Yehuda, Center District")).toEqual(["Or Yehuda"]);
+    expect(cities("בית שמש")).toEqual(["Beit Shemesh"]);
+    expect(cities("Be'er Ya'akov")).toEqual(["Be'er Ya'akov"]);
+    expect(cities("Beer Sheva")).toEqual(["Beer Sheva"]);
+    expect(km("Shoham")).toBeLessThan(20);
+    expect(km("Kiryat Shmona")).toBeGreaterThan(140);
+  });
+
+  it("takes the nearest of several cities", () => {
+    expect(km("Haifa | Lod")).toBe(km("Lod"));
+  });
+
+  it("gives no distance without a known city", () => {
+    expect(km("Central Israel")).toBeNull();
+    expect(km("Remote - Israel")).toBeNull();
+    expect(km("")).toBeNull();
   });
 });

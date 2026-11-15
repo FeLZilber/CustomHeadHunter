@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { retryTransient, type Pool, type Queryable } from "../db/pool";
 import { FILTER_VERSION } from "../filter";
+import { CITY_DISTANCES_KM } from "../normalize/location";
 import { classifyTier, TITLE_ONLY_REJECTIONS, type Tier } from "../filter/tiers";
 import type { Profile } from "../profile/schema";
 import { ensureProfile } from "../profile/store";
@@ -12,6 +13,8 @@ export const PAGE_SIZE = 30;
 const blankToUndefined = (value: unknown) => (value === "" ? undefined : value);
 const term = z.preprocess(blankToUndefined, z.string().trim().max(100).optional()).catch(undefined);
 
+export const DISTANCE_LIMITS = ["20", "35", "50", "80"] as const;
+
 /** Query strings are untrusted and bookmarkable, so a bad value falls back instead of failing the page. */
 export const JobFiltersSchema = z.object({
   q: term,
@@ -22,7 +25,9 @@ export const JobFiltersSchema = z.object({
   match: z.enum(["all", "current", "pending", "stale", "filtered", "failed"]).catch("all"),
   minScore: z.preprocess(blankToUndefined, z.coerce.number().int().min(0).max(100).optional()).catch(undefined),
   posted: z.enum(["any", "14", "30", "90"]).catch("any"),
-  sort: z.enum(["best", "latest", "posted"]).catch("best"),
+  /** Straight-line km from home. Remote jobs pass any limit. */
+  maxKm: z.enum(["any", ...DISTANCE_LIMITS]).catch("any"),
+  sort: z.enum(["best", "latest", "posted", "nearest"]).catch("best"),
   page: z.coerce.number().int().min(1).max(10_000).catch(1),
   /** A filter reason code, used by the rejection audit. */
   reason: z.preprocess(blankToUndefined, z.string().regex(/^[a-z_]{1,60}$/).optional()).catch(undefined),
@@ -90,9 +95,15 @@ const MATCH_STATE = `
     ELSE 'pending'
   END`;
 
+const sqlText = (value: string) => `'${value.replace(/'/g, "''")}'`;
+
+/** Built from our own constants, not input, so it can sit in the SQL without shifting the bound parameter numbers. */
+const DISTANCE_KM = `(SELECT min(d.km) FROM jsonb_array_elements(l.normalized_locations) p
+    JOIN (VALUES ${CITY_DISTANCES_KM.map(([city, km]) => `(${sqlText(city)}, ${km})`).join(", ")}) d(city, km) ON d.city = p->>'city')`;
+
 const JOB_COLUMNS = `
   c.id, c.title, co.name AS company, c.status, c.first_discovered_at, c.last_seen_at,
-  l.original_location, l.work_arrangement, l.technologies, l.application_url, l.published_at,
+  l.original_location, ${DISTANCE_KM} AS distance_km, l.work_arrangement, l.technologies, l.application_url, l.published_at,
   COALESCE(l.published_at, c.first_discovered_at) AS posted_or_found_at,
   r.score, r.recommendation, r.evidence_total, r.evidence_literal, s.saved_at, ja.applied_at, dj.reason AS dismissed_reason, mj.flagged_at AS missed_at, e.reason_codes, ${MATCH_STATE} AS match_state`;
 
@@ -104,6 +115,8 @@ export interface JobSummary {
   company: string;
   status: "active" | "expired";
   location: string | null;
+  /** Straight-line km from home to the nearest named city. Null when no known city is named. */
+  distanceKm: number | null;
   workArrangement: string | null;
   technologies: string[];
   applicationUrl: string;
@@ -138,6 +151,7 @@ function toSummary(row: Record<string, any>): JobSummary {
     company: row.company,
     status: row.status,
     location: row.original_location,
+    distanceKm: row.distance_km ?? null,
     workArrangement: row.work_arrangement,
     technologies: (row.technologies as Array<{ name: string }>).map((technology) => technology.name),
     applicationUrl: row.application_url,
@@ -190,6 +204,8 @@ export async function searchJobs(db: Queryable, context: ViewContext, filters: J
   }
   if (filters.minScore !== undefined) where.push(`match_state = 'current' AND score >= ${bind(filters.minScore)}`);
   if (filters.posted !== "any") where.push(`posted_or_found_at >= now() - make_interval(days => ${bind(Number(filters.posted))})`);
+  // A job with no known city is left out: its distance could be anything.
+  if (filters.maxKm !== "any") where.push(`(distance_km <= ${bind(Number(filters.maxKm))} OR work_arrangement = 'remote')`);
   if (only === "saved") where.push(`saved_at IS NOT NULL`);
   if (only === "applied") where.push(`applied_at IS NOT NULL`);
   // Saved and applied views keep showing a job even if it was dismissed; the main lists do not.
@@ -210,6 +226,7 @@ export async function searchJobs(db: Queryable, context: ViewContext, filters: J
     best: `CASE WHEN match_state = 'current' THEN score END DESC NULLS LAST, first_discovered_at DESC, id DESC`,
     latest: `first_discovered_at DESC, id DESC`,
     posted: `posted_or_found_at DESC, id DESC`,
+    nearest: `distance_km ASC NULLS LAST, CASE WHEN match_state = 'current' THEN score END DESC NULLS LAST, id DESC`,
   };
   const order = orders[filters.sort];
   const adjacentTitles = context.profile.preferences.adjacentTitles;

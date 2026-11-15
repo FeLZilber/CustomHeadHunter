@@ -84,6 +84,7 @@ function toCard(job: CurrentJob): JobCard {
     title: job.title,
     company: job.company,
     location: job.location,
+    distanceKm: job.distanceKm,
     score: job.score,
     technologies: [...job.technologies]
       .sort((a, b) => Number(b.level === "required") - Number(a.level === "required"))

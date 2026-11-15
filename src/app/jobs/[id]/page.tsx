@@ -5,6 +5,7 @@ import { getJob, loadContext } from "../../../dashboard/queries";
 import { formatDate, formatDateTime, humanize, safeHref } from "../../_components/format";
 import { ApplyButton } from "../../_components/apply-button";
 import { DismissButton } from "../../_components/dismiss-button";
+import { Distance } from "../../_components/distance";
 import { MatchBadge } from "../../_components/match-badge";
 import { SaveButton } from "../../_components/save-button";
 
@@ -42,6 +43,7 @@ export default async function JobPage({ params }: { params: Promise<{ id: string
       <p className="meta">
         <span dir="auto">{job.company}</span>
         <span dir="auto">{job.location ?? "Location not stated"}</span>
+        <Distance km={job.distanceKm} />
         <span>{job.workArrangement ? humanize(job.workArrangement) : "Work arrangement not stated"}</span>
         <span>Found {formatDate(job.discoveredAt)}</span>
         <span>Last seen {formatDate(job.lastSeenAt)}</span>
