@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { requireOwner } from "../dashboard/auth";
 import { dashboardPool } from "../dashboard/db";
-import { loadContext, parseFilters, searchJobs, type JobFilters } from "../dashboard/queries";
+import { DISTANCE_LIMITS, loadContext, parseFilters, searchJobs, type JobFilters } from "../dashboard/queries";
+import { HOME } from "../normalize/location";
 import { JobList } from "./_components/job-list";
 
 type Params = Promise<Record<string, string | string[] | undefined>>;
@@ -28,8 +29,11 @@ function activeFilters(filters: JobFilters): Array<{ key: string; label: string;
   if (filters.status !== "active") chips.push({ key: "status", label: "Status", value: filters.status });
   if (filters.match !== "all") chips.push({ key: "match", label: "Match", value: MATCH_LABELS[filters.match] ?? filters.match });
   if (filters.posted !== "any") chips.push({ key: "posted", label: "Posted", value: POSTED_LABELS[filters.posted] ?? filters.posted });
+  if (filters.maxKm !== "any") chips.push({ key: "maxKm", label: "Distance", value: `within ${filters.maxKm} km` });
   return chips.map(({ key, label, value }) => ({ key, label: `${label}: ${value}`, href: pageHref({ ...filters, [key]: undefined, page: 1 }, 1) }));
 }
+
+const HEADINGS: Record<JobFilters["sort"], string> = { best: "Best current matches", latest: "Latest jobs", posted: "Latest jobs", nearest: "Nearest jobs" };
 
 export const metadata = { title: "Jobs" };
 
@@ -43,7 +47,7 @@ export default async function JobsPage({ searchParams }: { searchParams: Params 
   const advancedActive = filters.technology !== undefined || filters.minScore !== undefined || filters.status !== "active" || filters.match !== "all";
   return (
     <>
-      <h1>{filters.sort === "best" ? "Best current matches" : "Latest jobs"}</h1>
+      <h1>{HEADINGS[filters.sort]}</h1>
       <form className="filters" action="/" role="search">
         <label>
           Title
@@ -66,12 +70,24 @@ export default async function JobsPage({ searchParams }: { searchParams: Params 
             <option value="90">Last 90 days</option>
           </select>
         </label>
+        <label title={`Straight line from ${HOME.name}. Remote jobs are always included.`}>
+          Distance
+          <select name="maxKm" defaultValue={filters.maxKm}>
+            <option value="any">Any distance</option>
+            {DISTANCE_LIMITS.map((km) => (
+              <option key={km} value={km}>
+                Within {km} km
+              </option>
+            ))}
+          </select>
+        </label>
         <label>
           Sort
           <select name="sort" defaultValue={filters.sort}>
             <option value="best">Best match</option>
             <option value="latest">Latest found</option>
             <option value="posted">Latest posted</option>
+            <option value="nearest">Nearest</option>
           </select>
         </label>
         <button type="submit" className="button button-primary">

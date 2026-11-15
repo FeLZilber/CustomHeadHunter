@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import { retryTransient, type Pool, type Queryable } from "../db/pool";
 import { FILTER_VERSION } from "../filter";
 import { redact } from "../logger";
+import { distanceFromHome } from "../normalize/location";
 import { hashMatchConfig, type MatchConfig } from "../match/config";
 import type { Profile } from "../profile/schema";
 
@@ -453,6 +454,8 @@ export interface CurrentJob {
   title: string;
   company: string;
   location: string | null;
+  /** Straight-line km from home to the nearest named city; null when none is known. */
+  distanceKm: number | null;
   score: number;
   inputKey: string;
   technologies: Array<{ name: string; level: string }>;
@@ -467,7 +470,7 @@ export interface CurrentJob {
 /** Best first, so a digest reads in score order whatever order it was planned in. */
 export async function loadCurrentJobs(db: Queryable, jobIds: string[], relevance: Relevance): Promise<CurrentJob[]> {
   const { rows } = await db.query(
-    `SELECT c.id, l.title, co.name AS company, l.original_location, r.score, r.input_key, l.technologies, r.response,
+    `SELECT c.id, l.title, co.name AS company, l.original_location, l.normalized_locations, r.score, r.input_key, l.technologies, r.response,
             r.evidence_unverified, c.first_discovered_at, l.application_url, ${siblingKey("c")} AS sibling_key
        FROM ${CURRENT_JOBS}
       WHERE c.id = ANY ($4::bigint[]) AND c.status = 'active'
@@ -479,6 +482,7 @@ export async function loadCurrentJobs(db: Queryable, jobIds: string[], relevance
     title: row.title,
     company: row.company,
     location: row.original_location,
+    distanceKm: distanceFromHome(row.normalized_locations),
     score: row.score,
     inputKey: row.input_key,
     technologies: row.technologies,

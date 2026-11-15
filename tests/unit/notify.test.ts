@@ -139,6 +139,13 @@ describe("message rendering", () => {
     expect(html).toContain('<a href="https://example.test/jobs/1?a=1&amp;b=2">');
   });
 
+  it("shows the distance after the location when known", () => {
+    expect(renderAlert("discovered", card({ distanceKm: 30 }))).toContain("Fixture Co, Tel Aviv, Israel (30 km)");
+    expect(renderAlert("discovered", card({ distanceKm: 0 }))).toContain("(0 km)");
+    expect(renderAlert("discovered", card({ distanceKm: null }))).not.toContain(" km)");
+    expect(renderDigest("Top", [card({ distanceKm: 100 })], 0)).toContain("Tel Aviv, Israel (100 km), discovered");
+  });
+
   it("names the event", () => {
     expect(renderAlert("reopened", card())).toContain("reopened");
     expect(renderAlert("changed", card())).toContain("changed");

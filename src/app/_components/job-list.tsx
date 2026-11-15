@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { JobSummary } from "../../dashboard/queries";
+import { Distance } from "./distance";
 import { formatAgo, formatDate, humanize } from "./format";
 import { DismissButton } from "./dismiss-button";
 import { MissedButton } from "./missed-button";
@@ -36,6 +37,7 @@ export function JobList({ jobs, empty, children }: { jobs: JobSummary[]; empty: 
             <p className="meta">
               <span dir="auto">{job.company}</span>
               <span dir="auto">{job.location ?? "Location not stated"}</span>
+              <Distance km={job.distanceKm} />
               {job.postedAt ? <When label="Posted" value={job.postedAt} /> : null}
               <When label="Found" value={job.discoveredAt} />
               {job.appliedAt ? <span className="badge badge-applied">Applied {formatDate(job.appliedAt)}</span> : null}

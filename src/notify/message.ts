@@ -8,6 +8,8 @@ export interface JobCard {
   title: string;
   company: string;
   location: string | null;
+  /** Straight-line km from home, shown after the location. */
+  distanceKm?: number | null;
   score: number;
   technologies: string[];
   gaps: string[];
@@ -45,7 +47,8 @@ const link = (url: string | null, label: string) => {
   return safe ? `<a href="${escapeHtml(safe)}">${escapeHtml(label)}</a>` : escapeHtml(label);
 };
 
-const place = (card: JobCard) => escapeHtml(cut(card.location ?? "Location not stated", 120));
+const distance = (card: JobCard) => (card.distanceKm != null ? ` (${card.distanceKm} km)` : "");
+const place = (card: JobCard) => `${escapeHtml(cut(card.location ?? "Location not stated", 120))}${distance(card)}`;
 const techLine = (card: JobCard) =>
   card.technologies.length ? [`Technologies: ${escapeHtml(cut(card.technologies.slice(0, MAX_TECHNOLOGIES).join(", "), 200))}`] : [];
 const gapLine = (card: JobCard) => {
