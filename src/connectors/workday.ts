@@ -204,10 +204,16 @@ export const workdayConnector: Connector = {
         problem ??= "Page limit reached";
         break;
       }
-      const result = await search(facets, page * WORKDAY_PAGE_SIZE);
+      let result = await search(facets, page * WORKDAY_PAGE_SIZE);
       if (result.stop) {
         if (pages === 0) return result.stop;
         return { kind: "partial", pages, reason: result.stop.reason, httpStatus: result.stop.httpStatus };
+      }
+      // NVIDIA's search now and then returns a row with no title or path, and the same page is whole a
+      // moment later (a full re-read found none). Ask once more before calling the crawl partial.
+      if (result.data.jobPostings.some((entry) => !SummarySchema.safeParse(entry).success)) {
+        const again = await search(facets, page * WORKDAY_PAGE_SIZE);
+        if (!again.stop && again.data.jobPostings.every((entry) => SummarySchema.safeParse(entry).success)) result = again;
       }
       // Only the first page reports the total; later pages answer 0.
       if (page === 0) total = result.data.total ?? null;

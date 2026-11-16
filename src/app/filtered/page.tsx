@@ -42,12 +42,15 @@ export default async function FilteredPage({ searchParams }: { searchParams: Par
       </p>
       {summary.flaggedByReason.length ? (
         <p className="meta">
-          <span>Rules behind the jobs you flagged:</span>
-          {summary.flaggedByReason.map(({ reason, count }) => (
-            <span key={reason}>
-              {humanize(reason)} ({count})
-            </span>
-          ))}
+          <span>Rules behind the jobs you flagged, as flagged of rejected by that rule:</span>
+          {summary.flaggedByReason.map(({ reason, count }) => {
+            const rejected = summary.byReason.find((entry) => entry.reason === reason)?.count ?? count;
+            return (
+              <span key={reason}>
+                {humanize(reason)} ({count} of {rejected}, {Math.round((100 * count) / rejected)}%)
+              </span>
+            );
+          })}
         </p>
       ) : null}
       <JobList jobs={jobs} empty={flaggedView ? "Nothing flagged yet." : "No filtered jobs for this view."} />

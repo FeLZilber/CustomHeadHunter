@@ -199,6 +199,24 @@ describe("workday connector", () => {
     expect(notJson.outcome).toMatchObject({ kind: "partial", reason: expect.stringContaining("not JSON") });
   });
 
+  it("re-reads a search page that held a malformed row, and is complete when the second read is whole", async () => {
+    let reads = 0;
+    const flaky = http((call) => {
+      if (call.method === "POST") {
+        if (Object.keys(call.body!.appliedFacets).length === 0) return json({ total: 500, jobPostings: [summary(900)], facets: COUNTRY_FACETS });
+        reads += 1;
+        const rows: unknown[] = [summary(1), summary(2)];
+        if (reads === 1) rows[1] = { title: "", externalPath: null };
+        return json({ total: 2, jobPostings: rows });
+      }
+      return json(detail(Number(/_JR(\d+)$/.exec(call.url)![1])));
+    });
+    const { outcome, listings } = await collect(flaky.client);
+    expect(outcome).toMatchObject({ kind: "complete", listings: 2 });
+    expect(listings).toHaveLength(2);
+    expect(reads).toBe(2);
+  });
+
   it("asks once more for a posting whose first answer is unusable", async () => {
     const asked = new Map<number, number>();
     const flaky = (n: number) => {

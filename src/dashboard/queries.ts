@@ -404,6 +404,52 @@ export async function readRejections(db: Queryable, context: ViewContext): Promi
   };
 }
 
+export interface SourceYield {
+  company: string;
+  /** Active jobs the company lists in scope. */
+  active: number;
+  /** Jobs the filter kept, whether or not the model has scored them yet. */
+  kept: number;
+  /** Scored at or above the notification threshold. */
+  strong: number;
+  /** Jobs the owner dismissed as not relevant. */
+  dismissed: number;
+  /** Filtered jobs the owner flagged as wrongly rejected. */
+  missed: number;
+}
+
+/**
+ * Which companies produce matches. A source with many active jobs and no kept ones costs crawl time
+ * for nothing; one with flagged misses is where the filter needs a look. Companies with nothing
+ * kept, dismissed or flagged are left to the first two columns, so the list is capped.
+ */
+export async function readSourceYield(db: Queryable, context: ViewContext, limit = 40): Promise<SourceYield[]> {
+  const { rows } = await db.query(
+    `SELECT job.company,
+            count(*)::int AS active,
+            count(*) FILTER (WHERE job.match_state IN ('current', 'pending', 'failed'))::int AS kept,
+            count(*) FILTER (WHERE job.match_state = 'current' AND job.score >= $5)::int AS strong,
+            count(*) FILTER (WHERE job.dismissed_reason IS NOT NULL)::int AS dismissed,
+            count(*) FILTER (WHERE job.missed_at IS NOT NULL)::int AS missed
+       FROM (SELECT co.name AS company, c.status, r.score, dj.reason AS dismissed_reason, mj.flagged_at AS missed_at,
+                    ${MATCH_STATE} AS match_state
+               FROM ${JOB_ROWS}) job
+      WHERE job.status = 'active'
+      GROUP BY job.company
+      ORDER BY strong DESC, kept DESC, missed DESC, active DESC, job.company
+      LIMIT $6`,
+    [...contextParams(context), context.profile.preferences.notificationThreshold, limit],
+  );
+  return rows.map((row) => ({
+    company: row.company,
+    active: row.active,
+    kept: row.kept,
+    strong: row.strong,
+    dismissed: row.dismissed,
+    missed: row.missed,
+  }));
+}
+
 export interface DismissalSummary {
   total: number;
   byReason: Array<{ reason: DismissReason; count: number }>;
@@ -463,10 +509,12 @@ export interface OperationsStatus {
   sourceProblems: SourceProblem[];
   deliveryProblems: DeliveryProblem[];
   latestMatch: LatestMatchRun | null;
+  /** The newest message Telegram confirmed, and how many were confirmed in the last 24 hours. */
+  lastSent: { at: Date | null; sentLast24h: number };
 }
 
 export async function readStatus(pool: Pool, context: ViewContext, staleHours: number): Promise<OperationsStatus> {
-  const [health, sources, deliveries, matches] = await Promise.all([
+  const [health, sources, deliveries, matches, sent] = await Promise.all([
     readHealth(pool, context.configHash, staleHours),
     pool.query(
       `SELECT * FROM (
@@ -487,6 +535,10 @@ export async function readStatus(pool: Pool, context: ViewContext, staleHours: n
         ORDER BY n.updated_at DESC LIMIT 50`,
     ),
     pool.query(`SELECT status, finished_at, summary FROM match_runs ORDER BY id DESC LIMIT 1`),
+    pool.query(
+      `SELECT max(sent_at) AS last, count(*) FILTER (WHERE sent_at > now() - interval '24 hours')::int AS recent
+         FROM notifications WHERE status = 'sent'`,
+    ),
   ]);
   const match = matches.rows[0];
   return {
@@ -506,6 +558,7 @@ export async function readStatus(pool: Pool, context: ViewContext, staleHours: n
       error: row.last_error,
       updatedAt: row.updated_at,
     })),
+    lastSent: { at: sent.rows[0]?.last ?? null, sentLast24h: sent.rows[0]?.recent ?? 0 },
     latestMatch: match
       ? {
           status: match.status,
