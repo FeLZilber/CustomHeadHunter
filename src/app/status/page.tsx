@@ -76,30 +76,17 @@ export default async function StatusPage() {
 
       <h2>Which companies produce matches</h2>
       {yields.length ? (
-        <table>
-          <thead>
-            <tr>
-              <th>Company</th>
-              <th>Active</th>
-              <th>Kept by filter</th>
-              <th>Strong matches</th>
-              <th>Dismissed</th>
-              <th>Flagged missed</th>
-            </tr>
-          </thead>
-          <tbody>
+        <>
+          <p className="meta">Per company: active jobs, kept by the filter, strong matches, dismissed, flagged as missed.</p>
+          <ul>
             {yields.map((row) => (
-              <tr key={row.company}>
-                <td dir="auto">{row.company}</td>
-                <td>{row.active}</td>
-                <td>{row.kept}</td>
-                <td>{row.strong}</td>
-                <td>{row.dismissed}</td>
-                <td>{row.missed}</td>
-              </tr>
+              <li key={row.company}>
+                <span dir="auto">{row.company}</span>: {row.active} active, {row.kept} kept, {row.strong} strong, {row.dismissed} dismissed,{" "}
+                {row.missed} missed
+              </li>
             ))}
-          </tbody>
-        </table>
+          </ul>
+        </>
       ) : (
         <p className="empty">No active jobs yet.</p>
       )}
