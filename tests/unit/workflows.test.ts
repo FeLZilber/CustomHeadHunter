@@ -5,10 +5,9 @@ import { describe, expect, it } from "vitest";
 import { parse } from "yaml";
 
 /**
- * Guards the triggers that keep production running. GitHub only registers a
- * schedule from the default branch and drops runs under load, so every
- * scheduled workflow needs a manual fallback, and the production ones carry a
- * backup cron. actionlint (CI `workflow-lint`) checks the syntax; this checks intent.
+ * Guards the workflow triggers. Scheduled runs are switched off while the
+ * project is on hold, so the production workflows run only by hand.
+ * actionlint (CI `workflow-lint`) checks the syntax; this checks intent.
  */
 const DIR = path.resolve(import.meta.dirname, "../../.github/workflows");
 const PRODUCTION = ["discovery.yml", "maintenance.yml"];
@@ -30,8 +29,6 @@ const workflows = Object.fromEntries(
     .map((file) => [file, parse(readFileSync(path.join(DIR, file), "utf8")) as Workflow]),
 );
 
-const CRON_FIELD = /^(\*|\d+(-\d+)?(,\d+(-\d+)?)*)(\/\d+)?$/;
-
 describe("workflow triggers", () => {
   it("finds the production workflows", () => {
     for (const file of PRODUCTION) expect(Object.keys(workflows)).toContain(file);
@@ -41,15 +38,12 @@ describe("workflow triggers", () => {
     expect(wf.on).toHaveProperty("workflow_dispatch");
   });
 
-  it.each(PRODUCTION)("%s has a primary and a backup cron", (file) => {
-    const crons = workflows[file]!.on?.schedule?.map((entry) => entry.cron) ?? [];
-    expect(crons.length).toBeGreaterThanOrEqual(2);
-    expect(new Set(crons).size).toBe(crons.length);
-    for (const cron of crons) {
-      const fields = cron.trim().split(/\s+/);
-      expect(fields, cron).toHaveLength(5);
-      for (const field of fields) expect(field, cron).toMatch(CRON_FIELD);
-    }
+  it("has no scheduled runs while the project is on hold", () => {
+    for (const [file, wf] of Object.entries(workflows)) expect(wf.on?.schedule, file).toBeUndefined();
+  });
+
+  it.each(PRODUCTION)("%s can be started by hand", (file) => {
+    expect(workflows[file]!.on).toHaveProperty("workflow_dispatch");
   });
 
   it.each(PRODUCTION)("%s shares the worker concurrency group, so a backup pass never overlaps", (file) => {

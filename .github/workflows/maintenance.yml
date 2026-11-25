@@ -3,13 +3,10 @@ name: maintenance
 # Reconciles freshness through the cheap ETag path, retries a smaller AI batch,
 # removes expired history and fails visibly when discovery has gone stale.
 #
-# Two offset crons, because GitHub can drop a scheduled run. The second pass is
-# cheap and the concurrency group keeps it from overlapping discovery.
-# tests/unit/workflows.test.ts requires both triggers.
+# Scheduled runs are switched off: the project is on hold. Run it by hand from
+# the Actions tab (workflow_dispatch). To resume, restore a `schedule:` block
+# (see git history) and the cron checks in tests/unit/workflows.test.ts.
 on:
-  schedule:
-    - cron: "17 7 * * *"
-    - cron: "43 13 * * *"
   workflow_dispatch:
     inputs:
       drill:
